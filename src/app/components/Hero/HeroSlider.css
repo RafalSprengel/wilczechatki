@@ -190,7 +190,7 @@
   height: 4px;
   background: #8da242;
   width: 0;
-  animation: progress 8s linear forwards;
+  animation: progress 7.5s linear forwards;
 }
 
 @keyframes progress {
@@ -283,6 +283,7 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 30px;
+    display: inherit;
   }
 
   .pagination-dots { display: none; }

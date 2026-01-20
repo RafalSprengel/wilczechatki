@@ -42,7 +42,7 @@ export default function HeroSlider() {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       handleNext();
-    }, 6000);
+    }, 7000);
   }, [handleNext]);
 
   const changeSlide = useCallback((newIndex: number) => {
