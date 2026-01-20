@@ -1,0 +1,28 @@
+.section {
+    padding: var(--section-padding);
+    background-color: var(--bg-white);
+    text-align: center;
+}
+
+.wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.attractionItem {
+    background: #fff;
+    border: 1px solid #eee;
+    padding: 15px 25px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.icon {
+    color: var(--accent-color);
+    font-size: 20px;
+}

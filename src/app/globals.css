@@ -1,0 +1,38 @@
+html {
+  scroll-behavior: smooth;
+}
+:root {
+    /* Kolory główne - inspirowane naturą i Twoimi notatkami */
+    --primary-color: #2c3e50;    /* Ciemny granat/antracyt (na TopBar i nagłówki) */
+    --accent-color: #8da242;     /* Oliwkowa zieleń (nawiązanie do lasu/Kaszub) */
+    --secondary-color: #f4f1ea;  /* Jasny beż/piaskowy (tło sekcji, kolor drewna) */
+    
+    /* Tekst i tło */
+    --text-main: #333333;
+    --text-light: #ffffff;
+    --bg-white: #ffffff;
+    
+    /* Statusy i akcje */
+    --action-color: #d4a373;     /* Ciepły odcień drewna / złoty (przyciski rezerwacji) */
+    --error-color: #c0392b;
+
+    /* Typografia i odstępy */
+    --font-main: 'Inter', sans-serif;
+    --section-padding: 60px 20px;
+    --border-radius: 8px;
+    --transition: 0.3s ease-in-out;
+}
+
+/* Podstawowy reset dla Mobile First */
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    font-family: var(--font-main);
+    color: var(--text-main);
+    background-color: var(--bg-white);
+    line-height: 1.6;
+}

@@ -1,0 +1,44 @@
+.contactSection {
+  padding: var(--section-padding);
+  background-color: var(--primary-color);
+  color: var(--text-light);
+}
+
+.mainContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.flexWrapper {
+  display: flex;
+  flex-direction: column; 
+  gap: 40px;
+  width: 100%;
+}
+
+.infoColumn {
+  flex: 1;
+  text-align: left;
+}
+
+.formColumn {
+  flex: 1;
+  width: 100%;
+}
+
+.payment h3 {
+  color: var(--action-color);
+  margin: 20px 0 10px;
+}
+
+@media (min-width: 768px) {
+  .flexWrapper {
+    flex-direction: row; 
+    align-items: flex-start;
+  }
+}

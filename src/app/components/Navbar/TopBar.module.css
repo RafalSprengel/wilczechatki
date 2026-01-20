@@ -1,0 +1,48 @@
+.topBar {
+    background-color: var(--primary-color);
+    padding: 8px 0;
+    width: 100%;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.contactInfo {
+    display: flex;
+    align-items: center;
+}
+
+.contactInfo a {
+    color: var(--text-light);
+    font-size: 12px;
+    margin-right: 20px;
+    opacity: 0.9;
+    transition: color var(--transition);
+    text-decoration: none;
+}
+
+.socialIcons {
+    display: flex;
+    align-items: center;
+}
+
+.socialIcons a {
+    color: var(--text-light);
+    font-size: 18px;
+    opacity: 0.9;
+    transition: color var(--transition), transform var(--transition);
+    text-decoration: none;
+}
+
+.socialIcons a:hover {
+    color: #1877F2;
+    opacity: 1;
+    transform: scale(1.1);
+}
