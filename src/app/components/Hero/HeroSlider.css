@@ -4,6 +4,12 @@
   height: 80vh;
   background: #000;
   overflow: hidden;
+  opacity: 0;
+  animation: fadeInSlider 1s ease-out forwards;
+}
+
+@keyframes fadeInSlider {
+  to { opacity: 1; }
 }
 
 .slider-main, .slide {
@@ -45,12 +51,41 @@
 
 .slide-content {
   position: absolute;
-  bottom: 320px; /* Miejsce na miniatury poniżej */
+  bottom: 320px;
   left: 20px;
   right: 20px;
   color: #fff;
   z-index: 10;
 }
+
+/* Stan bazowy dla animacji napisów */
+.slide-subtitle, 
+.slide-title, 
+.slide-topic, 
+.slide-desc, 
+.slide-actions {
+  opacity: 0;
+  transform: translateY(30px);
+  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Animacja dla aktywnego slajdu */
+.slide.active .slide-subtitle,
+.slide.active .slide-title,
+.slide.active .slide-topic,
+.slide.active .slide-desc,
+.slide.active .slide-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Kaskadowe opóźnienia */
+.slide.active .slide-subtitle { transition-delay: 0.4s; }
+.slide.active .slide-title    { transition-delay: 0.6s; }
+.slide.active .slide-topic    { transition-delay: 0.8s; }
+.slide.active .slide-desc     { transition-delay: 1.0s; }
+.slide.active .slide-actions  { transition-delay: 1.2s; }
 
 .slide-subtitle {
   display: block;
@@ -93,10 +128,14 @@
   text-transform: uppercase;
   border: none;
   cursor: pointer;
+  transition: 0.3s;
 }
 
 .btn-primary { background: #8da242; color: #fff; }
 .btn-outline { background: transparent; border: 1px solid #fff; color: #fff; }
+
+.btn-primary:hover { background: #7a8d38; }
+.btn-outline:hover { background: #fff; color: #000; }
 
 .slider-controls {
   position: absolute;
@@ -128,6 +167,7 @@
   opacity: 0.5;
   transition: 0.4s;
   border: 1px solid rgba(255,255,255,0.2);
+  cursor: pointer;
 }
 
 .active-thumb {
@@ -146,7 +186,7 @@
   position: absolute;
   bottom: 0;
   left: 0;
-  height: 4px;
+  height: 3px;
   background: #8da242;
   width: 0;
   animation: progress 8s linear forwards;
@@ -191,9 +231,14 @@
   height: 35px;
   border-radius: 50%;
   cursor: pointer;
+  transition: 0.3s;
 }
 
-/* DESKTOP (od 1024px) */
+.arrow:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: #fff;
+}
+
 @media (min-width: 1024px) {
   .overlay {
     background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, transparent 60%);

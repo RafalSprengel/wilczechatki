@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import './HeroSlider.css';
 
 interface SliderItem {
@@ -21,13 +21,24 @@ const items: SliderItem[] = [
 export default function HeroSlider() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const startTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      handleNext();
+    }, 8000);
+  }, [activeIndex]);
 
   const changeSlide = useCallback((newIndex: number) => {
-    if (isAnimating) return;
+    if (isAnimating || newIndex === activeIndex) return;
+    
     setIsAnimating(true);
     setActiveIndex(newIndex);
-    setTimeout(() => setIsAnimating(false), 1200);
-  }, [isAnimating]);
+    
+    setTimeout(() => setIsAnimating(false), 800);
+  }, [isAnimating, activeIndex]);
 
   const handleNext = useCallback(() => {
     changeSlide((activeIndex + 1) % items.length);
@@ -38,9 +49,12 @@ export default function HeroSlider() {
   }, [activeIndex, changeSlide]);
 
   useEffect(() => {
-    const timer = setInterval(handleNext, 8000);
-    return () => clearInterval(timer);
-  }, [handleNext]);
+    setIsMounted(true);
+    startTimer();
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [startTimer]);
 
   return (
     <section className="hero-slider">
@@ -48,7 +62,7 @@ export default function HeroSlider() {
         {items.map((item, index) => (
           <div
             key={item.id}
-            className={`slide ${index === activeIndex ? 'active' : ''}`}
+            className={`slide ${isMounted && index === activeIndex ? 'active' : ''}`}
           >
             <div className="overlay"></div>
             <img src={item.image} alt={item.title} className="slide-img" />
