@@ -24,29 +24,36 @@ export default function HeroSlider() {
   const [isMounted, setIsMounted] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const handleNext = useCallback(() => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setActiveIndex((prev) => (prev + 1) % items.length);
+    setTimeout(() => setIsAnimating(false), 500);
+  }, [isAnimating]);
+
+  const handlePrev = useCallback(() => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setActiveIndex((prev) => (prev - 1 + items.length) % items.length);
+    setTimeout(() => setIsAnimating(false), 500);
+  }, [isAnimating]);
+
   const startTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       handleNext();
-    }, 8000);
-  }, [activeIndex]);
+    }, 6000);
+  }, [handleNext]);
 
   const changeSlide = useCallback((newIndex: number) => {
     if (isAnimating || newIndex === activeIndex) return;
     
     setIsAnimating(true);
     setActiveIndex(newIndex);
+    startTimer();
     
-    setTimeout(() => setIsAnimating(false), 800);
-  }, [isAnimating, activeIndex]);
-
-  const handleNext = useCallback(() => {
-    changeSlide((activeIndex + 1) % items.length);
-  }, [activeIndex, changeSlide]);
-
-  const handlePrev = useCallback(() => {
-    changeSlide((activeIndex - 1 + items.length) % items.length);
-  }, [activeIndex, changeSlide]);
+    setTimeout(() => setIsAnimating(false), 500);
+  }, [isAnimating, activeIndex, startTimer]);
 
   useEffect(() => {
     setIsMounted(true);

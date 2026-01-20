@@ -115,6 +115,12 @@ export default function Hero() {
   height: 80vh;
   background: #000;
   overflow: hidden;
+  opacity: 0;
+  animation: fadeInSlider 1s ease-out forwards;
+}
+
+@keyframes fadeInSlider {
+  to { opacity: 1; }
 }
 
 .slider-main, .slide {
@@ -156,12 +162,41 @@ export default function Hero() {
 
 .slide-content {
   position: absolute;
-  bottom: 320px; /* Miejsce na miniatury poniżej */
+  bottom: 320px;
   left: 20px;
   right: 20px;
   color: #fff;
   z-index: 10;
 }
+
+/* Stan bazowy dla animacji napisów */
+.slide-subtitle, 
+.slide-title, 
+.slide-topic, 
+.slide-desc, 
+.slide-actions {
+  opacity: 0;
+  transform: translateY(30px);
+  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Animacja dla aktywnego slajdu */
+.slide.active .slide-subtitle,
+.slide.active .slide-title,
+.slide.active .slide-topic,
+.slide.active .slide-desc,
+.slide.active .slide-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Kaskadowe opóźnienia */
+.slide.active .slide-subtitle { transition-delay: 0.4s; }
+.slide.active .slide-title    { transition-delay: 0.6s; }
+.slide.active .slide-topic    { transition-delay: 0.8s; }
+.slide.active .slide-desc     { transition-delay: 1.0s; }
+.slide.active .slide-actions  { transition-delay: 1.2s; }
 
 .slide-subtitle {
   display: block;
@@ -204,10 +239,14 @@ export default function Hero() {
   text-transform: uppercase;
   border: none;
   cursor: pointer;
+  transition: 0.3s;
 }
 
 .btn-primary { background: #8da242; color: #fff; }
 .btn-outline { background: transparent; border: 1px solid #fff; color: #fff; }
+
+.btn-primary:hover { background: #7a8d38; }
+.btn-outline:hover { background: #fff; color: #000; }
 
 .slider-controls {
   position: absolute;
@@ -221,8 +260,9 @@ export default function Hero() {
 
 .thumbnails-container {
   display: flex;
+  justify-content: center;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   padding-bottom: 5px;
   scrollbar-width: none;
 }
@@ -239,6 +279,7 @@ export default function Hero() {
   opacity: 0.5;
   transition: 0.4s;
   border: 1px solid rgba(255,255,255,0.2);
+  cursor: pointer;
 }
 
 .active-thumb {
@@ -257,7 +298,7 @@ export default function Hero() {
   position: absolute;
   bottom: 0;
   left: 0;
-  height: 4px;
+  height: 3px;
   background: #8da242;
   width: 0;
   animation: progress 8s linear forwards;
@@ -269,8 +310,11 @@ export default function Hero() {
 
 .bottom-nav {
   display: flex;
+  flex-direction: column;
+  gap: 15px;;
   justify-content: space-between;
   align-items: center;
+  display: none;
 }
 
 .pagination-dots {
@@ -302,9 +346,14 @@ export default function Hero() {
   height: 35px;
   border-radius: 50%;
   cursor: pointer;
+  transition: 0.3s;
 }
 
-/* DESKTOP (od 1024px) */
+.arrow:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: #fff;
+}
+
 @media (min-width: 1024px) {
   .overlay {
     background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, transparent 60%);
@@ -328,7 +377,7 @@ export default function Hero() {
     display: flex;
     flex-direction: row-reverse;
     justify-content: space-between;
-    align-items: flex-end;
+    align-items: center;
   }
 
   .thumbnails-container {
@@ -354,7 +403,7 @@ export default function Hero() {
 <file path="src/app/components/Hero/HeroSlider.tsx">
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import './HeroSlider.css';
 
 interface SliderItem {
@@ -375,13 +424,24 @@ const items: SliderItem[] = [
 export default function HeroSlider() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const startTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      handleNext();
+    }, 8000);
+  }, [activeIndex]);
 
   const changeSlide = useCallback((newIndex: number) => {
-    if (isAnimating) return;
+    if (isAnimating || newIndex === activeIndex) return;
+    
     setIsAnimating(true);
     setActiveIndex(newIndex);
-    setTimeout(() => setIsAnimating(false), 1200);
-  }, [isAnimating]);
+    
+    setTimeout(() => setIsAnimating(false), 800);
+  }, [isAnimating, activeIndex]);
 
   const handleNext = useCallback(() => {
     changeSlide((activeIndex + 1) % items.length);
@@ -392,9 +452,12 @@ export default function HeroSlider() {
   }, [activeIndex, changeSlide]);
 
   useEffect(() => {
-    const timer = setInterval(handleNext, 8000);
-    return () => clearInterval(timer);
-  }, [handleNext]);
+    setIsMounted(true);
+    startTimer();
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [startTimer]);
 
   return (
     <section className="hero-slider">
@@ -402,7 +465,7 @@ export default function HeroSlider() {
         {items.map((item, index) => (
           <div
             key={item.id}
-            className={`slide ${index === activeIndex ? 'active' : ''}`}
+            className={`slide ${isMounted && index === activeIndex ? 'active' : ''}`}
           >
             <div className="overlay"></div>
             <img src={item.image} alt={item.title} className="slide-img" />
