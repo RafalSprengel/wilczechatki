@@ -32,7 +32,7 @@ The content is organized as follows:
 <notes>
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
-- Only files matching these patterns are included: src/app/components/Navbar
+- Only files matching these patterns are included: src/app
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
 - Files are sorted by Git change count (files with more changes are at the bottom)
@@ -41,6 +41,18 @@ The content is organized as follows:
 </file_summary>
 
 <directory_structure>
+src/app/components/About/About.module.css
+src/app/components/About/About.tsx
+src/app/components/Attractions/Attractions.module.css
+src/app/components/Attractions/Attractions.tsx
+src/app/components/Contact/Contact.module.css
+src/app/components/Contact/Contact.tsx
+src/app/components/Contact/ContactForm.module.css
+src/app/components/Contact/ContactForm.tsx
+src/app/components/Hero/Hero.module.css
+src/app/components/Hero/Hero.tsx
+src/app/components/Hero/HeroSlider.css
+src/app/components/Hero/HeroSlider.tsx
 src/app/components/Navbar/HamburgerButton.module.css
 src/app/components/Navbar/HamburgerButton.module.scss
 src/app/components/Navbar/HamburgerButton.tsx
@@ -48,10 +60,560 @@ src/app/components/Navbar/Navbar.module.css
 src/app/components/Navbar/Navbar.tsx
 src/app/components/Navbar/TopBar.module.css
 src/app/components/Navbar/TopBar.tsx
+src/app/components/Services/Services.module.css
+src/app/components/Services/Services.tsx
+src/app/favicon_2.ico
+src/app/favicon_old.ico
+src/app/favicon.ico
+src/app/globals.css
+src/app/layout.tsx
+src/app/page.module.css
+src/app/page.tsx
 </directory_structure>
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="src/app/components/About/About.module.css">
+.section {
+    padding: 60px 20px;
+    background-color: #ffffff;
+    line-height: 1.6;
+    color: #333;
+}
+
+.wrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.title {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 30px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.content p {
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    text-align: justify;
+}
+
+.content strong {
+    color: #27ae60;
+}
+
+.links {
+    margin-top: 40px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.link {
+    color: #27ae60;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.link:hover {
+    color: #1e8449;
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .title {
+        font-size: 1.6rem;
+    }
+    
+    .content p {
+        text-align: left;
+        font-size: 1rem;
+    }
+}
+</file>
+
+<file path="src/app/components/About/About.tsx">
+import styles from './About.module.css';
+
+export default function About() {
+    return (
+        <section id="about-us" className={styles.section}>
+            <div className={styles.wrapper}>
+                <h2 className={styles.title}>Serdecznie witamy w Wilczych Chatkach!</h2>
+                
+                <div className={styles.content}>
+                    <p>
+                        Jeżeli szukacie Państwo miejsca na wymarzony urlop, rodzinne wakacje czy spontaniczny 
+                        weekendowy wypad na Kaszuby – doskonale trafiliście! <strong>Wilcze Chatki</strong> to dwa 
+                        nowoczesne, całoroczne domki bliźniacze, które łączą bieszczadzki klimat z malowniczym 
+                        krajobrazem Szumlesia Królewskiego.
+                    </p>
+                    
+                    <p>
+                        Nasz obiekt położony jest w spokojnej, zielonej okolicy, która gwarantuje wytchnienie 
+                        od miejskiego zgiełku i bliski kontakt z naturą. Jest to fantastyczne miejsce dla rodzin 
+                        z dziećmi, miłośników wycieczek rowerowych, spacerowiczów oraz każdego, kto pragnie 
+                        naładować baterie w otoczeniu lasów i jezior.
+                    </p>
+
+                    <p>
+                        Obiekt zlokalizowany jest w miejscowości <strong>Szumles Królewski</strong>, położonej dogodnie 
+                        między Gdańskiem a Kościerzyną. Dzięki tej lokalizacji nasi Goście mogą cieszyć się 
+                        absolutną ciszą i prywatnością, mając jednocześnie szybki dostęp do atrakcji regionu, 
+                        takich jak Kaszubski Park Krajobrazowy, szczyt Wieżyca czy słynny Szymbark.
+                    </p>
+
+                    <p>
+                        Po dniu pełnym wrażeń, do Państwa dyspozycji oddajemy strefę relaksu z 
+                        <strong> sauną infrared</strong> oraz klimatycznym <strong>jacuzzi ogrzewanym drewnem</strong>. 
+                        W przypadku pytań prosimy o kontakt mailowy, telefoniczny lub poprzez formularz.
+                    </p>
+                </div>
+
+                <div className={styles.links}>
+                    <a href="#atrakcje" className={styles.link}>Przeczytaj więcej o atrakcjach w regionie &raquo;</a>
+                </div>
+            </div>
+        </section>
+    );
+}
+</file>
+
+<file path="src/app/components/Attractions/Attractions.module.css">
+.section {
+    padding: 60px 20px;
+    background-color: #f9fbf9;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.title {
+    font-size: 1.8rem;
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 40px;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+.card {
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #edf2ed;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    background-color: #27ae60;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.cardTitle {
+    font-size: 1.15rem;
+    color: #2c3e50;
+    margin: 0;
+    font-weight: 600;
+}
+
+.description {
+    color: #555;
+    line-height: 1.5;
+    font-size: 0.95rem;
+    margin: 0 0 20px 0;
+    flex-grow: 1;
+}
+
+.link {
+    color: #27ae60;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-block;
+    transition: color 0.2s ease;
+}
+
+.link:hover {
+    color: #1e8449;
+    text-decoration: underline;
+}
+
+@media (min-width: 768px) {
+    .section {
+        padding: 80px 40px;
+    }
+
+    .title {
+        font-size: 2.2rem;
+    }
+
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .card {
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-8px);
+    }
+}
+</file>
+
+<file path="src/app/components/Attractions/Attractions.tsx">
+import styles from './Attractions.module.css';
+
+export default function Attractions() {
+    const attractions = [
+        {
+            title: 'Kaszubski Park Krajobrazowy',
+            description: 'Niezliczone jeziora i morenowe wzgórza zwane "Szwajcarią Kaszubską".',
+            url: 'https://kpk.pomorskie.eu/'
+        },
+        {
+            title: 'Wieżyca – Wieża Widokowa',
+            description: 'Najwyższy szczyt Niżu Polskiego (329 m n.p.m.) z widokiem na całe Kaszuby.',
+            url: 'https://szwajcariakaszubska.com/atrakcje/wieza-widokowa-na-wiezycy'
+        },
+        {
+            title: 'CEPR w Szymbarku',
+            description: 'Słynny "Dom do góry nogami", Najdłuższą Deska Świata i Dom Sybiraka.',
+            url: 'https://cepr.pl/'
+        },
+        {
+            title: 'Skansen we Wdzydzach',
+            description: 'Najstarsze w Polsce muzeum na wolnym powietrzu nad "Kaszubskim Morzem".',
+            url: 'http://www.muzeum-wdzydze.gda.pl/'
+        },
+        {
+            title: 'Muzeum Hymnu w Będominie',
+            description: 'Jedyne na świecie muzeum poświęcone "Mazurkowi Dąbrowskiego" (bardzo blisko domków!).',
+            url: 'https://muzeumhymnu.pl/'
+        },
+        {
+            title: 'Trasy Rowerowe Nowa Karczma',
+            description: 'Lokalne szlaki prowadzące przez najpiękniejsze zakątki gminy.',
+            url: 'https://www.nowakarczma.pl/asp/walory-turystyczne,42,,1'
+        }
+    ];
+
+    return (
+        <section id="attractions" className={styles.section}>
+            <div className={styles.container}>
+                <h2 className={styles.title}>Atrakcje w okolicy 🌲</h2>
+                <p className={styles.subtitle}>
+                    Odkryj uroki Szumlesia Królewskiego i serca Kaszub. Kliknij, aby dowiedzieć się więcej.
+                </p>
+                
+                <div className={styles.grid}>
+                    {attractions.map((item, idx) => (
+                        <div key={idx} className={styles.card}>
+                            <div className={styles.header}>
+                                <span className={styles.dot}></span>
+                                <h3 className={styles.cardTitle}>{item.title}</h3>
+                            </div>
+                            <p className={styles.description}>{item.description}</p>
+                            <a 
+                                href={item.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className={styles.link}
+                            >
+                                Sprawdź szczegóły &raquo;
+                            </a>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+</file>
+
+<file path="src/app/components/Contact/Contact.module.css">
+.contactSection {
+  padding: var(--section-padding);
+  background-color: var(--primary-color);
+  color: var(--text-light);
+}
+
+.mainContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.flexWrapper {
+  display: flex;
+  flex-direction: column; 
+  gap: 40px;
+  width: 100%;
+}
+
+.infoColumn {
+  flex: 1;
+  text-align: left;
+}
+
+.formColumn {
+  flex: 1;
+  width: 100%;
+}
+
+.payment h3 {
+  color: var(--action-color);
+  margin: 20px 0 10px;
+}
+
+@media (min-width: 768px) {
+  .flexWrapper {
+    flex-direction: row; 
+    align-items: flex-start;
+  }
+}
+</file>
+
+<file path="src/app/components/Contact/Contact.tsx">
+import styles from './Contact.module.css';
+import ContactForm from './ContactForm';
+
+export default function Contact() {
+  return (
+    <section id="contact" className={styles.contactSection}>
+      <div className={styles.mainContainer}>
+        <h2 className={styles.title}>Kontakt</h2>
+        
+        <div className={styles.flexWrapper}>
+          <div className={styles.infoColumn}>
+            <div className={styles.details}>
+              <p><strong>Wilcze Chatki</strong></p>
+              <p>Szumleś Królewski, Kaszuby</p>
+              <p>Tel: +48 668 388 570</p>
+              <p>Email: kontakt@wilczechatki.pl</p>
+            </div>
+            <div className={styles.payment}>
+              <h3>Dane do przelewu:</h3>
+              <p>Numer konta (PKO BP):</p>
+              <p>20 1020 5226 0000 6702 0486 0336</p>
+            </div>
+          </div>
+
+          <div className={styles.formColumn}>
+            <ContactForm />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+</file>
+
+<file path="src/app/components/Contact/ContactForm.module.css">
+.formContainer {
+  background-color: var(--bg-white);
+  padding: 30px;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  color: var(--text-main);
+  width: 100%;
+}
+
+.group {
+  margin-bottom: 20px;
+}
+
+.group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.input, .textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: var(--font-main);
+  font-size: 16px;
+  transition: border-color var(--transition);
+}
+
+.input:focus, .textarea:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.submitBtn {
+  width: 100%;
+  background-color: var(--accent-color);
+  color: var(--text-light);
+  padding: 14px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color var(--transition);
+}
+
+.submitBtn:hover {
+  background-color: #7a8d38;
+}
+</file>
+
+<file path="src/app/components/Contact/ContactForm.tsx">
+'use client';
+
+import { useState } from 'react';
+import styles from './ContactForm.module.css';
+
+export default function ContactForm() {
+  const [status, setStatus] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('Sending...');
+    
+    setTimeout(() => {
+      setStatus('Message sent successfully!');
+      (e.target as HTMLFormElement).reset();
+    }, 1500);
+  };
+
+  return (
+    <div className={styles.formContainer}>
+      <form onSubmit={handleSubmit}>
+        <div className={styles.group}>
+          <label htmlFor="name">Imię i Nazwisko</label>
+          <input type="text" id="name" name="name" required className={styles.input} />
+        </div>
+        
+        <div className={styles.group}>
+          <label htmlFor="email">Adres E-mail</label>
+          <input type="email" id="email" name="email" required className={styles.input} />
+        </div>
+
+        <div className={styles.group}>
+          <label htmlFor="message">Wiadomość</label>
+          <textarea id="message" name="message" required className={styles.textarea}></textarea>
+        </div>
+
+        <button type="submit" className={styles.submitBtn}>
+          Wyślij wiadomość
+        </button>
+
+        {status && <p style={{ marginTop: '15px', textAlign: 'center', color: 'var(--accent-color)' }}>{status}</p>}
+      </form>
+    </div>
+  );
+}
+</file>
+
+<file path="src/app/components/Hero/Hero.module.css">
+.hero {
+    height: 100vh;
+    width: 100%;
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
+                url('/images/hero-bg.jpg') center/cover no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.content {
+    text-align: center;
+    color: var(--text-light);
+    padding: 0 20px;
+}
+
+.content h1 {
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.cta {
+    display: inline-block;
+    background-color: var(--accent-color);
+    color: var(--text-light);
+    padding: 15px 40px;
+    text-transform: uppercase;
+    font-weight: 600;
+    border-radius: 4px;
+    margin-top: 20px;
+    transition: background var(--transition);
+}
+</file>
+
+<file path="src/app/components/Hero/Hero.tsx">
+import Link from 'next/link';
+import styles from './Hero.module.css';
+
+export default function Hero() {
+    return (
+        <section className={styles.hero}>
+            <div className={styles.overlay}>
+                <div className={styles.content}>
+                    <h1>Wilcze Chatki</h1>
+                    <p>Odkryj spokój w sercu Kaszub – Szumleś Królewski</p>
+                    <Link href="#services" className={styles.cta}>
+                        Sprawdź ofertę
+                    </Link>
+                </div>
+            </div>
+        </section>
+    );
+}
+</file>
 
 <file path="src/app/components/Navbar/HamburgerButton.module.css">
 .hamburger {
@@ -249,6 +811,369 @@ export default function TopBar() {
 }
 </file>
 
+<file path="src/app/components/Services/Services.module.css">
+.container {
+    padding: var(--section-padding);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+}
+
+.card {
+    background-color: var(--secondary-color);
+    padding: 30px;
+    border-radius: var(--border-radius);
+}
+
+.priceGroup {
+    margin-top: 20px;
+}
+
+.priceRow {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.features {
+    margin-top: 20px;
+}
+
+.features li {
+    margin-bottom: 10px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.features li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--accent-color);
+}
+
+@media (min-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+</file>
+
+<file path="src/app/components/Services/Services.tsx">
+import styles from './Services.module.css';
+
+interface PriceItem {
+    description: string;
+    amount: string;
+}
+
+export default function Services() {
+    const weekdayRates: PriceItem[] = [
+        { description: '2-3 osoby', amount: '300 zł' },
+        { description: '4-6 osób', amount: '400 zł' }
+    ];
+
+    const weekendRates: PriceItem[] = [
+        { description: '2-3 osoby', amount: '400 zł' },
+        { description: '4-5 osób', amount: '500 zł' },
+        { description: 'Dostawka', amount: '+100 zł' }
+    ];
+
+    return (
+        <section id="services" className={styles.container}>
+            <header className={styles.header}>
+                <h2>Nasza Oferta</h2>
+                <p>Dwa przytulne domki o powierzchni 35 m² każdy</p>
+            </header>
+
+            <div className={styles.grid}>
+                <div className={styles.card}>
+                    <h3>Cennik za dobę</h3>
+                    <div className={styles.priceGroup}>
+                        <h4>W tygodniu:</h4>
+                        {weekdayRates.map((rate, index) => (
+                            <div key={index} className={styles.priceRow}>
+                                <span>{rate.description}</span>
+                                <strong>{rate.amount}</strong>
+                            </div>
+                        ))}
+                    </div>
+                    <div className={styles.priceGroup}>
+                        <h4>Weekendy:</h4>
+                        {weekendRates.map((rate, index) => (
+                            <div key={index} className={styles.priceRow}>
+                                <span>{rate.description}</span>
+                                <strong>{rate.amount}</strong>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className={styles.card}>
+                    <h3>Udogodnienia</h3>
+                    <ul className={styles.features}>
+                        <li>Sauna 4-osobowa Infrared</li>
+                        <li>Jakuzzi ogrzewane drewnem (w cenie)</li>
+                        <li>Plac zabaw dla dzieci</li>
+                        <li>Pełne wyposażenie i klimatyzacja</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    );
+}
+</file>
+
+<file path="src/app/globals.css">
+html {
+  scroll-behavior: smooth;
+}
+:root {
+    /* Kolory główne - inspirowane naturą i Twoimi notatkami */
+    --primary-color: #2c3e50;    /* Ciemny granat/antracyt (na TopBar i nagłówki) */
+    --accent-color: #8da242;     /* Oliwkowa zieleń (nawiązanie do lasu/Kaszub) */
+    --secondary-color: #f4f1ea;  /* Jasny beż/piaskowy (tło sekcji, kolor drewna) */
+    
+    /* Tekst i tło */
+    --text-main: #333333;
+    --text-light: #ffffff;
+    --bg-white: #ffffff;
+    
+    /* Statusy i akcje */
+    --action-color: #d4a373;     /* Ciepły odcień drewna / złoty (przyciski rezerwacji) */
+    --error-color: #c0392b;
+
+    /* Typografia i odstępy */
+    --font-main: 'Inter', sans-serif;
+    --section-padding: 60px 20px;
+    --border-radius: 8px;
+    --transition: 0.3s ease-in-out;
+}
+
+/* Podstawowy reset dla Mobile First */
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    font-family: var(--font-main);
+    color: var(--text-main);
+    background-color: var(--bg-white);
+    line-height: 1.6;
+}
+</file>
+
+<file path="src/app/layout.tsx">
+import type { Metadata } from 'next';
+import './globals.css';
+import TopBar from '@components/Navbar/TopBar';
+import Navbar from '@components/Navbar/Navbar';
+
+import { config } from '@fortawesome/fontawesome-svg-core';
+import '@fortawesome/fontawesome-svg-core/styles.css';
+config.autoAddCss = false;
+
+export const metadata: Metadata = {
+	title: 'Wilcze Chatki - Domki na Kaszubach',
+	description: 'Komfortowe domki z sauną i jakuzzi w Szumlesiu Królewskim',
+};
+
+export default function RootLayout({
+	children,
+}: Readonly<{
+	children: React.ReactNode;
+}>) {
+	return (
+		<html lang="pl">
+			<body>
+				<header>
+					<TopBar />
+					<Navbar />
+				</header>
+				{children}
+			</body>
+		</html>
+	);
+}
+</file>
+
+<file path="src/app/page.module.css">
+.page {
+  --background: #fafafa;
+  --foreground: #fff;
+
+  --text-primary: #000;
+  --text-secondary: #666;
+
+  --button-primary-hover: #383838;
+  --button-secondary-hover: #f2f2f2;
+  --button-secondary-border: #ebebeb;
+
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-geist-sans);
+  background-color: var(--background);
+}
+
+.main {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 800px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  background-color: var(--foreground);
+  padding: 120px 60px;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 24px;
+}
+
+.intro h1 {
+  max-width: 320px;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 48px;
+  letter-spacing: -2.4px;
+  text-wrap: balance;
+  color: var(--text-primary);
+}
+
+.intro p {
+  max-width: 440px;
+  font-size: 18px;
+  line-height: 32px;
+  text-wrap: balance;
+  color: var(--text-secondary);
+}
+
+.intro a {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.ctas {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  max-width: 440px;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.ctas a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 128px;
+  border: 1px solid transparent;
+  transition: 0.2s;
+  cursor: pointer;
+  width: fit-content;
+  font-weight: 500;
+}
+
+a.primary {
+  background: var(--text-primary);
+  color: var(--background);
+  gap: 8px;
+}
+
+a.secondary {
+  border-color: var(--button-secondary-border);
+}
+
+/* Enable hover only on non-touch devices */
+@media (hover: hover) and (pointer: fine) {
+  a.primary:hover {
+    background: var(--button-primary-hover);
+    border-color: transparent;
+  }
+
+  a.secondary:hover {
+    background: var(--button-secondary-hover);
+    border-color: transparent;
+  }
+}
+
+@media (max-width: 600px) {
+  .main {
+    padding: 48px 24px;
+  }
+
+  .intro {
+    gap: 16px;
+  }
+
+  .intro h1 {
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -1.92px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .logo {
+    filter: invert();
+  }
+
+  .page {
+    --background: #000;
+    --foreground: #000;
+
+    --text-primary: #ededed;
+    --text-secondary: #999;
+
+    --button-primary-hover: #ccc;
+    --button-secondary-hover: #1a1a1a;
+    --button-secondary-border: #1a1a1a;
+  }
+}
+</file>
+
+<file path="src/app/page.tsx">
+import HeroSlider from "@components/Hero/HeroSlider";
+import About from "@components/About/About";
+import Services from "@components/Services/Services";
+import Attractions from "@components/Attractions/Attractions";
+import Contact from "@components/Contact/Contact";
+
+export default function Home() {
+    return (
+        <main>
+            <HeroSlider />
+            <About />
+            <Services />
+            <Attractions />
+            <Contact />
+        </main>
+    );
+}
+</file>
+
 <file path="src/app/components/Navbar/Navbar.tsx">
 'use client';
 
@@ -285,6 +1210,7 @@ export default function Navbar() {
                 <div className={styles.mobileMenuOuter + ' ' + (isMenuOpen ? styles.showMobileMenu : '')}>
                     <div className={styles.mobileMenuInner}>
                         <ul className={`${styles.navLinks} ${isMenuOpen ? styles.showMenu : ''}`}>
+                            <li><Link href="#about-us">O nas</Link></li>
                             <li><Link href="#services">OFERTA</Link></li>
                             <li><Link href="/gallery">GALERIA</Link></li>
                             <li><Link href="#attractions">KASZUBY</Link></li>
@@ -295,6 +1221,128 @@ export default function Navbar() {
             </div>
         </nav>
     );
+}
+</file>
+
+<file path="src/app/components/Hero/HeroSlider.tsx">
+'use client';
+
+import { useState, useEffect, useCallback, useRef } from 'react';
+import './HeroSlider.css';
+
+interface SliderItem {
+  id: number;
+  title: string;
+  topic: string;
+  description: string;
+  image: string;
+}
+
+const items: SliderItem[] = [
+  { id: 1, title: 'WILCZE CHATKI', topic: 'KASZUBY', description: 'Odkryj magię Szumlesia Królewskiego w luksusowych domkach z sauną.', image: '/images/img1.jpeg' },
+  { id: 2, title: 'REJSY I RELAKS', topic: 'NATURA', description: 'Ciesz się kojącym szumem drzew i prywatnym jakuzzi pod gwiazdami.', image: '/images/img2.jpeg' },
+  { id: 3, title: 'PRZYGODA', topic: 'AKTYWNIE', description: 'Najlepsze szlaki rowerowe i jeziora Kaszub na wyciągnięcie ręki.', image: '/images/img3.jpeg' },
+  { id: 4, title: 'CIEPŁO DOMU', topic: 'KOMINEK', description: 'Poczuj wyjątkowy klimat wieczorów przy trzaskającym ogniu.', image: '/images/img4.jpeg' },
+];
+
+export default function HeroSlider() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleNext = useCallback(() => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setActiveIndex((prev) => (prev + 1) % items.length);
+    setTimeout(() => setIsAnimating(false), 500);
+  }, [isAnimating]);
+
+  const handlePrev = useCallback(() => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setActiveIndex((prev) => (prev - 1 + items.length) % items.length);
+    setTimeout(() => setIsAnimating(false), 500);
+  }, [isAnimating]);
+
+  const startTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      handleNext();
+    }, 7000);
+  }, [handleNext]);
+
+  const changeSlide = useCallback((newIndex: number) => {
+    if (isAnimating || newIndex === activeIndex) return;
+    
+    setIsAnimating(true);
+    setActiveIndex(newIndex);
+    startTimer();
+    
+    setTimeout(() => setIsAnimating(false), 500);
+  }, [isAnimating, activeIndex, startTimer]);
+
+  useEffect(() => {
+    setIsMounted(true);
+    startTimer();
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [startTimer]);
+
+  return (
+    <section className="hero-slider">
+      <div className="slider-main">
+        {items.map((item, index) => (
+          <div
+            key={item.id}
+            className={`slide ${isMounted && index === activeIndex ? 'active' : ''}`}
+          >
+            <div className="overlay"></div>
+            <img src={item.image} alt={item.title} className="slide-img" />
+            
+            <div className="slide-content">
+              <span className="slide-subtitle">SZUMLEŚ KRÓLEWSKI</span>
+              <h1 className="slide-title">{item.title}</h1>
+              <h2 className="slide-topic">{item.topic}</h2>
+              <p className="slide-desc">{item.description}</p>
+              <div className="slide-actions">
+                <button className="btn-primary">ZAREZERWUJ</button>
+                <button className="btn-outline">GALERIA</button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="slider-controls">
+        <div className="thumbnails-container">
+          {items.map((item, index) => (
+            <div
+              key={`thumb-${item.id}`}
+              className={`thumb-item ${index === activeIndex ? 'active-thumb' : ''}`}
+              onClick={() => changeSlide(index)}
+            >
+              <img src={item.image} alt="" />
+              {index === activeIndex && <div className="thumb-progress" />}
+            </div>
+          ))}
+        </div>
+
+        <div className="bottom-nav">
+          <div className="pagination-dots">
+            {items.map((_, index) => (
+              <span key={index} className={`dot ${index === activeIndex ? 'active-dot' : ''}`} />
+            ))}
+          </div>
+          <div className="arrows">
+            <button onClick={handlePrev} className="arrow">←</button>
+            <button onClick={handleNext} className="arrow">→</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
 </file>
 
@@ -435,24 +1483,338 @@ export default function Navbar() {
 
     .mobileMenuOuter {
         flex: 1;
-        position: relative;
+        position: static;
         width: auto;
+        height: auto;
+        opacity: 1;
+        padding: 0;
+        margin-left: auto;
     }
 
     .mobileMenuInner {
-        height: auto;
-        justify-content: end;
+        background: transparent;
+        box-shadow: none;
+        border: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        padding: 0;
+        justify-content: flex-end;
     }
 
     .showMobileMenu {
         height: auto;
         opacity: 1;
+        transform: none;
     }
-
 
     .navLinks {
         flex-direction: row;
+        width: auto;
+        padding: 0;
     }
+
+    .navLinks li {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+    .navLinks a {
+    font-size: 16px;
+  }
+}
+</file>
+
+<file path="src/app/components/Hero/HeroSlider.css">
+.hero-slider {
+  position: relative;
+  width: 100dvw;
+  height: 80vh;
+  background: #000;
+  overflow: hidden;
+  opacity: 0;
+  animation: fadeInSlider 1s ease-out forwards;
+}
+
+@keyframes fadeInSlider {
+  to { opacity: 1; }
+}
+
+.slider-main, .slide {
+  position: absolute;
+  inset: 0;
+}
+
+.slide {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 1.2s ease-in-out;
+  z-index: 1;
+}
+
+.slide.active {
+  opacity: 1;
+  visibility: visible;
+  z-index: 2;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom,#74747454, #000000e6);
+  z-index: 2;
+}
+
+.slide-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: kenBurns 20s linear infinite alternate;
+  filter: blur(1px)
+}
+
+@keyframes kenBurns {
+  from { transform: scale(1)}
+  to { transform: scale(1.15) }
+}
+
+.slide-content {
+  position: absolute;
+  bottom: 320px;
+  left: 20px;
+  right: 20px;
+  color: #fff;
+  z-index: 10;
+}
+
+/* Stan bazowy dla animacji napisów */
+.slide-subtitle, 
+.slide-title, 
+.slide-topic, 
+.slide-desc, 
+.slide-actions {
+  opacity: 0;
+  transform: translateY(30px);
+  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Animacja dla aktywnego slajdu */
+.slide.active .slide-subtitle,
+.slide.active .slide-title,
+.slide.active .slide-topic,
+.slide.active .slide-desc,
+.slide.active .slide-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Kaskadowe opóźnienia */
+.slide.active .slide-subtitle { transition-delay: 0.4s; }
+.slide.active .slide-title    { transition-delay: 0.6s; }
+.slide.active .slide-topic    { transition-delay: 0.8s; }
+.slide.active .slide-desc     { transition-delay: 1.0s; }
+.slide.active .slide-actions  { transition-delay: 1.2s; }
+
+.slide-subtitle {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  margin-bottom: 5px;
+}
+
+.slide-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.slide-topic {
+  font-size: 1.5rem;
+  color: #8da242;
+  margin: 5px 0 10px;
+}
+
+.slide-desc {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.slide-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-primary, .btn-outline {
+  padding: 10px 18px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-primary { background: #8da242; color: #fff; }
+.btn-outline { background: transparent; border: 1px solid #fff; color: #fff; }
+
+.btn-primary:hover { background: #7a8d38; }
+.btn-outline:hover { background: #fff; color: #000; }
+
+.slider-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.thumbnails-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding-bottom: 5px;
+  scrollbar-width: none;
+}
+
+.thumbnails-container::-webkit-scrollbar { display: none; }
+
+.thumb-item {
+  width: 70px;
+  height: 90px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  opacity: 0.5;
+  transition: 0.4s;
+  border: 1px solid rgba(255,255,255,0.2);
+  cursor: pointer;
+}
+
+.active-thumb {
+  opacity: 1;
+  border-color: #8da242;
+  transform: translateY(-5px);
+}
+
+.thumb-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: #8da242;
+  width: 0;
+  animation: progress 7.5s linear forwards;
+}
+
+@keyframes progress {
+  to { width: 100%; }
+}
+
+.bottom-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;;
+  justify-content: space-between;
+  align-items: center;
+  display: none;
+}
+
+.pagination-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.dot {
+  width: 15px;
+  height: 2px;
+  background: rgba(255,255,255,0.2);
+}
+
+.active-dot {
+  background: #8da242;
+  width: 30px;
+}
+
+.arrows {
+  display: flex;
+  gap: 15px;
+}
+
+.arrow {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.4);
+  color: #fff;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.arrow:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: #fff;
+}
+
+@media (min-width: 1024px) {
+  .overlay {
+    background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, transparent 60%);
+  }
+
+  .slide-content {
+    bottom: unset;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 8%;
+    max-width: 600px;
+  }
+
+  .slide-title { font-size: 5rem; }
+  .slide-topic { font-size: 3.5rem; }
+  .slide-desc { font-size: 1.1rem; -webkit-line-clamp: unset; }
+
+  .slider-controls {
+    bottom: 50px;
+    padding: 0 8%;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .thumbnails-container {
+    margin-bottom: 0;
+    gap: 20px;
+  }
+
+  .thumb-item {
+    width: 100px;
+    height: 150px;
+  }
+
+  .bottom-nav {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 30px;
+    display: inherit;
+  }
+
+  .pagination-dots { display: none; }
 }
 </file>
 

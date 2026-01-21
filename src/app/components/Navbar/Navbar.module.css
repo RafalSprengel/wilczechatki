@@ -155,7 +155,7 @@
     .showMobileMenu {
         height: auto;
         opacity: 1;
-        transform: translateY(0)
+        transform: none;
     }
 
     .navLinks {
@@ -167,5 +167,9 @@
     .navLinks li {
         opacity: 1;
         transform: none;
+        transition: none;
     }
+    .navLinks a {
+    font-size: 16px;
+  }
 }

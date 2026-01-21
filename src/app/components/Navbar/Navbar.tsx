@@ -33,6 +33,7 @@ export default function Navbar() {
                 <div className={styles.mobileMenuOuter + ' ' + (isMenuOpen ? styles.showMobileMenu : '')}>
                     <div className={styles.mobileMenuInner}>
                         <ul className={`${styles.navLinks} ${isMenuOpen ? styles.showMenu : ''}`}>
+                            <li><Link href="#about-us">O nas</Link></li>
                             <li><Link href="#services">OFERTA</Link></li>
                             <li><Link href="/gallery">GALERIA</Link></li>
                             <li><Link href="#attractions">KASZUBY</Link></li>
