@@ -42,11 +42,12 @@
   height: 100%;
   object-fit: cover;
   animation: kenBurns 20s linear infinite alternate;
+  filter: blur(1px)
 }
 
 @keyframes kenBurns {
-  from { transform: scale(1); }
-  to { transform: scale(1.15); }
+  from { transform: scale(1)}
+  to { transform: scale(1.15) }
 }
 
 .slide-content {
