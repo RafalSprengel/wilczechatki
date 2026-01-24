@@ -3,7 +3,7 @@ html {
 }
 :root {
     /* Kolory główne - inspirowane naturą i Twoimi notatkami */
-    --primary-color: #0a331c;    /* Ciemny granat/antracyt (na TopBar i nagłówki) */
+    --primary-color: #0a3324;    /* Ciemny granat/antracyt (na TopBar i nagłówki) */
     --accent-color: #c3a846;     /* Oliwkowa zieleń (nawiązanie do lasu/Kaszub) */
     --secondary-color: #f4f1ea;  /* Jasny beż/piaskowy (tło sekcji, kolor drewna) */
     
