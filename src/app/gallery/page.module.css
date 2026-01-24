@@ -1,0 +1,7 @@
+.galleryContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh;
+    background-color: var(--secondary-color);
+}
