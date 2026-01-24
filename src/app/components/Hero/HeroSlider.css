@@ -135,7 +135,7 @@
 .btn-primary { background: var(--accent-color); color: #fff; }
 .btn-outline { background: transparent; border: 1px solid #fff; color: #fff; }
 
-.btn-primary:hover { background: #7a8d38; }
+.btn-primary:hover { background: var(--bg-white); color: var(--accent-color); color: var(--text-main)}
 .btn-outline:hover { background: #fff; color: #000; }
 
 .slider-controls {
@@ -174,7 +174,7 @@
 
 .active-thumb {
   opacity: 1;
-  border-color: #8da242;
+  border-color: var(--accent-color);
   transform: translateY(-5px);
 }
 
@@ -189,7 +189,7 @@
   bottom: 0;
   left: 0;
   height: 4px;
-  background: #8da242;
+  background: var(--accent-color);
   width: 0;
   animation: progress 7.5s linear forwards;
 }
