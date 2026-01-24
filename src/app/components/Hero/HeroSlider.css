@@ -103,7 +103,7 @@
 
 .slide-topic {
   font-size: 1.5rem;
-  color: #8da242;
+  color: var(--accent-color);
   margin: 5px 0 10px;
 }
 
@@ -132,7 +132,7 @@
   transition: 0.3s;
 }
 
-.btn-primary { background: #8da242; color: #fff; }
+.btn-primary { background: var(--accent-color); color: #fff; }
 .btn-outline { background: transparent; border: 1px solid #fff; color: #fff; }
 
 .btn-primary:hover { background: #7a8d38; }

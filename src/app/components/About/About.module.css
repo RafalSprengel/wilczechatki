@@ -25,7 +25,7 @@
 }
 
 .content strong {
-    color: #27ae60;
+    color: var(--accent-color);
 }
 
 .links {
@@ -35,7 +35,7 @@
 }
 
 .link {
-    color: #27ae60;
+    color: var(--accent-color);
     text-decoration: none;
     font-weight: 600;
     transition: color 0.3s ease;
