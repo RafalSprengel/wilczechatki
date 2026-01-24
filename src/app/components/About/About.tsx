@@ -8,24 +8,25 @@ export default function About() {
                 
                 <div className={styles.content}>
                     <p>
-                        Jeżeli szukacie Państwo miejsca na wymarzony urlop, rodzinne wakacje czy spontaniczny 
-                        weekendowy wypad na Kaszuby – doskonale trafiliście! <strong>Wilcze Chatki</strong> to dwa 
-                        nowoczesne, całoroczne domki bliźniacze, które łączą bieszczadzki klimat z malowniczym 
-                        krajobrazem Szumlesia Królewskiego.
+                        Szukasz miejsca, gdzie odpoczniesz od miejskiego zgiełku, nacieszysz się ciszą i spokojem,
+                        a jednocześnie będziesz blisko największych atrakcji Pomorza?
+                        Nasze dwa przytulne domki w <strong>Szumlesiu Królewskim</strong>,
+                        malowniczej wsi położonej między <strong>Gdańskiem a Kościerzyną</strong>,
+                        to idealne miejsce na rodzinny wypoczynek, urlop w gronie przyjaciół czy romantyczny weekend we dwoje.
                     </p>
                     
                     <p>
                         Nasz obiekt położony jest w spokojnej, zielonej okolicy, która gwarantuje wytchnienie 
-                        od miejskiego zgiełku i bliski kontakt z naturą. Jest to fantastyczne miejsce dla rodzin 
+                        od codziennego pośpiechu i bliski kontakt z naturą. Jest to fantastyczne miejsce dla rodzin 
                         z dziećmi, miłośników wycieczek rowerowych, spacerowiczów oraz każdego, kto pragnie 
-                        naładować baterie w otoczeniu lasów i jezior.
+                        naładować baterie w otoczeniu kaszubskich lasów i jezior.
                     </p>
 
                     <p>
-                        Obiekt zlokalizowany jest w miejscowości <strong>Szumles Królewski</strong>, położonej dogodnie 
-                        między Gdańskiem a Kościerzyną. Dzięki tej lokalizacji nasi Goście mogą cieszyć się 
-                        absolutną ciszą i prywatnością, mając jednocześnie szybki dostęp do atrakcji regionu, 
-                        takich jak Kaszubski Park Krajobrazowy, szczyt Wieżyca czy słynny Szymbark.
+                        Obiekt zlokalizowany jest w miejscowości Szumleś Królewski. 
+                        Dzięki tej lokalizacji nasi Goście mogą cieszyć się absolutną ciszą i prywatnością, 
+                        mając jednocześnie szybki dostęp do regionalnych perełek, 
+                        takich jak Kaszubski Park Krajobrazowy, szczyt Wieżyca czy słynny dom do góry nogami w Szymbarku.
                     </p>
 
                     <p>

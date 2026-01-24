@@ -56,7 +56,7 @@ export default function Attractions() {
                                 rel="noopener noreferrer" 
                                 className={styles.link}
                             >
-                                Sprawdź szczegóły &raquo;
+                                Więcej &raquo;
                             </a>
                         </div>
                     ))}

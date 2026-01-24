@@ -40,6 +40,7 @@
     margin-bottom: 10px;
     padding-left: 20px;
     position: relative;
+    list-style: none;
 }
 
 .features li::before {

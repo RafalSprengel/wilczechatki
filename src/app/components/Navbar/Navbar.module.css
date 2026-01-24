@@ -114,6 +114,10 @@
     transition-delay: 0.5s;
 }
 
+.showMobileMenu .navLinks li:nth-child(5) {
+    transition-delay: 0.6s;
+}
+
 .navLinks a {
     font-size: 18px;
     font-weight: 600;
