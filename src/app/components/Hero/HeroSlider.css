@@ -52,7 +52,8 @@
 
 .slide-content {
   position: absolute;
-  bottom: 320px;
+  top: 20%
+;
   left: 20px;
   right: 20px;
   color: #fff;
