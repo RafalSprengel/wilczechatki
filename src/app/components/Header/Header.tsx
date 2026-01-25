@@ -22,7 +22,7 @@ export default function Header() {
     return (
         <header className={styles.container + (isScrolled ? ' ' + styles.scrolled : '')}>
             <TopBar />
-            <Navbar />
+            <Navbar isSmaller={isScrolled} />
         </header>
 
     )

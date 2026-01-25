@@ -4,12 +4,11 @@
     width: 100%;
     z-index: 999;
     height: 100px;
-    display: flex;
     flex-direction: column;
     transition: height 0.3s ease, top 0.3s ease;
 }
 
 .scrolled {
     height: 70px;
-    top: -45px;
+    top: -31px;
 }

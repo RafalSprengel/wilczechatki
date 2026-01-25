@@ -6,7 +6,7 @@ import styles from './Navbar.module.css';
 import Image from 'next/image';
 import HamburgerButton from './HamburgerButton';
 
-export default function Navbar() {
+export default function Navbar({isSmaller}: {isSmaller: boolean}) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const mobileMenuRef = useRef<HTMLDivElement>(null);
     const hamburgerRef = useRef<HTMLButtonElement>(null);
@@ -39,7 +39,7 @@ export default function Navbar() {
     }, [isMenuOpen]);
 
     return (
-        <nav className={styles.container}>
+        <nav className={styles.container+(isSmaller ? ' '+styles.smallerNavbar : '')}>
             <div className={styles.inner}>
                 <Link className={styles.logoWrapper} href="/">
                     <Image

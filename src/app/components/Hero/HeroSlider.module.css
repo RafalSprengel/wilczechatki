@@ -9,10 +9,13 @@
 }
 
 @keyframes fadeInSlider {
-  to { opacity: 1; }
+  to {
+    opacity: 1;
+  }
 }
 
-.sliderMain, .slide {
+.sliderMain,
+.slide {
   position: absolute;
   inset: 0;
 }
@@ -46,23 +49,34 @@
 }
 
 @keyframes kenBurns {
-  from { transform: scale(1); }
-  to { transform: scale(1.15); }
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.15);
+  }
 }
 
 .slideContent {
   position: absolute;
-  top: 20%;
+  top: 30dvh;
   left: 20px;
   right: 20px;
   color: #fff;
   z-index: 10;
 }
 
-.slideSubtitle, 
-.slideTitle, 
-.slideTopic, 
-.slideDesc, 
+@media (max-height: 1000px) {
+  .slideContent {
+    top: 25%
+  }
+}
+
+.slideSubtitle,
+.slideTitle,
+.slideTopic,
+.slideDesc,
 .slideActions {
   opacity: 0;
   transform: translateY(30px);
@@ -79,11 +93,25 @@
   transform: translateY(0);
 }
 
-.slide.active .slideSubtitle { transition-delay: 0.4s; }
-.slide.active .slideTitle { transition-delay: 0.6s; }
-.slide.active .slideTopic { transition-delay: 0.8s; }
-.slide.active .slideDesc { transition-delay: 1.0s; }
-.slide.active .slideActions { transition-delay: 1.2s; }
+.slide.active .slideSubtitle {
+  transition-delay: 0.4s;
+}
+
+.slide.active .slideTitle {
+  transition-delay: 0.6s;
+}
+
+.slide.active .slideTopic {
+  transition-delay: 0.8s;
+}
+
+.slide.active .slideDesc {
+  transition-delay: 1.0s;
+}
+
+.slide.active .slideActions {
+  transition-delay: 1.2s;
+}
 
 .slideSubtitle {
   display: block;
@@ -119,7 +147,8 @@
   gap: 10px;
 }
 
-.btnPrimary, .btnOutline {
+.btnPrimary,
+.btnOutline {
   padding: 10px 18px;
   font-size: 0.75rem;
   font-weight: 700;
@@ -129,11 +158,26 @@
   transition: 0.3s;
 }
 
-.btnPrimary { background: var(--accent-color); color: #fff; }
-.btnOutline { background: transparent; border: 1px solid #fff; color: #fff; }
+.btnPrimary {
+  background: var(--accent-color);
+  color: #fff;
+}
 
-.btnPrimary:hover { background: var(--bg-white); color: var(--text-main); }
-.btnOutline:hover { background: #fff; color: #000; }
+.btnOutline {
+  background: transparent;
+  border: 1px solid #fff;
+  color: #fff;
+}
+
+.btnPrimary:hover {
+  background: var(--bg-white);
+  color: var(--text-main);
+}
+
+.btnOutline:hover {
+  background: #fff;
+  color: #000;
+}
 
 .sliderControls {
   position: absolute;
@@ -154,7 +198,9 @@
   scrollbar-width: none;
 }
 
-.thumbnailsContainer::-webkit-scrollbar { display: none; }
+.thumbnailsContainer::-webkit-scrollbar {
+  display: none;
+}
 
 .thumbItem {
   width: 70px;
@@ -165,7 +211,7 @@
   position: relative;
   opacity: 0.5;
   transition: 0.4s;
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
 }
 
@@ -192,7 +238,9 @@
 }
 
 @keyframes progress {
-  to { width: 100%; }
+  to {
+    width: 100%;
+  }
 }
 
 .bottomNav {
@@ -212,7 +260,7 @@
 .dot {
   width: 15px;
   height: 2px;
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .activeDot {
@@ -227,7 +275,7 @@
 
 .arrow {
   background: none;
-  border: 1px solid rgba(255,255,255,0.4);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   color: #fff;
   width: 35px;
   height: 35px;
@@ -237,13 +285,13 @@
 }
 
 .arrow:hover {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   border-color: #fff;
 }
 
 @media (min-width: 1024px) {
   .overlay {
-    background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, transparent 60%);
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.8) 0%, transparent 60%);
   }
 
   .slideContent {
@@ -254,9 +302,18 @@
     max-width: 600px;
   }
 
-  .slideTitle { font-size: 5rem; }
-  .slideTopic { font-size: 3.5rem; }
-  .slideDesc { font-size: 1.1rem; -webkit-line-clamp: unset; }
+  .slideTitle {
+    font-size: 5rem;
+  }
+
+  .slideTopic {
+    font-size: 3.5rem;
+  }
+
+  .slideDesc {
+    font-size: 1.1rem;
+    -webkit-line-clamp: unset;
+  }
 
   .sliderControls {
     bottom: 50px;
@@ -284,5 +341,7 @@
     display: flex;
   }
 
-  .paginationDots { display: none; }
+  .paginationDots {
+    display: none;
+  }
 }
