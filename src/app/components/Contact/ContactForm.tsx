@@ -1,44 +1,101 @@
 'use client';
-
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useForm } from '@formspree/react';
 import styles from './ContactForm.module.css';
 
 export default function ContactForm() {
-  const [status, setStatus] = useState('');
+  const [state, handleSubmit] = useForm("mgokvlpj");
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleCustomSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setStatus('Sending...');
-    
-    setTimeout(() => {
-      setStatus('Message sent successfully!');
-      (e.target as HTMLFormElement).reset();
-    }, 1500);
+    const formData = new FormData(e.currentTarget);
+    const name = String(formData.get('name') || '');
+    const message = String(formData.get('message') || '');
+    const email = String(formData.get('email') || '');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const newErrors = {
+      name: name.length < 3 ? "Proszę podać imię i nazwisko." : '',
+      email: !emailRegex.test(email) || email.length === 0 ? "Proszę podać poprawny adres e-mail (np. nazwa@domena.pl)." : '',
+      message: message.length < 10 ? "Proszę podać wiadomość." : ''
+    };
+    setErrors(newErrors);
+
+    if (newErrors.name || newErrors.email || newErrors.message) {
+      return;
+    }
+    handleSubmit(e);
   };
+
+  if (state.succeeded) {
+    return (
+      <div className={styles.successContainer}>
+        <p className={styles.successMessage}>Wiadomość została wysłana!</p>
+        <button
+          onClick={() => window.location.reload()}
+          className={styles.submitBtn}
+        >
+          Wyślij kolejną wiadomość
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.formContainer}>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleCustomSubmit}>
         <div className={styles.group}>
           <label htmlFor="name">Imię i Nazwisko</label>
-          <input type="text" id="name" name="name" required className={styles.input} />
+          <input
+            type="text"
+            id="name"
+            name="name"
+            className={styles.input}
+          />
+          {errors?.name && <div className={styles.errorMessage}>{errors?.name}</div>}
         </div>
-        
+
         <div className={styles.group}>
           <label htmlFor="email">Adres E-mail</label>
-          <input type="email" id="email" name="email" required className={styles.input} />
+          <input
+            id="email"
+            name="email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            className={styles.input}
+          />
+          {errors?.email && <div className={styles.errorMessage}>{errors?.email}</div>}
         </div>
 
         <div className={styles.group}>
           <label htmlFor="message">Wiadomość</label>
-          <textarea id="message" name="message" required className={styles.textarea}></textarea>
+          <textarea
+            id="message"
+            name="message"
+            className={styles.textarea}
+          ></textarea>
+          {errors?.message && <div className={styles.errorMessage}>{errors?.message}</div>}
         </div>
 
-        <button type="submit" className={styles.submitBtn}>
-          Wyślij wiadomość
-        </button>
+        {state.errors && (
+          <div className={styles.serverErrorMessage}>
+            Przepraszamy, wystąpił problem z wysłaniem formularza. Spróbuj ponownie później.
+          </div>
+        )}
 
-        {status && <p style={{ marginTop: '15px', textAlign: 'center', color: 'var(--accent-color)' }}>{status}</p>}
+        <button
+          type="submit"
+          className={styles.submitBtn}
+          disabled={state.submitting}
+        >
+          {state.submitting ? "Wysyłanie..." : "Wyślij wiadomość"}
+        </button>
       </form>
     </div>
   );

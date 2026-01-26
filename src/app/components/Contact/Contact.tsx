@@ -1,12 +1,13 @@
+
 import styles from './Contact.module.css';
 import ContactForm from './ContactForm';
 
 export default function Contact() {
+  
   return (
     <section id="contact" className={styles.section}>
       <div className={styles.mainContainer}>
         <h2 className={styles.title}>Kontakt</h2>
-        
         <div className={styles.flexWrapper}>
           <div className={styles.infoColumn}>
             <div className={styles.details}>

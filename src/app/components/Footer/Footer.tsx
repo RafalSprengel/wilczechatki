@@ -2,13 +2,14 @@ import styles from './Footer.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { faFacebook } from '@fortawesome/free-brands-svg-icons';   
+import Image from 'next/image';
 
 export default function Footer() {
   return (
-    <footer className={styles.footer}>
-      <div className={styles.container}>
+    <footer className={styles.container}>
+      <div className={styles.inner}>
         <div className={styles.info}>
-          <h3>Wilcze Chatki</h3>
+          <Image src="/assets/logo-round.png" alt="Logo Wilcze Chatki" width={100} height={100} /><h3>Wilcze Chatki</h3>
           <p>Szumleś Królewski, Kaszuby</p>
           <div className={styles.contact}>
             <p>

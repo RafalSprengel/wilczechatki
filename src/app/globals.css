@@ -4,7 +4,7 @@ html {
 :root {
     /* Kolory główne - inspirowane naturą i Twoimi notatkami */
     --primary-color: #262a10;    /* Ciemny granat/antracyt (na TopBar i nagłówki) */
-    --accent-color: #d4af26;     /* Oliwkowa zieleń (nawiązanie do lasu/Kaszub) */
+    --accent-color: #c9b363;     /* Oliwkowa zieleń (nawiązanie do lasu/Kaszub) */
     --secondary-color: #f4f1ea;  /* Jasny beż/piaskowy (tło sekcji, kolor drewna) */
     
     /* Tekst i tło */

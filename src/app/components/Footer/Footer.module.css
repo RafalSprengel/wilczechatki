@@ -1,10 +1,10 @@
-.footer {
+.container {
   background-color: var(--primary-color);
   color: var(--text-light);
   padding: 40px 0 20px;
 }
 
-.container {
+.inner {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
@@ -21,23 +21,21 @@
   }
 }
 
+.info {
+  margin: 0 auto;
+  text-align: center;
+}
+
 .info h3 {
   font-size: 1.4rem;
   margin-bottom: 12px;
-  color: var(--accent-color);
+  color: white;
 }
 
 .info p {
   margin: 4px 0;
   font-size: 1rem;
   opacity: 0.9;
-}
-
-.contact {
-  margin-top: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
 }
 
 .contact p {
