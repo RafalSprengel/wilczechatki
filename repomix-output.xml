@@ -32,7 +32,7 @@ The content is organized as follows:
 <notes>
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
-- Only files matching these patterns are included: src/app
+- Only files matching these patterns are included: src
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
 - Files are sorted by Git change count (files with more changes are at the bottom)
@@ -78,43 +78,6 @@ src/app/page.tsx
 
 <files>
 This section contains the contents of the repository's files.
-
-<file path="src/app/components/Hero/Hero.module.css">
-.hero {
-    height: 100vh;
-    width: 100%;
-    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
-                url('/images/hero-bg.jpg') center/cover no-repeat;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.content {
-    text-align: center;
-    color: var(--text-light);
-    padding: 0 20px;
-}
-
-.content h1 {
-    font-size: clamp(2.5rem, 8vw, 5rem);
-    margin-bottom: 20px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-.cta {
-    display: inline-block;
-    background-color: var(--accent-color);
-    color: var(--text-light);
-    padding: 15px 40px;
-    text-transform: uppercase;
-    font-weight: 600;
-    border-radius: 4px;
-    margin-top: 20px;
-    transition: background var(--transition);
-}
-</file>
 
 <file path="src/app/components/Hero/Hero.tsx">
 import Link from 'next/link';
@@ -215,7 +178,7 @@ export default function About() {
   border-radius: var(--border-radius);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   color: var(--text-main);
-  width: 100%;
+  margin: 30px;
 }
 
 .group {
@@ -234,7 +197,6 @@ export default function About() {
   padding: 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-family: var(--font-main);
   font-size: 16px;
   transition: border-color var(--transition);
 }
@@ -310,7 +272,7 @@ export default function ContactForm() {
     const newErrors = {
       name: name.length < 3 ? "Proszę podać imię i nazwisko." : '',
       email: !emailRegex.test(email) || email.length === 0 ? "Proszę podać poprawny adres e-mail (np. nazwa@domena.pl)." : '',
-      message: message.length < 10 ? "Proszę podać wiadomość." : ''
+      message: message.length < 10 ? "Proszę napisać wiadomość." : ''
     };
     setErrors(newErrors);
 
@@ -510,6 +472,40 @@ export default function Footer() {
 }
 </file>
 
+<file path="src/app/components/Hero/Hero.module.css">
+.hero {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.content {
+    text-align: center;
+    color: var(--text-light);
+    padding: 0 20px;
+}
+
+.content h1 {
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.cta {
+    display: inline-block;
+    background-color: var(--accent-color);
+    color: var(--text-light);
+    padding: 15px 40px;
+    text-transform: uppercase;
+    font-weight: 600;
+    border-radius: 4px;
+    margin-top: 20px;
+    transition: background var(--transition);
+}
+</file>
+
 <file path="src/app/components/Hero/HeroSlider.module.css">
 .heroSlider {
   position: relative;
@@ -628,16 +624,11 @@ export default function Footer() {
 
 .slideSubtitle {
   display: block;
-  font-size: 0.7rem;
-  letter-spacing: 3px;
+  font-size: 1.4rem;
   margin-bottom: 5px;
 }
 
-.slideTitle {
-  font-size: 2.2rem;
-  font-weight: 800;
-  line-height: 1;
-}
+.slideTitle {}
 
 .slideTopic {
   font-size: 1.5rem;
@@ -646,7 +637,7 @@ export default function Footer() {
 }
 
 .slideDesc {
-  font-size: 0.85rem;
+  font-size: 1rem;
   line-height: 1.4;
   margin-bottom: 20px;
   display: -webkit-box;
@@ -816,15 +807,17 @@ export default function Footer() {
   }
 
   .slideTitle {
-    font-size: 5rem;
+    /* font-size: 4rem; */
+    margin: 1.6rem 0;
+    letter-spacing: 1.1px;
   }
 
   .slideTopic {
-    font-size: 3.5rem;
+    font-size: 2.5rem;
   }
 
   .slideDesc {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     -webkit-line-clamp: unset;
   }
 
@@ -971,94 +964,6 @@ export default function TopBar() {
 }
 </file>
 
-<file path="src/app/components/Services/Services.tsx">
-import styles from './Services.module.css';
-
-interface PriceItem {
-    description: string;
-    amount: string;
-}
-
-export default function Services() {
-    const weekdayRates: PriceItem[] = [
-        { description: '2-3 osoby', amount: '300 zł' },
-        { description: '4-6 osób', amount: '400 zł' },
-        { description: 'Dostawka', amount: '+100 zł' }
-    ];
-
-    const weekendRates: PriceItem[] = [
-        { description: '2-3 osoby', amount: '400 zł' },
-        { description: '4-5 osób', amount: '500 zł' },
-        { description: 'Dostawka', amount: '+100 zł' }
-    ];
-
-    return (
-        <section id="services" className={styles.section}>
-            <header className={styles.header}>
-                <h2>Nasza Oferta</h2>
-                <p>
-                    Oferujemy dwa przytulne domki o powierzchni 35 m² każdy. Każdy domek komfortowo mieści 6 osób
-                    (z możliwością 2 dodatkowych dostawek). Częścią wspólną dla obu obiektów jest zamknięta altana,
-                    wyposażona w 4-osobową saunę infrared oraz jacuzzi ogrzewane drewnem (drewno wliczone w cenę).
-                </p>
-                <p>
-                    Na tarasie każdego domku znajduje się grill oraz stół. Do dyspozycji gości oddajemy również
-                    plac zabaw dla dzieci wyposażony w huśtawkę, trampolinę, zjeżdżalnię oraz hamaki.
-                    Wnętrze każdego domku obejmuje aneks kuchenny, łazienkę oraz dwa pokoje na poddaszu:
-                    jeden z łóżkiem małżeńskim, drugi z dwoma łóżkami pojedynczymi (z możliwością rozsunięcia dwóch dodatkowych miejsc do spania).
-                </p>
-
-                <div className={styles.equipment}>
-                    <h3>Wyposażenie każdego domku:</h3>
-                    <ul className={styles.equipmentList}>
-                        <li>Lodówka, piekarnik oraz pralka</li>
-                        <li>Stół dla 6 osób i rozkładana 2-osobowa kanapa</li>
-                        <li>Klimatyzacja</li>
-                        <li>Suszarka do włosów i suszarka do ubrań</li>
-                        <li>Odkurzacz oraz mop</li>
-                        <li>Podstawowe kosmetyki i środki higieniczne</li>
-                    </ul>
-                </div>
-            </header>
-
-            <div className={styles.grid}>
-                <div className={styles.card}>
-                    <h3>Cennik za dobę</h3>
-                    <div className={styles.priceGroup}>
-                        <h4>W tygodniu:</h4>
-                        {weekdayRates.map((rate, index) => (
-                            <div key={index} className={styles.priceRow}>
-                                <span>{rate.description}</span>
-                                <strong>{rate.amount}</strong>
-                            </div>
-                        ))}
-                    </div>
-                    <div className={styles.priceGroup}>
-                        <h4>Weekendy:</h4>
-                        {weekendRates.map((rate, index) => (
-                            <div key={index} className={styles.priceRow}>
-                                <span>{rate.description}</span>
-                                <strong>{rate.amount}</strong>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className={styles.card}>
-                    <h3>Udogodnienia</h3>
-                    <ul className={styles.features}>
-                        <li>Sauna 4-osobowa Infrared</li>
-                        <li>Jakuzzi ogrzewane drewnem (w cenie)</li>
-                        <li>Plac zabaw dla dzieci</li>
-                        <li>Pełne wyposażenie i klimatyzacja</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-    );
-}
-</file>
-
 <file path="src/app/page.module.css">
 .main {
   margin-top: 65px;
@@ -1115,7 +1020,7 @@ export default function Attractions() {
                         <div key={idx} className={styles.card}>
                             <div className={styles.header}>
                                 <span className={styles.dot}></span>
-                                <h3 className={styles.cardTitle}>{item.title}</h3>
+                                <p className={styles.cardTitle}>{item.title}</p>
                             </div>
                             <p className={styles.description}>{item.description}</p>
                             <a 
@@ -1255,138 +1160,96 @@ export default function Header() {
 }
 </file>
 
-<file path="src/app/components/Services/Services.module.css">
-.section {
-    padding: var(--section-padding);
-    max-width: 1200px;
-    margin: 0 auto;
-    background-color: var(--section-bg-dark);
+<file path="src/app/components/Services/Services.tsx">
+import styles from './Services.module.css';
+
+interface PriceItem {
+    description: string;
+    amount: string;
 }
 
-.header {
-    text-align: center;
-    margin-bottom: 40px;
-}
+export default function Services() {
+    const weekdayRates: PriceItem[] = [
+        { description: '2-3 osoby', amount: '300 zł' },
+        { description: '4-6 osób', amount: '400 zł' },
+        { description: 'Dostawka', amount: '+100 zł' }
+    ];
 
-.grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 30px;
-}
+    const weekendRates: PriceItem[] = [
+        { description: '2-3 osoby', amount: '400 zł' },
+        { description: '4-5 osób', amount: '500 zł' },
+        { description: 'Dostawka', amount: '+100 zł' }
+    ];
 
-.card {
-    background-color: var(--secondary-color);
-    padding: 30px;
-    border-radius: var(--border-radius);
-}
+    return (
+        <section id="services" className={styles.section}>
+            <div className={styles.container}>
+                <header className={styles.header}>
+                    <h2>Nasza Oferta</h2>
+                    <div className={styles.introText}>
+                        <p>
+                            Oferujemy dwa przytulne domki o powierzchni 35 m² każdy. Każdy domek komfortowo mieści 6 osób 
+                            (z możliwością 2 dodatkowych dostawek). Częścią wspólną dla obu obiektów jest zamknięta altana, 
+                            wyposażona w 4-osobową saunę infrared oraz jacuzzi ogrzewane drewnem (drewno wliczone w cenę).
+                        </p>
+                        <p>
+                            Na tarasie każdego domku znajduje się grill oraz stół. Do dyspozycji gości oddajemy również 
+                            plac zabaw dla dzieci wyposażony w huśtawkę, trampolinę, zjeżdżalnię oraz hamaki. 
+                            Wnętrze każdego domku obejmuje aneks kuchenny, łazienkę oraz dwa pokoje na poddaszu: 
+                            jeden z łóżkiem małżeńskim, drugi z dwoma łóżkami pojedynczymi.
+                        </p>
+                    </div>
+                    
+                    <div className={styles.equipment}>
+                        <h3>Wyposażenie każdego domku:</h3>
+                        <ul className={styles.equipmentList}>
+                            <li>Lodówka, piekarnik oraz pralka</li>
+                            <li>Stół dla 6 osób i rozkładana 2-osobowa kanapa</li>
+                            <li>Klimatyzacja</li>
+                            <li>Suszarka do włosów i ubrań</li>
+                            <li>Odkurzacz oraz mop</li>
+                            <li>Kosmetyki i środki higieniczne</li>
+                        </ul>
+                    </div>
+                </header>
 
-.priceGroup {
-    margin-top: 20px;
-}
+                <div className={styles.grid}>
+                    <div className={styles.card}>
+                        <h3>Cennik za dobę</h3>
+                        <div className={styles.priceGroup}>
+                            <h4>W tygodniu:</h4>
+                            {weekdayRates.map((rate, index) => (
+                                <div key={index} className={styles.priceRow}>
+                                    <span>{rate.description}</span>
+                                    <strong>{rate.amount}</strong>
+                                </div>
+                            ))}
+                        </div>
+                        <div className={styles.priceGroup}>
+                            <h4>Weekendy:</h4>
+                            {weekendRates.map((rate, index) => (
+                                <div key={index} className={styles.priceRow}>
+                                    <span>{rate.description}</span>
+                                    <strong>{rate.amount}</strong>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
-.priceRow {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.features {
-    margin-top: 20px;
-}
-
-.features li {
-    margin-bottom: 10px;
-    padding-left: 20px;
-    position: relative;
-    list-style: none;
-}
-
-.features li::before {
-    content: '✓';
-    position: absolute;
-    left: 0;
-    color: var(--accent-color);
-}
-
-@media (min-width: 768px) {
-    .grid {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-.equipment {
-    margin-top: 2rem;
-    text-align: left;
-}
-
-.equipment h3 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    color: #333;
-}
-
-.equipmentList {
-    list-style: none;
-    padding: 0;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.8rem;
-}
-
-.equipmentList li {
-    position: relative;
-    padding-left: 1.5rem;
-    font-size: 1rem;
-    line-height: 1.4;
-    color: #555;
-}
-
-.equipmentList li::before {
-    content: "✓";
-    position: absolute;
-    left: 0;
-    color: #4a7c59;
-    font-weight: bold;
-}
-
-@media (min-width: 768px) {
-    .equipmentList {
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem 2rem;
-    }
-}
-</file>
-
-<file path="src/app/layout.tsx">
-import type { Metadata } from 'next';
-import './globals.css';
-import Header from './components/Header/Header';
-import Footer from './components/Footer/Footer';
-
-import { config } from '@fortawesome/fontawesome-svg-core';
-import '@fortawesome/fontawesome-svg-core/styles.css';
-config.autoAddCss = false;
-
-export const metadata: Metadata = {
-	title: 'Wilcze Chatki - Domki na Kaszubach',
-	description: 'Komfortowe domki z sauną i jakuzzi w Szumlesiu Królewskim',
-};
-
-export default function RootLayout({
-	children,
-}: Readonly<{
-	children: React.ReactNode;
-}>) {
-	return (
-		<html lang="pl">
-			<body>
-				<Header />
-				{children}
-				<Footer />
-			</body>
-		</html>
-	);
+                    <div className={styles.card}>
+                        <h3>Główne Atrakcje</h3>
+                        <ul className={styles.features}>
+                            <li>Sauna 4-osobowa Infrared</li>
+                            <li>Jacuzzi ogrzewane drewnem (w cenie)</li>
+                            <li>Plac zabaw dla dzieci</li>
+                            <li>Pełne wyposażenie i klimatyzacja</li>
+                            <li>Hamaki i strefa relaksu</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
 }
 </file>
 
@@ -1434,11 +1297,13 @@ export default function Home() {
   flex-direction: column;
   gap: 40px;
   width: 100%;
+  margin-bottom: 30px;;
 }
 
 .infoColumn {
   flex: 1;
   text-align: left;
+  margin: 0 30px;
 }
 
 .formColumn {
@@ -1476,63 +1341,173 @@ export default function Home() {
 }
 </file>
 
-<file path="src/app/components/About/About.module.css">
+<file path="src/app/components/Services/Services.module.css">
 .section {
-    padding: 60px 20px;
-    background-color: var(--section-bg-light);
-    line-height: 1.6;
-    color: #333;
+    padding: 80px 0;
+    background-color: #f9f9f9;
 }
 
-.wrapper {
-    max-width: 1000px;
+.container {
+  max-width: 1100px;
     margin: 0 auto;
+    padding: 0 20px;
 }
 
-.title {
-    font-size: 2rem;
-    margin-bottom: 30px;
+.header {
     text-align: center;
-    font-weight: 700;
+    margin-bottom: 50px;
 }
 
-.content p {
+.header h2 {
+    color: var(--text-main);
+    margin-bottom: 1.5rem;
+}
+
+.introText {
+    max-width: 800px;
+    margin: 0 auto 40px;
+    line-height: 1.8;
+    color: #555;
+}
+
+.introText p {
+    font-size: 1.05rem;
+    color: #555;
+    line-height: 1.8;
+}
+
+.equipment {
+    text-align: left;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin-bottom: 40px;
+}
+
+.equipment h3 {
     margin-bottom: 20px;
-    font-size: 1.1rem;
-    text-align: justify;
 }
 
-.content strong {
-    color: var(--accent-color);
+.equipmentList {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
 }
 
-.links {
-    margin-top: 40px;
-    border-top: 1px solid #eee;
-    padding-top: 20px;
+.equipmentList li {
+    position: relative;
+    padding-left: 25px;
+    color: #666;
 }
 
-.link {
-    color: var(--accent-color);
-    text-decoration: none;
-    font-weight: 600;
-    transition: color 0.3s ease;
+.equipmentList li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #4a7c59;
+    font-weight: bold;
 }
 
-.link:hover {
-    color: #1e8449;
-    text-decoration: underline;
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
 }
 
-@media (max-width: 768px) {
-    .title {
-        font-size: 1.6rem;
+.card {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.card h3 {
+    margin-bottom: 1.2rem;
+    border-bottom: 2px solid #e0e7e1;
+    padding-bottom: 10px;
+}
+
+.priceGroup {
+    margin-top: 20px;
+}
+
+.priceRow {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.features {
+    list-style: none;
+    padding: 0;
+}
+
+.features li {
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+    color: #555;
+}
+
+@media (min-width: 768px) {
+    .equipmentList {
+        grid-template-columns: 1fr 1fr;
     }
-    
-    .content p {
-        text-align: left;
-        font-size: 1rem;
-    }
+}
+</file>
+
+<file path="src/app/layout.tsx">
+import { Sansita, PT_Serif, Mulish } from "next/font/google";
+import type { Metadata } from 'next';
+import './globals.css';
+import Header from './components/Header/Header';
+import Footer from './components/Footer/Footer';
+
+import { config } from '@fortawesome/fontawesome-svg-core';
+import '@fortawesome/fontawesome-svg-core/styles.css';
+config.autoAddCss = false;
+
+const sansita = Sansita({ 
+    subsets: ["latin", "latin-ext"],
+    variable: "--font-sansita",
+    weight: '400'
+});
+
+const ptSerif = PT_Serif({ 
+    subsets: ["latin", "latin-ext"], 
+    variable: "--font-pt-serif",
+    weight: ['400', '700'],
+    style: ['normal', 'italic']
+});
+
+const mulish = Mulish({ 
+    subsets: ["latin", "latin-ext"], 
+    variable: "--font-mulish",
+    weight: ['300', '400', '600', '700']
+});
+
+export const metadata: Metadata = {
+    title: 'Wilcze Chatki - Domki na Kaszubach',
+    description: 'Komfortowe domki z sauną i jacuzzi w Szumlesiu Królewskim',
+};
+
+export default function RootLayout({
+    children,
+}: Readonly<{
+    children: React.ReactNode;
+}>) {
+    return (
+        <html lang="pl">
+            <body className={`${sansita.variable} ${ptSerif.variable} ${mulish.variable}`}>
+                <Header />
+                {children}
+                <Footer />
+            </body>
+        </html>
+    );
 }
 </file>
 
@@ -1548,10 +1523,8 @@ export default function Home() {
 }
 
 .title {
-    font-size: 1.8rem;
     text-align: center;
     margin-bottom: 10px;
-    font-weight: 700;
 }
 
 .subtitle {
@@ -1594,10 +1567,10 @@ export default function Home() {
 }
 
 .cardTitle {
-    font-size: 1.15rem;
-    color: var(--tetx-main);
+    font-size: 1rem;
+    color: var(--text-main);
     margin: 0;
-    font-weight: 600;
+    font-weight: bold;
 }
 
 .description {
@@ -1651,6 +1624,74 @@ export default function Home() {
 }
 </file>
 
+<file path="src/app/components/About/About.module.css">
+.section {
+    padding: 60px 20px;
+    background-color: var(--section-bg-light);
+    line-height: 1.6;
+    color: #333;
+}
+
+.description p {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: #4a4a4a;
+    max-width: 800px; 
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.wrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.title {
+    margin-bottom: 30px;
+    text-align: center;
+    color: var(--text-main);
+}
+
+.content p {
+    margin-bottom: 20px;
+    text-align: left; 
+    line-height: 1.6;
+}
+
+.content strong {
+    color: var(--accent-color);
+}
+
+.links {
+    margin-top: 40px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.link {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.link:hover {
+    color: #1e8449;
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .title {
+        font-size: 1.6rem;
+    }
+    
+    .content p {
+        text-align: left;
+        font-size: 1rem;
+    }
+}
+</file>
+
 <file path="src/app/components/Hero/HeroSlider.tsx">
 'use client';
 
@@ -1666,11 +1707,44 @@ interface SliderItem {
 }
 
 const items: SliderItem[] = [
-  { id: 1, title: 'WILCZE CHATKI', topic: 'KASZUBY', description: 'Odkryj magię Szumlesia Królewskiego w luksusowych domkach z sauną.', image: '/images/img1.jpeg' },
-  { id: 2, title: 'REJSY I RELAKS', topic: 'NATURA', description: 'Ciesz się kojącym szumem drzew i prywatnym jakuzzi pod gwiazdami.', image: '/images/img2.jpeg' },
-  { id: 3, title: 'PRZYGODA', topic: 'AKTYWNIE', description: 'Najlepsze szlaki rowerowe i jeziora Kaszub na wyciągnięcie ręki.', image: '/images/img3.jpeg' },
-  { id: 4, title: 'CIEPŁO DOMU', topic: 'KOMINEK', description: 'Poczuj wyjątkowy klimat wieczorów przy trzaskającym ogniu.', image: '/images/img4.jpeg' },
+  { 
+    id: 1, 
+    title: 'Wilcze chatki', 
+    topic: 'Kaszubska cisza', 
+    description: 'Dwa przytulne domki w Szumlesiu Królewskim, idealne na odpoczynek od miejskiego zgiełku.', 
+    image: '/images/img1.jpeg' 
+  },
+  { 
+    id: 2, 
+    title: 'Strefa relaksu', 
+    topic: 'Sauna i jacuzzi', 
+    description: 'Całoroczna strefa relaksu w zamkniętej altanie z sauną infrared i jacuzzi ogrzewanym drewnem.', 
+    image: '/images/img2.jpeg' 
+  },
+  { 
+    id: 3, 
+    title: 'Natura na wyciągnięcie ręki', 
+    topic: 'Serce Kaszub', 
+    description: 'Bliskość Kaszubskiego Parku Krajobrazowego, Wieżycy i malowniczych jezior.', 
+    image: '/images/img3.jpeg' 
+  },
+  { 
+    id: 4, 
+    title: 'Rodzinny wypoczynek', 
+    topic: 'Plac zabaw i grill', 
+    description: 'Prywatny taras z grillem oraz plac zabaw z trampoliną i huśtawkami dla najmłodszych.', 
+    image: '/images/img4.jpeg' 
+  },
+  { 
+    id: 5, 
+    title: 'Komfortowe domki', 
+    topic: 'Pełne wyposażenie', 
+    description: 'Klimatyzowane wnętrza, aneks kuchenny i przytulne sypialnie na poddaszu dla 6-8 osób.', 
+    image: '/images/img5.jpeg' 
+  },
 ];
+
+
 
 export default function HeroSlider() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -1701,11 +1775,11 @@ export default function HeroSlider() {
 
   const changeSlide = useCallback((newIndex: number) => {
     if (isAnimating || newIndex === activeIndex) return;
-    
+
     setIsAnimating(true);
     setActiveIndex(newIndex);
     startTimer();
-    
+
     setTimeout(() => setIsAnimating(false), 500);
   }, [isAnimating, activeIndex, startTimer]);
 
@@ -1727,7 +1801,7 @@ export default function HeroSlider() {
           >
             <div className={styles.overlay}></div>
             <img src={item.image} alt={item.title} className={styles.slideImg} />
-            
+
             <div className={styles.slideContent}>
               <span className={styles.slideSubtitle}>SZUMLEŚ KRÓLEWSKI</span>
               <h1 className={styles.slideTitle}>{item.title}</h1>
@@ -1759,9 +1833,9 @@ export default function HeroSlider() {
         <div className={styles.bottomNav}>
           <div className={styles.paginationDots}>
             {items.map((_, index) => (
-              <span 
-                key={index} 
-                className={`${styles.dot} ${index === activeIndex ? styles.activeDot : ''}`} 
+              <span
+                key={index}
+                className={`${styles.dot} ${index === activeIndex ? styles.activeDot : ''}`}
               />
             ))}
           </div>
@@ -1777,47 +1851,165 @@ export default function HeroSlider() {
 </file>
 
 <file path="src/app/globals.css">
-html {
-  scroll-behavior: smooth;
-}
 :root {
-    /* Kolory główne - inspirowane naturą i Twoimi notatkami */
-    --primary-color: #262a10;    /* Ciemny granat/antracyt (na TopBar i nagłówki) */
-    --accent-color: #c9b363;     /* Oliwkowa zieleń (nawiązanie do lasu/Kaszub) */
-    --secondary-color: #f4f1ea;  /* Jasny beż/piaskowy (tło sekcji, kolor drewna) */
-    
-    /* Tekst i tło */
+    --primary-color: #262a10;
+    --accent-color: #c9b363;
+    --secondary-color: #f4f1ea;
     --text-main: #142a1d;
     --text-light: #ffffff;
     --bg-white: #ffffff;
-    
-    /* Statusy i akcje */
-    --action-color: #c3a846;     /* Ciepły odcień drewna / złoty (przyciski rezerwacji) */
+    --action-color: #c3a846;
     --error-color: #c0392b;
 
-    /* Typografia i odstępy */
-    --font-main: 'Inter', sans-serif;
-    --section-padding: 60px 20px;
-    --border-radius: 8px;
-    --transition: 0.3s ease-in-out;
 
-    /* Sekcje */
-    --section-bg-light: #ffffff;
-    --section-bg-dark: #e6e6e0;
 }
 
-/* Podstawowy reset dla Mobile First */
-* {
-    box-sizing: border-box;
-    padding: 0;
+body,
+p,
+li,
+label {
+    font-family: var(--font-body);
+    font-weight: 300;
+    line-height: 1.6;
+}
+*{
     margin: 0;
+    box-sizing: border-box;
 }
 
 body {
-    font-family: var(--font-main);
+   --font-display: var(--font-sansita), sans-serif; 
+    --font-heading: var(--font-pt-serif), serif;
+    --font-body: var(--font-mulish), sans-serif;
+
     color: var(--text-main);
     background-color: var(--bg-white);
-    line-height: 1.6;
+    font-size: clamp(1rem, 0.95rem + 0.25vw, 1.2rem);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h2,
+h3,
+h4 {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    letter-spacing: normal;
+    font-style: normal;
+    font-style: oblique;
+}
+
+h1 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    line-height: 1.1;
+    font-size: clamp(2.9rem, 7.5vw, 4.5rem);
+    color: var(--text-light);
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+    letter-spacing: normal;
+    margin:0;
+}
+
+h2 {
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    line-height: 1.2;
+}
+
+h3 {
+    line-height: 1.3;
+    font-size: clamp(1.5rem, 2.5vw, 2.2rem);
+}
+
+h4 {
+    line-height: 1.4;
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+}
+
+p {
+    margin-bottom: 1rem;
+}
+
+button,
+a,
+nav {
+    font-family: var(--font-body);
+    text-decoration: none;
+}
+</file>
+
+<file path="src/app/components/Navbar/Navbar.tsx">
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import styles from './Navbar.module.css';
+import Image from 'next/image';
+import HamburgerButton from './HamburgerButton';
+
+export default function Navbar({isSmaller}: {isSmaller: boolean}) {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const mobileMenuRef = useRef<HTMLDivElement>(null);
+    const hamburgerRef = useRef<HTMLButtonElement>(null);
+
+    const toggleMenu = () => {
+        setIsMenuOpen(!isMenuOpen);
+    };
+
+    const handleClickOutside = (event: MouseEvent) => {
+        if (
+            mobileMenuRef.current &&
+            !mobileMenuRef.current.contains(event.target as Node) &&
+            hamburgerRef.current &&
+            !hamburgerRef.current.contains(event.target as Node)
+        ) {
+            setIsMenuOpen(false);
+        }
+    };
+    const closeMobileMenu = () => setIsMenuOpen(false)
+
+    useEffect(() => {
+        console.log('isMenuOpen:', isMenuOpen);
+        if (isMenuOpen) {
+            window.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            window.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isMenuOpen]);
+
+    return (
+        <nav className={styles.container+(isSmaller ? ' '+styles.smallerNavbar : '')}>
+            <div className={styles.inner}>
+                <Link className={styles.logoWrapper} href="/">
+                    <Image
+                        src="/assets/logo.webp" alt="logo"
+                        fill
+                        priority
+                        className={styles.logoImage}
+                    />
+                </Link>
+                <div className={styles.hamburgerContainer}>
+                    <HamburgerButton
+                        ref={hamburgerRef}
+                        isOpen={isMenuOpen}
+                        onClick={toggleMenu}
+                        className={styles.hamburger} />
+                </div>
+                <div className={styles.mobileMenuOuter + ' ' + (isMenuOpen ? styles.showMobileMenu : '')}>
+                    <div className={styles.mobileMenuInner} ref={mobileMenuRef}>
+                        <ul className={styles.navLinks}>
+                            <li onClick={closeMobileMenu}><Link href="/">STRONA GŁÓWNA</Link></li>
+                            <li onClick={closeMobileMenu}><Link href="/#services">OFERTA</Link></li>
+                            <li onClick={closeMobileMenu}><Link href="/gallery">GALERIA</Link></li>
+                            <li onClick={closeMobileMenu}><Link href="/#attractions">KASZUBY</Link></li>
+                            <li onClick={closeMobileMenu}><Link href="/#contact">KONTAKT</Link></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    );
 }
 </file>
 
@@ -2007,82 +2199,6 @@ body {
     .navLinks a {
     font-size: 16px;
   }
-}
-</file>
-
-<file path="src/app/components/Navbar/Navbar.tsx">
-'use client';
-
-import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import styles from './Navbar.module.css';
-import Image from 'next/image';
-import HamburgerButton from './HamburgerButton';
-
-export default function Navbar({isSmaller}: {isSmaller: boolean}) {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const mobileMenuRef = useRef<HTMLDivElement>(null);
-    const hamburgerRef = useRef<HTMLButtonElement>(null);
-
-    const toggleMenu = () => {
-        setIsMenuOpen(!isMenuOpen);
-    };
-
-    const handleClickOutside = (event: MouseEvent) => {
-        if (
-            mobileMenuRef.current &&
-            !mobileMenuRef.current.contains(event.target as Node) &&
-            hamburgerRef.current &&
-            !hamburgerRef.current.contains(event.target as Node)
-        ) {
-            setIsMenuOpen(false);
-        }
-    };
-    const closeMobileMenu = () => setIsMenuOpen(false)
-
-    useEffect(() => {
-        console.log('isMenuOpen:', isMenuOpen);
-        if (isMenuOpen) {
-            window.addEventListener('mousedown', handleClickOutside);
-        }
-
-        return () => {
-            window.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isMenuOpen]);
-
-    return (
-        <nav className={styles.container+(isSmaller ? ' '+styles.smallerNavbar : '')}>
-            <div className={styles.inner}>
-                <Link className={styles.logoWrapper} href="/">
-                    <Image
-                        src="/assets/logo.webp" alt="logo"
-                        fill
-                        priority
-                        className={styles.logoImage}
-                    />
-                </Link>
-                <div className={styles.hamburgerContainer}>
-                    <HamburgerButton
-                        ref={hamburgerRef}
-                        isOpen={isMenuOpen}
-                        onClick={toggleMenu}
-                        className={styles.hamburger} />
-                </div>
-                <div className={styles.mobileMenuOuter + ' ' + (isMenuOpen ? styles.showMobileMenu : '')}>
-                    <div className={styles.mobileMenuInner} ref={mobileMenuRef}>
-                        <ul className={styles.navLinks}>
-                            <li onClick={closeMobileMenu}><Link href="/">STRONA GŁÓWNA</Link></li>
-                            <li onClick={closeMobileMenu}><Link href="/#services">OFERTA</Link></li>
-                            <li onClick={closeMobileMenu}><Link href="/gallery">GALERIA</Link></li>
-                            <li onClick={closeMobileMenu}><Link href="/#attractions">KASZUBY</Link></li>
-                            <li onClick={closeMobileMenu}><Link href="/#contact">KONTAKT</Link></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </nav>
-    );
 }
 </file>
 

@@ -1,4 +1,4 @@
-import { Playfair_Display, Inter } from "next/font/google";
+import { Sansita, PT_Serif, Mulish } from "next/font/google";
 import type { Metadata } from 'next';
 import './globals.css';
 import Header from './components/Header/Header';
@@ -8,26 +8,42 @@ import { config } from '@fortawesome/fontawesome-svg-core';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 config.autoAddCss = false;
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
+const sansita = Sansita({ 
+    subsets: ["latin", "latin-ext"],
+    variable: "--font-sansita",
+    weight: '400'
+});
+
+const ptSerif = PT_Serif({ 
+    subsets: ["latin", "latin-ext"], 
+    variable: "--font-pt-serif",
+    weight: ['400', '700'],
+    style: ['normal', 'italic']
+});
+
+const mulish = Mulish({ 
+    subsets: ["latin", "latin-ext"], 
+    variable: "--font-mulish",
+    weight: ['300', '400', '600', '700']
+});
 
 export const metadata: Metadata = {
-	title: 'Wilcze Chatki - Domki na Kaszubach',
-	description: 'Komfortowe domki z sauną i jakuzzi w Szumlesiu Królewskim',
+    title: 'Wilcze Chatki - Domki na Kaszubach',
+    description: 'Komfortowe domki z sauną i jacuzzi w Szumlesiu Królewskim',
 };
 
 export default function RootLayout({
-	children,
+    children,
 }: Readonly<{
-	children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-	return (
-		<html lang="pl">
-			<body className={`${inter.variable} ${playfair.variable}`}>
-				<Header />
-				{children}
-				<Footer />
-			</body>
-		</html>
-	);
+    return (
+        <html lang="pl">
+            <body className={`${sansita.variable} ${ptSerif.variable} ${mulish.variable}`}>
+                <Header />
+                {children}
+                <Footer />
+            </body>
+        </html>
+    );
 }

@@ -22,7 +22,7 @@ export default function ContactForm() {
     const newErrors = {
       name: name.length < 3 ? "Proszę podać imię i nazwisko." : '',
       email: !emailRegex.test(email) || email.length === 0 ? "Proszę podać poprawny adres e-mail (np. nazwa@domena.pl)." : '',
-      message: message.length < 10 ? "Proszę podać wiadomość." : ''
+      message: message.length < 10 ? "Proszę napisać wiadomość." : ''
     };
     setErrors(newErrors);
 

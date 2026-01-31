@@ -47,7 +47,7 @@ export default function Attractions() {
                         <div key={idx} className={styles.card}>
                             <div className={styles.header}>
                                 <span className={styles.dot}></span>
-                                <h3 className={styles.cardTitle}>{item.title}</h3>
+                                <p className={styles.cardTitle}>{item.title}</p>
                             </div>
                             <p className={styles.description}>{item.description}</p>
                             <a 

@@ -14,40 +14,42 @@ interface SliderItem {
 const items: SliderItem[] = [
   { 
     id: 1, 
-    title: 'WILCZE CHATKI', 
-    topic: 'KASZUBSKA CISZA', 
+    title: 'Wilcze chatki', 
+    topic: 'Kaszubska cisza', 
     description: 'Dwa przytulne domki w Szumlesiu Królewskim, idealne na odpoczynek od miejskiego zgiełku.', 
     image: '/images/img1.jpeg' 
   },
   { 
     id: 2, 
-    title: 'STREFA RELAKSU', 
-    topic: 'SAUNA I JACUZZI', 
+    title: 'Strefa relaksu', 
+    topic: 'Sauna i jacuzzi', 
     description: 'Całoroczna strefa relaksu w zamkniętej altanie z sauną infrared i jacuzzi ogrzewanym drewnem.', 
     image: '/images/img2.jpeg' 
   },
   { 
     id: 3, 
-    title: 'NATURA NA WYCIĄGNIĘCIE RĘKI', 
-    topic: 'SERCE KASZUB', 
+    title: 'Natura na wyciągnięcie ręki', 
+    topic: 'Serce Kaszub', 
     description: 'Bliskość Kaszubskiego Parku Krajobrazowego, Wieżycy i malowniczych jezior.', 
     image: '/images/img3.jpeg' 
   },
   { 
     id: 4, 
-    title: 'RODZINNY WYPOCZYNEK', 
-    topic: 'PLAC ZABAW I GRILL', 
+    title: 'Rodzinny wypoczynek', 
+    topic: 'Plac zabaw i grill', 
     description: 'Prywatny taras z grillem oraz plac zabaw z trampoliną i huśtawkami dla najmłodszych.', 
     image: '/images/img4.jpeg' 
   },
   { 
     id: 5, 
-    title: 'KOMFORTOWE DOMKI', 
-    topic: 'PEŁNE WYPOSAŻENIE', 
+    title: 'Komfortowe domki', 
+    topic: 'Pełne wyposażenie', 
     description: 'Klimatyzowane wnętrza, aneks kuchenny i przytulne sypialnie na poddaszu dla 6-8 osób.', 
     image: '/images/img5.jpeg' 
   },
 ];
+
+
 
 export default function HeroSlider() {
   const [activeIndex, setActiveIndex] = useState(0);
