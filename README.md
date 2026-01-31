@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wilcze Chatki – Accommodation Website
 
-## Getting Started
+A web application for **Wilcze Chatki**, a rental facility located in Szumleś Królewski, Kaszuby.
 
-First, run the development server:
+🌐 **Live Website:** [wilczehatki.vercel.app](https://wilczehatki.vercel.app)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🏗️ Project Status: In Progress
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+This project is currently in the development phase. While the informational sections are active, the application is being expanded to include full commercial functionality.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Planned features:**
+- **Booking System:** Implementation of an availability calendar and reservation management.
+- **Payment Gateway:** Integration of online payment processing for bookings.
+- **Notification System:** Automated email confirmations for reservation status.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 📋 Overview
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The application serves as an information hub for two rental cabins. It provides details regarding technical specifications, pricing structures, and regional points of interest.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Current Functionalities:
+- **Landing Page:** A modular layout containing information about the facility.
+- **Hero Slider:** An image-based introduction to the property and its surroundings.
+- **Pricing Module:** A breakdown of rates for weekdays and weekends.
+- **Attractions Guide:** A list of local sites with external links to official resources.
+- **Contact Form:** A validated form for user inquiries (handled via Formspree).
+- **Responsive Design:** Optimized for mobile, tablet, and desktop viewports.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🛠️ Technical Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Framework:** Next.js (App Router)
+- **Language:** TypeScript
+- **Styling:** CSS Modules (Global and Component-level)
+- **Icons:** FontAwesome
+- **Deployment:** Vercel
+
+---
+
+## 📂 Structure
+
+- `src/app/components/`: Modular React components (Navbar, Contact, Services, etc.).
+- `src/app/gallery/`: Placeholder for the upcoming image gallery.
+- `src/app/globals.css`: Definition of CSS variables and global typography.
+
+---
+
+## 🚀 Local Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/username/repository-name.git
