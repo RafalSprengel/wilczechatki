@@ -1,0 +1,37 @@
+
+.my-lightbox{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    overflow: hidden;
+    width: 100%;
+
+    &__image-link{
+        cursor: pointer;
+        width: 300px;
+    }
+
+    &__image{
+        transition: transform 0.3s ease-in;
+       width: 100%;
+        &:hover{
+            transform: scale(1.05);
+        }
+    }
+}
+
+@media (max-width: 900px) {
+    .my-lightbox {
+
+            &__image-link{
+                width: 48%;
+            }
+    }
+}
+@media (max-width: 300px) {
+    .my-lightbox {
+        &__image-link{
+            width: 100%;
+        }
+    }
+}

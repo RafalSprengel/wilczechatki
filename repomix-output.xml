@@ -32,7 +32,7 @@ The content is organized as follows:
 <notes>
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
-- Only files matching these patterns are included: src
+- Only files matching these patterns are included: src/app
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
 - Files are sorted by Git change count (files with more changes are at the bottom)
@@ -57,6 +57,8 @@ src/app/components/Hero/Hero.module.css
 src/app/components/Hero/Hero.tsx
 src/app/components/Hero/HeroSlider.module.css
 src/app/components/Hero/HeroSlider.tsx
+src/app/components/LightBoxGallery/LightBoxGallery.module.css
+src/app/components/LightBoxGallery/LightBoxGallery.tsx
 src/app/components/Navbar/HamburgerButton.module.css
 src/app/components/Navbar/HamburgerButton.tsx
 src/app/components/Navbar/Navbar.module.css
@@ -78,6 +80,100 @@ src/app/page.tsx
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="src/app/components/LightBoxGallery/LightBoxGallery.module.css">
+.my-lightbox{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    overflow: hidden;
+    width: 100%;
+
+    &__image-link{
+        cursor: pointer;
+        width: 300px;
+    }
+
+    &__image{
+        transition: transform 0.3s ease-in;
+       width: 100%;
+        &:hover{
+            transform: scale(1.05);
+        }
+    }
+}
+
+@media (max-width: 900px) {
+    .my-lightbox {
+
+            &__image-link{
+                width: 48%;
+            }
+    }
+}
+@media (max-width: 300px) {
+    .my-lightbox {
+        &__image-link{
+            width: 100%;
+        }
+    }
+}
+</file>
+
+<file path="src/app/components/LightBoxGallery/LightBoxGallery.tsx">
+'use client'
+
+import { useEffect } from 'react';
+import GLightbox from 'glightbox';
+import 'glightbox/dist/css/glightbox.min.css';
+import styles from './LightBoxGallery.module.css';
+
+interface ImageProps {
+  full: string;
+  thumb: string;
+  description?: string;
+}
+
+interface LightBoxGalleryProps {
+  images: ImageProps[];
+}
+
+export default function LightBoxGallery({ images }: LightBoxGalleryProps) {
+
+  useEffect(() => {
+    const lightbox = GLightbox({
+      touchNavigation: true,
+      loop: true,
+      autoplayVideos: true
+    });
+
+    return () => {
+      lightbox.destroy();
+    };
+  }, [images]);
+
+  return (
+    <div className={styles.container}>
+      {images.map((img, index) => (
+        <a
+          href={img.full}
+          className={`glightbox ${styles.imageLink}`}
+          data-gallery="my-gallery"
+          data-aos="fade-up"
+          data-aos-delay={index * 100}
+          key={index}
+        >
+          <img
+            src={img.thumb}
+            alt={img.description || `Gallery item ${index + 1}`}
+            className={styles.image}
+          />
+        </a>
+      ))}
+    </div>
+  );
+};
+</file>
 
 <file path="src/app/components/Hero/Hero.tsx">
 import Link from 'next/link';
@@ -101,22 +197,57 @@ export default function Hero() {
 </file>
 
 <file path="src/app/gallery/page.module.css">
-.galleryContainer {
+.container {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 80vh;
     background-color: var(--secondary-color);
 }
 </file>
 
 <file path="src/app/gallery/page.tsx">
 import styles from './page.module.css';
+import LightBoxGallery from '@components/LightBoxGallery/LightBoxGallery';
+
+const images = [
+    {
+        full: '/gallery/img1.webp',
+        thumb: '/gallery/img1-thumb.webp',
+        description: 'Opis obrazka 1'
+    },
+    {
+        full: '/gallery/img2.webp',
+        thumb: '/gallery/img2-thumb.webp',
+        description: 'Opis obrazka 2'
+    },
+    {
+        full: '/gallery/img3.webp',
+        thumb: '/gallery/img3-thumb.webp',
+        description: 'Opis obrazka 3'
+    },
+    {
+        full: '/gallery/img4.webp',
+        thumb: '/gallery/img4-thumb.webp',
+        description: 'Opis obrazka 4'
+    },
+    {
+        full: '/gallery/img5.webp',
+        thumb: '/gallery/img5-thumb.webp',
+        description: 'Opis obrazka 5'
+    }
+]
 
 export default function Gallery() {
     return (
-        <div className={styles.galleryContainer}>
-            <div className={styles.galleryContent}>Tu będzie galeria :)</div>
+        <div className={styles.container}>
+            <div className={styles.title}>
+                <h2>Galeria zdjęć</h2>
+            </div>
+            <div>
+                <LightBoxGallery images={images} />
+            </div>
+
         </div>
     );
 
@@ -168,6 +299,278 @@ export default function About() {
             </div>
         </section>
     );
+}
+</file>
+
+<file path="src/app/components/Footer/Footer.module.css">
+.container {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+  padding: 40px 0 20px;
+}
+
+.inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .container {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.info {
+  margin: 0 auto;
+  text-align: center;
+}
+
+.info h3 {
+  font-size: 1.4rem;
+  margin-bottom: 12px;
+  color: white;
+}
+
+.info p {
+  margin: 4px 0;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.contact p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.social .facebook {
+  display: inline-block;
+  font-size: 1.8rem;
+  color: var(--text-light);
+  transition: color 0.3s ease;
+}
+
+.social .facebook:hover {
+  color: #1877f2;
+}
+
+.copyright {
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+@media (max-width: 767px) {
+  .social {
+    text-align: center;
+  }
+}
+</file>
+
+<file path="src/app/components/Footer/Footer.tsx">
+import styles from './Footer.module.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPhone, faEnvelope } from '@fortawesome/free-solid-svg-icons';
+import { faFacebook } from '@fortawesome/free-brands-svg-icons';   
+import Image from 'next/image';
+
+export default function Footer() {
+  return (
+    <footer className={styles.container}>
+      <div className={styles.inner}>
+        <div className={styles.info}>
+          <Image src="/assets/logo-round.png" alt="Logo Wilcze Chatki" width={100} height={100} /><h3>Wilcze Chatki</h3>
+          <p>Szumleś Królewski, Kaszuby</p>
+          <div className={styles.contact}>
+            <p>
+              <FontAwesomeIcon icon={faPhone} /> +48 668 388 570
+            </p>
+            <p>
+              <FontAwesomeIcon icon={faEnvelope} /> kontakt@wilczechatki.pl
+            </p>
+          </div>
+        </div>
+
+        <div className={styles.social}>
+          <a
+            href="https://facebook.com/profile.php?id=61584455637648"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Facebook"
+            className={styles.facebook}
+          >
+            <FontAwesomeIcon icon={faFacebook} />
+          </a>
+        </div>
+      </div>
+
+      <div className={styles.copyright}>
+        &copy; {new Date().getFullYear()} Wilcze Chatki. Wszelkie prawa zastrzeżone.
+      </div>
+    </footer>
+  );
+}
+</file>
+
+<file path="src/app/components/Navbar/HamburgerButton.module.css">
+.hamburger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  z-index: 10;
+}
+
+.hamburger:focus {
+  outline: none;
+}
+
+.bar {
+  width: 2rem;
+  height: 0.25rem;
+  background: var(--primary-color);
+  border-radius: 10px;
+  transition: all 0.3s linear;
+  position: relative;
+  transform-origin: 1px;
+}
+
+.isOpen .bar:nth-child(1) {
+  transform: rotate(45deg);
+}
+
+.isOpen .bar:nth-child(2) {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.isOpen .bar:nth-child(3) {
+  transform: rotate(-45deg);
+}
+</file>
+
+<file path="src/app/components/Navbar/HamburgerButton.tsx">
+import React, { forwardRef } from 'react';
+import styles from './HamburgerButton.module.css';
+
+interface HamburgerButtonProps {
+  isOpen: boolean;
+  onClick: () => void;
+  className?: string;
+}
+
+const HamburgerButton = forwardRef<HTMLButtonElement, HamburgerButtonProps>(
+  ({ isOpen, onClick, className }, ref) => {
+    const handleOnclick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      onClick();
+    };
+
+    return (
+      <button
+        className={`${styles.hamburger} ${isOpen ? styles.isOpen : ''} ${className}`}
+        onClick={handleOnclick}
+        aria-label="Toggle menu"
+        ref={ref}
+      >
+        <div className={styles.bar}></div>
+        <div className={styles.bar}></div>
+        <div className={styles.bar}></div>
+      </button>
+    );
+  }
+);
+
+HamburgerButton.displayName = 'HamburgerButton';
+
+export default HamburgerButton;
+</file>
+
+<file path="src/app/components/Navbar/TopBar.tsx">
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFacebook } from '@fortawesome/free-brands-svg-icons';
+import styles from './TopBar.module.css';
+
+export default function TopBar() {
+    return (
+        <div className={styles.container}>
+            <div className={styles.inner}>
+                <div className={styles.contactInfo}>
+                    <a href="tel:+48668388570">+48 668 388 570</a>
+                    <a href="mailto:kontakt@wilczechatki.pl">kontakt@wilczechatki.pl</a>
+                </div>
+                <div className={styles.socialIcons}>
+                    <a 
+                        href="https://facebook.com/profile.php?id=61584455637648"
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        aria-label="Facebook"
+                    >
+                        <FontAwesomeIcon 
+                            icon={faFacebook} 
+                            style={{ width: '20px', height: '20px' }} 
+                        />
+                    </a>
+                </div>
+            </div>
+        </div>
+    );
+}
+</file>
+
+<file path="src/app/page.module.css">
+.main {
+  margin-top: 65px;
+}
+</file>
+
+<file path="src/app/components/Contact/Contact.tsx">
+import styles from './Contact.module.css';
+import ContactForm from './ContactForm';
+
+export default function Contact() {
+  
+  return (
+    <section id="contact" className={styles.section}>
+      <div className={styles.mainContainer}>
+        <h2 className={styles.title}>Kontakt</h2>
+        <div className={styles.flexWrapper}>
+          <div className={styles.infoColumn}>
+            <div className={styles.details}>
+              <p><strong>Wilcze Chatki</strong></p>
+              <p>Szumleś Królewski, Kaszuby</p>
+              <p>Tel: +48 668 388 570</p>
+              <p>Email: kontakt@wilczechatki.pl</p>
+            </div>
+            <div className={styles.payment}>
+              <h3>Dane do przelewu:</h3>
+              <p>Numer konta (PKO BP):</p>
+              <p>20 1020 5226 0000 6702 0486 0336</p>
+            </div>
+          </div>
+
+          <div className={styles.formColumn}>
+            <ContactForm />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
 </file>
 
@@ -352,123 +755,36 @@ export default function ContactForm() {
 }
 </file>
 
-<file path="src/app/components/Footer/Footer.module.css">
-.container {
-  background-color: var(--primary-color);
-  color: var(--text-light);
-  padding: 40px 0 20px;
-}
+<file path="src/app/components/Header/Header.tsx">
+'use client'
+import { useState, useEffect, use } from 'react';
+import TopBar from '@components/Navbar/TopBar';
+import Navbar from '@components/Navbar/Navbar';
+import styles from './Header.module.css';
 
-.inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
+export default function Header() {
+    const [isScrolled, setIsScrolled] = useState(false);
 
-@media (min-width: 768px) {
-  .container {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-}
+    useEffect(() => {
+        const scrollY = () => {
+            if (window.scrollY > 0) {
+                setIsScrolled(true);
+            } else {
+                setIsScrolled(false);
+            }
+        }
+        window.addEventListener('scroll', scrollY);
+        return ()=> window.removeEventListener('scroll', scrollY);
+    }, [])
 
-.info {
-  margin: 0 auto;
-  text-align: center;
-}
+    return (
+        <header className={styles.container + (isScrolled ? ' ' + styles.scrolled : '')}>
+            <TopBar />
+            <Navbar isSmaller={isScrolled} />
+        </header>
 
-.info h3 {
-  font-size: 1.4rem;
-  margin-bottom: 12px;
-  color: white;
-}
+    )
 
-.info p {
-  margin: 4px 0;
-  font-size: 1rem;
-  opacity: 0.9;
-}
-
-.contact p {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.95rem;
-}
-
-.social .facebook {
-  display: inline-block;
-  font-size: 1.8rem;
-  color: var(--text-light);
-  transition: color 0.3s ease;
-}
-
-.social .facebook:hover {
-  color: #1877f2;
-}
-
-.copyright {
-  text-align: center;
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  font-size: 0.9rem;
-  opacity: 0.8;
-}
-
-@media (max-width: 767px) {
-  .social {
-    text-align: center;
-  }
-}
-</file>
-
-<file path="src/app/components/Footer/Footer.tsx">
-import styles from './Footer.module.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPhone, faEnvelope } from '@fortawesome/free-solid-svg-icons';
-import { faFacebook } from '@fortawesome/free-brands-svg-icons';   
-import Image from 'next/image';
-
-export default function Footer() {
-  return (
-    <footer className={styles.container}>
-      <div className={styles.inner}>
-        <div className={styles.info}>
-          <Image src="/assets/logo-round.png" alt="Logo Wilcze Chatki" width={100} height={100} /><h3>Wilcze Chatki</h3>
-          <p>Szumleś Królewski, Kaszuby</p>
-          <div className={styles.contact}>
-            <p>
-              <FontAwesomeIcon icon={faPhone} /> +48 668 388 570
-            </p>
-            <p>
-              <FontAwesomeIcon icon={faEnvelope} /> kontakt@wilczechatki.pl
-            </p>
-          </div>
-        </div>
-
-        <div className={styles.social}>
-          <a
-            href="https://facebook.com/profile.php?id=61584455637648"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Facebook"
-            className={styles.facebook}
-          >
-            <FontAwesomeIcon icon={faFacebook} />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.copyright}>
-        &copy; {new Date().getFullYear()} Wilcze Chatki. Wszelkie prawa zastrzeżone.
-      </div>
-    </footer>
-  );
 }
 </file>
 
@@ -853,261 +1169,6 @@ export default function Footer() {
 }
 </file>
 
-<file path="src/app/components/Navbar/HamburgerButton.module.css">
-.hamburger {
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  width: 2rem;
-  height: 2rem;
-  padding: 0;
-  z-index: 10;
-}
-
-.hamburger:focus {
-  outline: none;
-}
-
-.bar {
-  width: 2rem;
-  height: 0.25rem;
-  background: var(--primary-color);
-  border-radius: 10px;
-  transition: all 0.3s linear;
-  position: relative;
-  transform-origin: 1px;
-}
-
-.isOpen .bar:nth-child(1) {
-  transform: rotate(45deg);
-}
-
-.isOpen .bar:nth-child(2) {
-  opacity: 0;
-  transform: translateX(20px);
-}
-
-.isOpen .bar:nth-child(3) {
-  transform: rotate(-45deg);
-}
-</file>
-
-<file path="src/app/components/Navbar/HamburgerButton.tsx">
-import React, { forwardRef } from 'react';
-import styles from './HamburgerButton.module.css';
-
-interface HamburgerButtonProps {
-  isOpen: boolean;
-  onClick: () => void;
-  className?: string;
-}
-
-const HamburgerButton = forwardRef<HTMLButtonElement, HamburgerButtonProps>(
-  ({ isOpen, onClick, className }, ref) => {
-    const handleOnclick = (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.stopPropagation();
-      onClick();
-    };
-
-    return (
-      <button
-        className={`${styles.hamburger} ${isOpen ? styles.isOpen : ''} ${className}`}
-        onClick={handleOnclick}
-        aria-label="Toggle menu"
-        ref={ref}
-      >
-        <div className={styles.bar}></div>
-        <div className={styles.bar}></div>
-        <div className={styles.bar}></div>
-      </button>
-    );
-  }
-);
-
-HamburgerButton.displayName = 'HamburgerButton';
-
-export default HamburgerButton;
-</file>
-
-<file path="src/app/components/Navbar/TopBar.tsx">
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFacebook } from '@fortawesome/free-brands-svg-icons';
-import styles from './TopBar.module.css';
-
-export default function TopBar() {
-    return (
-        <div className={styles.container}>
-            <div className={styles.inner}>
-                <div className={styles.contactInfo}>
-                    <a href="tel:+48668388570">+48 668 388 570</a>
-                    <a href="mailto:kontakt@wilczechatki.pl">kontakt@wilczechatki.pl</a>
-                </div>
-                <div className={styles.socialIcons}>
-                    <a 
-                        href="https://facebook.com/profile.php?id=61584455637648"
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        aria-label="Facebook"
-                    >
-                        <FontAwesomeIcon 
-                            icon={faFacebook} 
-                            style={{ width: '20px', height: '20px' }} 
-                        />
-                    </a>
-                </div>
-            </div>
-        </div>
-    );
-}
-</file>
-
-<file path="src/app/page.module.css">
-.main {
-  margin-top: 65px;
-}
-</file>
-
-<file path="src/app/components/Attractions/Attractions.tsx">
-import styles from './Attractions.module.css';
-
-export default function Attractions() {
-    const attractions = [
-        {
-            title: 'Kaszubski Park Krajobrazowy',
-            description: 'Niezliczone jeziora i morenowe wzgórza zwane "Szwajcarią Kaszubską".',
-            url: 'https://kpk.pomorskie.eu/'
-        },
-        {
-            title: 'Wieżyca – Wieża Widokowa',
-            description: 'Najwyższy szczyt Niżu Polskiego (329 m n.p.m.) z widokiem na całe Kaszuby.',
-            url: 'https://szwajcariakaszubska.com/atrakcje/wieza-widokowa-na-wiezycy'
-        },
-        {
-            title: 'CEPR w Szymbarku',
-            description: 'Słynny "Dom do góry nogami", Najdłuższą Deska Świata i Dom Sybiraka.',
-            url: 'https://cepr.pl/'
-        },
-        {
-            title: 'Skansen we Wdzydzach',
-            description: 'Najstarsze w Polsce muzeum na wolnym powietrzu nad "Kaszubskim Morzem".',
-            url: 'http://www.muzeum-wdzydze.gda.pl/'
-        },
-        {
-            title: 'Muzeum Hymnu w Będominie',
-            description: 'Jedyne na świecie muzeum poświęcone "Mazurkowi Dąbrowskiego" (bardzo blisko domków!).',
-            url: 'https://muzeumhymnu.pl/'
-        },
-        {
-            title: 'Trasy Rowerowe Nowa Karczma',
-            description: 'Lokalne szlaki prowadzące przez najpiękniejsze zakątki gminy.',
-            url: 'https://www.nowakarczma.pl/asp/walory-turystyczne,42,,1'
-        }
-    ];
-
-    return (
-        <section id="attractions" className={styles.section}>
-            <div className={styles.container}>
-                <h2 className={styles.title}>Atrakcje w okolicy 🌲</h2>
-                <p className={styles.subtitle}>
-                    Odkryj uroki Szumlesia Królewskiego i serca Kaszub. Kliknij, aby dowiedzieć się więcej.
-                </p>
-                
-                <div className={styles.grid}>
-                    {attractions.map((item, idx) => (
-                        <div key={idx} className={styles.card}>
-                            <div className={styles.header}>
-                                <span className={styles.dot}></span>
-                                <p className={styles.cardTitle}>{item.title}</p>
-                            </div>
-                            <p className={styles.description}>{item.description}</p>
-                            <a 
-                                href={item.url} 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
-                                className={styles.link}
-                            >
-                                Więcej &raquo;
-                            </a>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </section>
-    );
-}
-</file>
-
-<file path="src/app/components/Contact/Contact.tsx">
-import styles from './Contact.module.css';
-import ContactForm from './ContactForm';
-
-export default function Contact() {
-  
-  return (
-    <section id="contact" className={styles.section}>
-      <div className={styles.mainContainer}>
-        <h2 className={styles.title}>Kontakt</h2>
-        <div className={styles.flexWrapper}>
-          <div className={styles.infoColumn}>
-            <div className={styles.details}>
-              <p><strong>Wilcze Chatki</strong></p>
-              <p>Szumleś Królewski, Kaszuby</p>
-              <p>Tel: +48 668 388 570</p>
-              <p>Email: kontakt@wilczechatki.pl</p>
-            </div>
-            <div className={styles.payment}>
-              <h3>Dane do przelewu:</h3>
-              <p>Numer konta (PKO BP):</p>
-              <p>20 1020 5226 0000 6702 0486 0336</p>
-            </div>
-          </div>
-
-          <div className={styles.formColumn}>
-            <ContactForm />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-</file>
-
-<file path="src/app/components/Header/Header.tsx">
-'use client'
-import { useState, useEffect, use } from 'react';
-import TopBar from '@components/Navbar/TopBar';
-import Navbar from '@components/Navbar/Navbar';
-import styles from './Header.module.css';
-
-export default function Header() {
-    const [isScrolled, setIsScrolled] = useState(false);
-
-    useEffect(() => {
-        const scrollY = () => {
-            if (window.scrollY > 0) {
-                setIsScrolled(true);
-            } else {
-                setIsScrolled(false);
-            }
-        }
-        window.addEventListener('scroll', scrollY);
-        return ()=> window.removeEventListener('scroll', scrollY);
-    }, [])
-
-    return (
-        <header className={styles.container + (isScrolled ? ' ' + styles.scrolled : '')}>
-            <TopBar />
-            <Navbar isSmaller={isScrolled} />
-        </header>
-
-    )
-
-}
-</file>
-
 <file path="src/app/components/Navbar/TopBar.module.css">
 .container {
     height: 31px;
@@ -1274,6 +1335,93 @@ export default function Home() {
 }
 </file>
 
+<file path="src/app/components/Attractions/Attractions.tsx">
+import styles from './Attractions.module.css';
+
+export default function Attractions() {
+    const attractions = [
+        {
+            title: 'Kaszubski Park Krajobrazowy',
+            description: 'Niezliczone jeziora i morenowe wzgórza zwane "Szwajcarią Kaszubską".',
+            url: 'https://kpk.pomorskie.eu/'
+        },
+        {
+            title: 'Wieżyca – Wieża Widokowa',
+            description: 'Najwyższy szczyt Niżu Polskiego (329 m n.p.m.) z widokiem na całe Kaszuby.',
+            url: 'https://szwajcariakaszubska.com/atrakcje/wieza-widokowa-na-wiezycy'
+        },
+        {
+            title: 'CEPR w Szymbarku',
+            description: 'Słynny "Dom do góry nogami", Najdłuższą Deska Świata i Dom Sybiraka.',
+            url: 'https://cepr.pl/'
+        },
+        {
+            title: 'Skansen we Wdzydzach',
+            description: 'Najstarsze w Polsce muzeum na wolnym powietrzu nad "Kaszubskim Morzem".',
+            url: 'http://www.muzeum-wdzydze.gda.pl/'
+        },
+        {
+            title: 'Muzeum Hymnu w Będominie',
+            description: 'Jedyne na świecie muzeum poświęcone "Mazurkowi Dąbrowskiego" (bardzo blisko domków!).',
+            url: 'https://muzeumhymnu.pl/'
+        },
+        {
+            title: 'Trasy Rowerowe Nowa Karczma',
+            description: 'Lokalne szlaki prowadzące przez najpiękniejsze zakątki gminy.',
+            url: 'https://www.nowakarczma.pl/asp/walory-turystyczne,42,,1'
+        }
+    ];
+
+    return (
+        <section id="attractions" className={styles.section}>
+            <div className={styles.container}>
+                <h2 className={styles.title}>Atrakcje w okolicy 🌲</h2>
+                <p className={styles.subtitle}>
+                    Odkryj uroki Szumlesia Królewskiego i serca Kaszub. Kliknij, aby dowiedzieć się więcej.
+                </p>
+                
+                <div className={styles.grid}>
+                    {attractions.map((item, idx) => (
+                        <div key={idx} className={styles.card}>
+                            <div className={styles.header}>
+                                <span className={styles.dot}></span>
+                                <p className={styles.cardTitle}>{item.title}</p>
+                            </div>
+                            <p className={styles.description}>{item.description}</p>
+                            <a 
+                                href={item.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className={styles.link}
+                            >
+                                Więcej &raquo;
+                            </a>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+</file>
+
+<file path="src/app/components/Header/Header.module.css">
+.container {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 999;
+    height: 100px;
+    flex-direction: column;
+    transition: height 0.3s ease, top 0.3s ease;
+}
+
+.scrolled {
+    height: 70px;
+    top: -31px;
+}
+</file>
+
 <file path="src/app/components/Contact/Contact.module.css">
 .section {
   padding: var(--section-padding);
@@ -1321,23 +1469,6 @@ export default function Home() {
     flex-direction: row;
     align-items: flex-start;
   }
-}
-</file>
-
-<file path="src/app/components/Header/Header.module.css">
-.container {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 999;
-    height: 100px;
-    flex-direction: column;
-    transition: height 0.3s ease, top 0.3s ease;
-}
-
-.scrolled {
-    height: 70px;
-    top: -31px;
 }
 </file>
 
@@ -1850,6 +1981,82 @@ export default function HeroSlider() {
 }
 </file>
 
+<file path="src/app/components/Navbar/Navbar.tsx">
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import styles from './Navbar.module.css';
+import Image from 'next/image';
+import HamburgerButton from './HamburgerButton';
+
+export default function Navbar({isSmaller}: {isSmaller: boolean}) {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const mobileMenuRef = useRef<HTMLDivElement>(null);
+    const hamburgerRef = useRef<HTMLButtonElement>(null);
+
+    const toggleMenu = () => {
+        setIsMenuOpen(!isMenuOpen);
+    };
+
+    const handleClickOutside = (event: MouseEvent) => {
+        if (
+            mobileMenuRef.current &&
+            !mobileMenuRef.current.contains(event.target as Node) &&
+            hamburgerRef.current &&
+            !hamburgerRef.current.contains(event.target as Node)
+        ) {
+            setIsMenuOpen(false);
+        }
+    };
+    const closeMobileMenu = () => setIsMenuOpen(false)
+
+    useEffect(() => {
+        console.log('isMenuOpen:', isMenuOpen);
+        if (isMenuOpen) {
+            window.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            window.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isMenuOpen]);
+
+    return (
+        <nav className={styles.container+(isSmaller ? ' '+styles.smallerNavbar : '')}>
+            <div className={styles.inner}>
+                <Link className={styles.logoWrapper} href="/">
+                    <Image
+                        src="/assets/logo.webp" alt="logo"
+                        fill
+                        priority
+                        className={styles.logoImage}
+                    />
+                </Link>
+                <div className={styles.hamburgerContainer}>
+                    <HamburgerButton
+                        ref={hamburgerRef}
+                        isOpen={isMenuOpen}
+                        onClick={toggleMenu}
+                        className={styles.hamburger} />
+                </div>
+                <div className={styles.mobileMenuOuter + ' ' + (isMenuOpen ? styles.showMobileMenu : '')}>
+                    <div className={styles.mobileMenuInner} ref={mobileMenuRef}>
+                        <ul className={styles.navLinks}>
+                            <li onClick={closeMobileMenu}><Link href="/">STRONA GŁÓWNA</Link></li>
+                            <li onClick={closeMobileMenu}><Link href="/#services">OFERTA</Link></li>
+                            <li onClick={closeMobileMenu}><Link href="/gallery">GALERIA</Link></li>
+                            <li onClick={closeMobileMenu}><Link href="/#attractions">KASZUBY</Link></li>
+                            <li onClick={closeMobileMenu}><Link href="/#contact">KONTAKT</Link></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    );
+}
+</file>
+
 <file path="src/app/globals.css">
 :root {
     --primary-color: #262a10;
@@ -1934,82 +2141,6 @@ a,
 nav {
     font-family: var(--font-body);
     text-decoration: none;
-}
-</file>
-
-<file path="src/app/components/Navbar/Navbar.tsx">
-'use client';
-
-import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import styles from './Navbar.module.css';
-import Image from 'next/image';
-import HamburgerButton from './HamburgerButton';
-
-export default function Navbar({isSmaller}: {isSmaller: boolean}) {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const mobileMenuRef = useRef<HTMLDivElement>(null);
-    const hamburgerRef = useRef<HTMLButtonElement>(null);
-
-    const toggleMenu = () => {
-        setIsMenuOpen(!isMenuOpen);
-    };
-
-    const handleClickOutside = (event: MouseEvent) => {
-        if (
-            mobileMenuRef.current &&
-            !mobileMenuRef.current.contains(event.target as Node) &&
-            hamburgerRef.current &&
-            !hamburgerRef.current.contains(event.target as Node)
-        ) {
-            setIsMenuOpen(false);
-        }
-    };
-    const closeMobileMenu = () => setIsMenuOpen(false)
-
-    useEffect(() => {
-        console.log('isMenuOpen:', isMenuOpen);
-        if (isMenuOpen) {
-            window.addEventListener('mousedown', handleClickOutside);
-        }
-
-        return () => {
-            window.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isMenuOpen]);
-
-    return (
-        <nav className={styles.container+(isSmaller ? ' '+styles.smallerNavbar : '')}>
-            <div className={styles.inner}>
-                <Link className={styles.logoWrapper} href="/">
-                    <Image
-                        src="/assets/logo.webp" alt="logo"
-                        fill
-                        priority
-                        className={styles.logoImage}
-                    />
-                </Link>
-                <div className={styles.hamburgerContainer}>
-                    <HamburgerButton
-                        ref={hamburgerRef}
-                        isOpen={isMenuOpen}
-                        onClick={toggleMenu}
-                        className={styles.hamburger} />
-                </div>
-                <div className={styles.mobileMenuOuter + ' ' + (isMenuOpen ? styles.showMobileMenu : '')}>
-                    <div className={styles.mobileMenuInner} ref={mobileMenuRef}>
-                        <ul className={styles.navLinks}>
-                            <li onClick={closeMobileMenu}><Link href="/">STRONA GŁÓWNA</Link></li>
-                            <li onClick={closeMobileMenu}><Link href="/#services">OFERTA</Link></li>
-                            <li onClick={closeMobileMenu}><Link href="/gallery">GALERIA</Link></li>
-                            <li onClick={closeMobileMenu}><Link href="/#attractions">KASZUBY</Link></li>
-                            <li onClick={closeMobileMenu}><Link href="/#contact">KONTAKT</Link></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </nav>
-    );
 }
 </file>
 
