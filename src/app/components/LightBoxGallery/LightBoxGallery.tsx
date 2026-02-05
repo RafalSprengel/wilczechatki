@@ -1,11 +1,8 @@
 'use client'
 
-import { useEffect } from 'react';
-import dynamic from 'next/dynamic';
+import { useEffect, useRef } from 'react';
 import styles from './LightBoxGallery.module.css';
 import 'glightbox/dist/css/glightbox.min.css';
-
-const GLightbox : any = dynamic (() => import('glightbox') as any, { ssr: false });
 
 interface ImageProps {
   full: string;
@@ -17,17 +14,34 @@ interface LightBoxGalleryProps {
   images: ImageProps[];
 }
 
+interface GLightboxInstance {
+  destroy: () => void;
+  open: () => void;
+  close: () => void;
+}
+
 export default function LightBoxGallery({ images }: LightBoxGalleryProps) {
+  const lightboxRef = useRef<GLightboxInstance | null>(null);
 
   useEffect(() => {
-    const lightbox = GLightbox({
-      touchNavigation: true,
-      loop: true,
-      autoplayVideos: true
-    });
+    const initLightbox = async () => {
+      const GLightboxModule = (await import('glightbox')).default;
+      
+      lightboxRef.current = GLightboxModule({
+        touchNavigation: true,
+        loop: true,
+        autoplayVideos: true,
+        selector: '.glightbox'
+      }) as GLightboxInstance;
+    };
+
+    initLightbox();
 
     return () => {
-      lightbox.destroy();
+      if (lightboxRef.current) {
+        lightboxRef.current.destroy();
+        lightboxRef.current = null;
+      }
     };
   }, [images]);
 
@@ -51,4 +65,4 @@ export default function LightBoxGallery({ images }: LightBoxGalleryProps) {
       ))}
     </div>
   );
-};
+}

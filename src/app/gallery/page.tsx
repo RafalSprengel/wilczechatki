@@ -1,6 +1,7 @@
-import styles from './page.module.css';
-import LightBoxGallery from '@components/LightBoxGallery/LightBoxGallery';
+'use client'
 
+import styles from './page.module.css';
+ import LightBoxGallery from '@components/LightBoxGallery/LightBoxGallery';
 const images = [
     {
         full: '/gallery/img1.webp',
@@ -35,7 +36,7 @@ export default function Gallery() {
             <div className={styles.title}>
                 <h2>Galeria zdjęć</h2>
             </div>
-            <div>
+            <div className='galleryWrap'>
                 <LightBoxGallery images={images} />
             </div>
 

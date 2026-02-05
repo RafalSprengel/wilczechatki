@@ -24,6 +24,9 @@ label {
     box-sizing: border-box;
 }
 
+body{
+margin-top: 100px;
+}
 body {
    --font-display: var(--font-sansita), sans-serif; 
     --font-heading: var(--font-pt-serif), serif;

@@ -1,7 +1,19 @@
 .container {
+    padding-top: 50px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     background-color: var(--secondary-color);
+}
+
+.title {
+    margin-bottom: 50px;
+}
+.galleryWrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 0 20px;
 }
