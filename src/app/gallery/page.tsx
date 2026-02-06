@@ -1,34 +1,39 @@
 'use client'
 
 import styles from './page.module.css';
- import LightBoxGallery from '@components/LightBoxGallery/LightBoxGallery';
+import LightBoxGallery from '@components/LightBoxGallery/LightBoxGallery';
 const images = [
-    {
-        full: '/gallery/img1.webp',
-        thumb: '/gallery/img1-thumb.webp',
-        description: 'Opis obrazka 1'
-    },
-    {
-        full: '/gallery/img2.webp',
-        thumb: '/gallery/img2-thumb.webp',
-        description: 'Opis obrazka 2'
-    },
-    {
-        full: '/gallery/img3.webp',
-        thumb: '/gallery/img3-thumb.webp',
-        description: 'Opis obrazka 3'
-    },
-    {
-        full: '/gallery/img4.webp',
-        thumb: '/gallery/img4-thumb.webp',
-        description: 'Opis obrazka 4'
-    },
-    {
-        full: '/gallery/img5.webp',
-        thumb: '/gallery/img5-thumb.webp',
-        description: 'Opis obrazka 5'
-    }
-]
+    { full: '/gallery/wnetrze1.webp', thumb: '/gallery/wnetrze1-thumb.webp', description: 'Wnętrze' },
+    { full: '/gallery/wnetrze2.webp', thumb: '/gallery/wnetrze2-thumb.webp', description: 'Wnętrze' },
+    { full: '/gallery/wnetrze3.webp', thumb: '/gallery/wnetrze3-thumb.webp', description: 'Wnętrze' },
+    { full: '/gallery/wnetrze4.webp', thumb: '/gallery/wnetrze4-thumb.webp', description: 'Wnętrze' },
+    { full: '/gallery/wnetrze5.webp', thumb: '/gallery/wnetrze5-thumb.webp', description: 'Wnętrze' },
+    { full: '/gallery/wnetrze6.webp', thumb: '/gallery/wnetrze6-thumb.webp', description: 'Wnętrze' },
+    { full: '/gallery/wnetrze7.webp', thumb: '/gallery/wnetrze7-thumb.webp', description: 'Wnętrze' },
+    { full: '/gallery/sypialnia1.webp', thumb: '/gallery/sypialnia1-thumb.webp', description: 'Sypialnia' },
+    { full: '/gallery/sypialnia2.webp', thumb: '/gallery/sypialnia2-thumb.webp', description: 'Sypialnia' },
+    { full: '/gallery/sypialnia3.webp', thumb: '/gallery/sypialnia3-thumb.webp', description: 'Sypialnia' },
+    { full: '/gallery/sypialnia4.webp', thumb: '/gallery/sypialnia4-thumb.webp', description: 'Sypialnia' },
+    { full: '/gallery/lazienka1.webp', thumb: '/gallery/lazienka1-thumb.webp', description: 'Łazienka' },
+    { full: '/gallery/kuchnia1.webp', thumb: '/gallery/kuchnia1-thumb.webp', description: 'Kuchnia' },
+    { full: '/gallery/kuchnia2.webp', thumb: '/gallery/kuchnia2-thumb.webp', description: 'Kuchnia' },
+    { full: '/gallery/kuchnia3.webp', thumb: '/gallery/kuchnia3-thumb.webp', description: 'Kuchnia' },
+    { full: '/gallery/zagroda1.webp', thumb: '/gallery/zagroda1-thumb.webp', description: 'Zagroda' },
+    { full: '/gallery/zagroda2.webp', thumb: '/gallery/zagroda2-thumb.webp', description: 'Zagroda' },
+    { full: '/gallery/zagroda3.webp', thumb: '/gallery/zagroda3-thumb.webp', description: 'Zagroda' },
+    { full: '/gallery/zwierzeta1.webp', thumb: '/gallery/zwierzeta1-thumb.webp', description: 'Zwierzęta' },
+    { full: '/gallery/zwierzeta2.webp', thumb: '/gallery/zwierzeta2-thumb.webp', description: 'Zwierzęta' },
+    { full: '/gallery/zwierzeta3.webp', thumb: '/gallery/zwierzeta3-thumb.webp', description: 'Zwierzęta' },
+    { full: '/gallery/zwierzeta4.webp', thumb: '/gallery/zwierzeta4-thumb.webp', description: 'Zwierzęta' },
+    { full: '/gallery/zwierzeta5.webp', thumb: '/gallery/zwierzeta5-thumb.webp', description: 'Zwierzęta' },
+    { full: '/gallery/okolica1.webp', thumb: '/gallery/okolica1-thumb.webp', description: 'Okolica' },
+    { full: '/gallery/okolica2.webp', thumb: '/gallery/okolica2-thumb.webp', description: 'Okolica' },
+    { full: '/gallery/okolica3.webp', thumb: '/gallery/okolica3-thumb.webp', description: 'Okolica' },
+    { full: '/gallery/okolica4.webp', thumb: '/gallery/okolica4-thumb.webp', description: 'Okolica' },
+    { full: '/gallery/okolica5.webp', thumb: '/gallery/okolica5-thumb.webp', description: 'Okolica' }
+];
+
+
 
 export default function Gallery() {
     return (

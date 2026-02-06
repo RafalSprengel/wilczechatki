@@ -14,14 +14,8 @@ interface LightBoxGalleryProps {
   images: ImageProps[];
 }
 
-interface GLightboxInstance {
-  destroy: () => void;
-  open: () => void;
-  close: () => void;
-}
-
 export default function LightBoxGallery({ images }: LightBoxGalleryProps) {
-  const lightboxRef = useRef<GLightboxInstance | null>(null);
+  const lightboxRef = useRef<any>(null);
 
   useEffect(() => {
     const initLightbox = async () => {
@@ -30,9 +24,35 @@ export default function LightBoxGallery({ images }: LightBoxGalleryProps) {
       lightboxRef.current = GLightboxModule({
         touchNavigation: true,
         loop: true,
-        autoplayVideos: true,
-        selector: '.glightbox'
-      }) as GLightboxInstance;
+        selector: '.glightbox',
+        openEffect: 'zoom',
+        closeEffect: 'fade',
+      });
+
+      lightboxRef.current.on('open', () => {
+        const container = document.querySelector('.gcontainer');
+        
+        if (container) {
+          container.addEventListener('click', (e: Event) => {
+            const target = e.target as HTMLElement;
+            
+            if (
+              target.classList.contains('gslide-media') || 
+              target.classList.contains('gslide-inner-content') ||
+              target.classList.contains('gcontainer') ||
+              target.closest('.gslide-description')
+            ) {
+              return;
+            }
+
+            const isImage = target.tagName.toLowerCase() === 'img';
+            
+            if (!isImage) {
+              lightboxRef.current.close();
+            }
+          });
+        }
+      });
     };
 
     initLightbox();
@@ -40,7 +60,6 @@ export default function LightBoxGallery({ images }: LightBoxGalleryProps) {
     return () => {
       if (lightboxRef.current) {
         lightboxRef.current.destroy();
-        lightboxRef.current = null;
       }
     };
   }, [images]);
@@ -61,6 +80,9 @@ export default function LightBoxGallery({ images }: LightBoxGalleryProps) {
             alt={img.description || `Gallery item ${index + 1}`}
             className={styles.image}
           />
+          <div className={styles.caption}>
+            <span>{img.description}</span>
+          </div>
         </a>
       ))}
     </div>
