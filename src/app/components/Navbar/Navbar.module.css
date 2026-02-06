@@ -20,7 +20,7 @@
     padding: 0 20px;
 }
 
-.smallerNavbar{
+.smallerNavbar {
     height: 60px;
 }
 
@@ -180,7 +180,8 @@
         transform: none;
         transition: none;
     }
+
     .navLinks a {
-    font-size: 16px;
-  }
+        font-size: 16px;
+    }
 }
