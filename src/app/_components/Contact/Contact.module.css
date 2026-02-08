@@ -1,0 +1,114 @@
+.mainContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.title:after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 3px;
+  background-color: var(--accent-color);
+  margin: 15px auto 0;
+}
+
+.flexWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+  margin-bottom: 30px;
+}
+
+.infoColumn {
+  flex: 1;
+  text-align: center;
+  margin: 0 30px;
+}
+
+.formColumn {
+  flex: 1;
+  width: 100%;
+}
+
+.payment h3 {
+  color: var(--accent-color);
+  margin: 20px 0 10px;
+}
+
+.addressLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  margin-bottom: 20px;
+  transition: color 0.3s ease;
+}
+
+.addressLink:hover {
+  color: var(--accent-color);
+}
+
+.mapHintWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+  justify-content: center;
+}
+
+.mapIcon {
+  font-size: 0.8rem;
+  color: var(--accent-color);
+}
+
+.mapHint {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.detailIcon {
+  color: var(--accent-color);
+  width: 14px;
+  height: 14px;
+}
+
+.contactLink {
+  text-decoration: none;
+  color: inherit;
+  font-weight: 600;
+  transition: color var(--transition);
+}
+
+.contactLink:hover {
+  color: var(--accent-color);
+}
+
+@media (min-width: 768px) {
+  .flexWrapper {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .mapHintWrapper,
+  .contactItem {
+    justify-content: flex-start;
+  }
+
+  .infoColumn p,
+  .infoColumn h3 {
+    text-align: left;
+  }
+}

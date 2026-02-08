@@ -1,7 +1,11 @@
 'use client'
 
+import Link from 'next/link';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import styles from './page.module.css';
 import LightBoxGallery from '@components/LightBoxGallery/LightBoxGallery';
+
 const images = [
     { full: '/gallery/wnetrze1.webp', thumb: '/gallery/wnetrze1-thumb.webp', description: 'Wnętrze' },
     { full: '/gallery/wnetrze2.webp', thumb: '/gallery/wnetrze2-thumb.webp', description: 'Wnętrze' },
@@ -33,8 +37,6 @@ const images = [
     { full: '/gallery/okolica5.webp', thumb: '/gallery/okolica5-thumb.webp', description: 'Okolica' }
 ];
 
-
-
 export default function Gallery() {
     return (
         <div className={styles.gallerySection_container}>
@@ -45,7 +47,11 @@ export default function Gallery() {
                 <LightBoxGallery images={images} />
             </div>
 
+            <div className={styles.backButton_wrapper}>
+                <Link href="/#gallery-section" className={styles.backButton}>
+                   <span className={styles.icon}>&laquo;</span> Powrót
+                </Link>
+            </div>
         </div>
     );
-
 }

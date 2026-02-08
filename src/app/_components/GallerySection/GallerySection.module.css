@@ -1,0 +1,30 @@
+.title h2 {
+    text-align: center;
+}
+.title:after{
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background-color: var(--accent-color);
+    margin: 15px auto 0;
+}
+.galleryWrap {
+    display: flex;
+    justify-content: center;
+}
+
+.link {
+    display: block;
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+    width: 100%;
+    text-align: center;
+}
+
+.link:hover {
+    color: #1e8449;
+    text-decoration: underline;
+}

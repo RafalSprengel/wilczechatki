@@ -16,14 +16,14 @@ export default function GallerySection() {
     ];
 
     return (
-        <section >
+        <section id='gallery-section'>
             <div className={styles.title}>
                 <h2>Galeria zdjęć</h2>
             </div>
             <div className={styles.galleryWrap}>
                 <LightBoxGallery images={images} />
             </div>
-            <a href="/gallery" className={styles.seeMore}>Zobacz więcej...</a>
+            <a href="/gallery" className={styles.link}>Zobacz więcej &raquo;</a>
         </section>
     );
 }

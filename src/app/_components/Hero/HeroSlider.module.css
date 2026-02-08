@@ -8,12 +8,6 @@
   animation: fadeInSlider 1s ease-out forwards;
 }
 
-@keyframes fadeInSlider {
-  to {
-    opacity: 1;
-  }
-}
-
 .sliderMain,
 .slide {
   position: absolute;
@@ -48,16 +42,6 @@
   filter: blur(1px);
 }
 
-@keyframes kenBurns {
-  from {
-    transform: scale(1);
-  }
-
-  to {
-    transform: scale(1.15);
-  }
-}
-
 .slideContent {
   position: absolute;
   top: 30dvh;
@@ -65,12 +49,6 @@
   right: 20px;
   color: #fff;
   z-index: 10;
-}
-
-@media (max-height: 1000px) {
-  .slideContent {
-    top: 25%
-  }
 }
 
 .slideSubtitle,
@@ -113,13 +91,16 @@
   transition-delay: 1.2s;
 }
 
+.slideTitle {
+  font-size: 2.3rem;
+}
+
 .slideSubtitle {
   display: block;
-  font-size: 1.4rem;
+  font-size: 1rem;
   margin-bottom: 5px;
 }
 
-.slideTitle {}
 
 .slideTopic {
   font-size: 1.5rem;
@@ -135,6 +116,7 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+   color: #fff;
 }
 
 .slideActions {
@@ -232,12 +214,6 @@
   animation: progress 7.5s linear forwards;
 }
 
-@keyframes progress {
-  to {
-    width: 100%;
-  }
-}
-
 .bottomNav {
   display: flex;
   flex-direction: column;
@@ -284,6 +260,49 @@
   border-color: #fff;
 }
 
+@keyframes fadeInSlider {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes kenBurns {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.15);
+  }
+}
+
+@keyframes progress {
+  to {
+    width: 100%;
+  }
+}
+
+@media (min-width: 500px) {
+  .slideTitle {
+    font-size: 3rem;
+  }
+
+  .slideTopic {
+    font-size: 1.8rem;
+  }
+
+  .slideSubtitle {
+    font-size: 1.6rem;
+  }
+
+}
+
+@media (max-height: 1000px) {
+  .slideContent {
+    top: 25%;
+  }
+}
+
 @media (min-width: 1024px) {
   .overlay {
     background: linear-gradient(to right, rgba(0, 0, 0, 0.8) 0%, transparent 60%);
@@ -298,8 +317,7 @@
   }
 
   .slideTitle {
-    /* font-size: 4rem; */
-    margin: 1.6rem 0;
+    margin: 1rem 0;
     letter-spacing: 1.1px;
   }
 
@@ -340,5 +358,11 @@
 
   .paginationDots {
     display: none;
+  }
+}
+
+@media (max-height: 700px) {
+  .slideContent {
+    top: 10%;
   }
 }

@@ -61,9 +61,11 @@ export default function Navbar({isSmaller}: {isSmaller: boolean}) {
                         <ul className={styles.navLinks}>
                             <li onClick={closeMobileMenu}><Link href="/">STRONA GŁÓWNA</Link></li>
                             <li onClick={closeMobileMenu}><Link href="/#services">OFERTA</Link></li>
+                             <li onClick={closeMobileMenu}><Link href="/#pricing">CENNIK</Link></li>
                             <li onClick={closeMobileMenu}><Link href="/gallery">GALERIA</Link></li>
                             <li onClick={closeMobileMenu}><Link href="/#attractions">KASZUBY</Link></li>
                             <li onClick={closeMobileMenu}><Link href="/#contact">KONTAKT</Link></li>
+                            <li onClick={closeMobileMenu}><Link href="/booking">REZERWACJE</Link></li>
                         </ul>
                     </div>
                 </div>

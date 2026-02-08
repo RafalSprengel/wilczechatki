@@ -1,6 +1,3 @@
-.section {
-}
-
 .container {
     max-width: 1100px;
     margin: 0 auto;
@@ -8,7 +5,15 @@
 
 .title {
     text-align: center;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+}
+.title:after{
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background-color: var(--accent-color);
+    margin: 15px auto 0;
 }
 
 .subtitle {
@@ -64,6 +69,13 @@
     margin: 0 0 20px 0;
     flex-grow: 1;
 }
+.distanceInfo {
+    font-size: 0.9rem;
+    color: #555; /* Twoja oliwkowa zieleń */
+    font-weight: 600;
+    margin: 10px 0;
+    display: block;
+}
 
 .link {
     color: var(--accent-color);
@@ -80,13 +92,6 @@
 }
 
 @media (min-width: 768px) {
-    .section {
-        padding: 80px 40px;
-    }
-
-    .title {
-        font-size: 2.2rem;
-    }
 
     .grid {
         grid-template-columns: repeat(2, 1fr);

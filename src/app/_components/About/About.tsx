@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import styles from './About.module.css';
 
 export default function About() {
@@ -37,7 +38,7 @@ export default function About() {
                 </div>
 
                 <div className={styles.links}>
-                    <a href="#atrakcje" className={styles.link}>Przeczytaj więcej o atrakcjach w regionie &raquo;</a>
+                    <Link href="/#attractions" className={styles.link}>Przeczytaj więcej o atrakcjach w regionie &raquo;</Link>
                 </div>
             </div>
         </section>

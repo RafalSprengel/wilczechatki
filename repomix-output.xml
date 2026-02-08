@@ -32,7 +32,7 @@ The content is organized as follows:
 <notes>
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
-- Only files matching these patterns are included: src/app/components/LightBoxGallery
+- Only files matching these patterns are included: src/app/_components/Navbar
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
 - Files are sorted by Git change count (files with more changes are at the bottom)
@@ -41,194 +41,456 @@ The content is organized as follows:
 </file_summary>
 
 <directory_structure>
-src/app/components/LightBoxGallery/LightBoxGallery.module.css
-src/app/components/LightBoxGallery/LightBoxGallery.tsx
+src/app/_components/Navbar/HamburgerButton.module.css
+src/app/_components/Navbar/HamburgerButton.tsx
+src/app/_components/Navbar/Navbar.module.css
+src/app/_components/Navbar/Navbar.tsx
+src/app/_components/Navbar/TopBar.module.css
+src/app/_components/Navbar/TopBar.tsx
 </directory_structure>
 
 <files>
 This section contains the contents of the repository's files.
 
-<file path="src/app/components/LightBoxGallery/LightBoxGallery.module.css">
-.galleryWrapper {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    padding: 50px 0;
-    background-color: transparent;
-    padding-top: 50px;
-    margin-bottom: 50px
+<file path="src/app/_components/Navbar/HamburgerButton.module.css">
+.hamburger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  z-index: 10;
 }
 
-.gallery {
-    --size: 100px;
-    display: grid;
-    grid-template-columns: repeat(6, var(--size));
-    grid-auto-rows: var(--size);
-    gap: 10px;
-    place-items: start center;
+.hamburger:focus {
+  outline: none;
 }
 
-.gallery:has(.imageLink:hover) .imageLink:not(:hover) {
-    filter: brightness(0.5) contrast(0.5);
+.bar {
+  width: 2rem;
+  height: 0.25rem;
+  background: var(--primary-color);
+  border-radius: 10px;
+  transition: all 0.3s linear;
+  position: relative;
+  transform-origin: 1px;
 }
 
-.imageLink {
-    grid-column: auto / span 2;
-    width: calc(var(--size) * 2);
-    height: calc(var(--size) * 2);
-    position: relative;
-    z-index: 0;
-    transition: clip-path 0.25s, filter 0.45s, z-index 0.25s;
+.isOpen .bar:nth-child(1) {
+  transform: rotate(45deg);
 }
 
-.imageLink:nth-child(5n - 1) {
-    grid-column: 2 / span 2;
+.isOpen .bar:nth-child(2) {
+  opacity: 0;
+  transform: translateX(20px);
 }
 
-.image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    clip-path: path("M90,10 C100,0 100,0 110,10 190,90 190,90 190,90 200,100 200,100 190,110 190,110 110,190 110,190 100,200 100,200 90,190 90,190 10,110 10,110 0,100 0,100 10,90Z");
-}
-
-.imageLink:hover {
-    z-index: 10;
-}
-
-.imageLink:hover .image {
-    clip-path: path("M0,0 C0,0 200,0 200,0 200,0 200,100 200,100 200,100 200,200 200,200 200,200 100,200 100,200 100,200 100,200 0,200 0,200 0,100 0,100 0,100 0,100 0,100Z");
-    transition: clip-path 0.25s, filter 0.25s;
-}
-
-.caption {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    bottom: 0px;
-    text-align: center;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    margin-top: 5px;
-    background: linear-gradient(to top, #00000087 0%, #0000 140%);
-    width: 100%;
-    height: 15%;
-    color: white;
-    font-size: 16px;
-    ;
-}
-
-@media (max-width: 762px) {
-    .galleryWrapper {
-        margin-bottom: 0;
-    }
-
-    .gallery {
-        grid-template-columns: repeat(2, 1fr);
-        grid-auto-rows: auto;
-        gap: 15px;
-        padding: 0 20px;
-        width: 100%;
-    }
-
-    .imageLink,
-    .imageLink:nth-child(5n - 1),
-    .imageLink:nth-child(3n - 1) {
-        grid-column: span 1 !important;
-        width: 100%;
-        height: auto;
-        aspect-ratio: 1 / 1;
-    }
-
-    .image {
-        clip-path: none !important;
-        border-radius: 2px;
-    }
-
-    .imageLink:hover .image {
-        clip-path: none !important;
-        transform: scale(1.02);
-    }
-
-    .caption {
-        display: none !important;
-    }
-
+.isOpen .bar:nth-child(3) {
+  transform: rotate(-45deg);
 }
 </file>
 
-<file path="src/app/components/LightBoxGallery/LightBoxGallery.tsx">
-'use client'
+<file path="src/app/_components/Navbar/HamburgerButton.tsx">
+import React, { forwardRef } from 'react';
+import styles from './HamburgerButton.module.css';
 
-import { useEffect, useRef } from 'react';
-import styles from './LightBoxGallery.module.css';
-import 'glightbox/dist/css/glightbox.min.css';
-
-interface ImageProps {
-  full: string;
-  thumb: string;
-  description?: string;
+interface HamburgerButtonProps {
+  isOpen: boolean;
+  onClick: () => void;
+  className?: string;
 }
 
-interface LightBoxGalleryProps {
-  images: ImageProps[];
+const HamburgerButton = forwardRef<HTMLButtonElement, HamburgerButtonProps>(
+  ({ isOpen, onClick, className }, ref) => {
+    const handleOnclick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      onClick();
+    };
+
+    return (
+      <button
+        className={`${styles.hamburger} ${isOpen ? styles.isOpen : ''} ${className}`}
+        onClick={handleOnclick}
+        aria-label="Toggle menu"
+        ref={ref}
+      >
+        <div className={styles.bar}></div>
+        <div className={styles.bar}></div>
+        <div className={styles.bar}></div>
+      </button>
+    );
+  }
+);
+
+HamburgerButton.displayName = 'HamburgerButton';
+
+export default HamburgerButton;
+</file>
+
+<file path="src/app/_components/Navbar/Navbar.module.css">
+.container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    background-color: var(--bg-white);
+    height: 80px;
+    transition: height 0.3s ease;
+    opacity: 1;
+    transition: opacity var(--transition);
 }
 
-export default function LightBoxGallery({ images }: LightBoxGalleryProps) {
-  const lightboxRef = useRef<any>(null);
+.inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
 
-  useEffect(() => {
-    let lightboxInstance: any = null;
+.smallerNavbar {
+    height: 60px;
+    opacity: .8;
+}
 
-    const initLightbox = async () => {
-      const GLightboxModule = (await import('glightbox')).default;
+.logoWrapper {
+    display: inline-block;
+    position: relative;
+    height: 80%;
+    width: 75px;
+    overflow: hidden;
+    transition: height 0.3s ease, width 0.3s ease;
+    
+}
 
-      // Inicjalizujemy lightbox
-      lightboxInstance = GLightboxModule({
-        touchNavigation: true,
-        loop: true,
-        selector: '.glightbox',
-        openEffect: 'zoom',
-        closeEffect: 'fade',
-      });
+.logoImage {
+    object-fit: contain;
+    object-position: left;
+}
 
-      lightboxRef.current = lightboxInstance;
+.hamburgerContainer {
+    position: relative;
+    top: 0;
+    right: 0;
+    z-index: 30;
+}
+
+.mobileMenuOuter {
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0%;
+    height: 0px;
+    z-index: 20;
+    border-radius: 5px;
+    overflow: hidden;
+    transition: width var(--transition), height var(--transition), opacity var(--transition);
+    opacity: 0;
+    padding: 12px;
+}
+
+.mobileMenuInner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(18.8px);
+    -webkit-backdrop-filter: blur(18.8px);
+    border: 1px solid rgba(255, 255, 255, 0.44);
+}
+
+.showMobileMenu {
+    width: 100%;
+    height: 500px;
+    opacity: 1;
+}
+
+.navLinks {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 300px;
+    gap: 30px;
+    list-style: none;
+    padding: 10px;
+}
+
+.navLinks li {
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.showMobileMenu .navLinks li {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.showMobileMenu .navLinks li:nth-child(1) {
+    transition-delay: 0.2s;
+}
+
+.showMobileMenu .navLinks li:nth-child(2) {
+    transition-delay: 0.3s;
+}
+
+.showMobileMenu .navLinks li:nth-child(3) {
+    transition-delay: 0.4s;
+}
+
+.showMobileMenu .navLinks li:nth-child(4) {
+    transition-delay: 0.5s;
+}
+
+.showMobileMenu .navLinks li:nth-child(5) {
+    transition-delay: 0.6s;
+}
+
+.showMobileMenu .navLinks li:nth-child(6) {
+    transition-delay: 0.7s;
+}
+.showMobileMenu .navLinks li:nth-child(7) {
+    transition-delay: 0.8s;
+}
+
+.navLinks a {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--primary-color);
+    transition: color var(--transition);
+    text-decoration: none;
+}
+
+.navLinks a:hover {
+    color: var(--accent-color);
+}
+
+@media screen and (min-width: 1024px) {
+    .hamburgerContainer {
+        display: none;
+    }
+
+    .mobileMenuOuter {
+        flex: 1;
+        position: static;
+        width: auto;
+        height: auto;
+        opacity: 1;
+        padding: 0;
+        margin-left: auto;
+    }
+
+    .mobileMenuInner {
+        background: transparent;
+        box-shadow: none;
+        border: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        padding: 0;
+        justify-content: flex-end;
+    }
+
+    .showMobileMenu {
+        height: auto;
+        opacity: 1;
+        transform: none;
+    }
+
+    .navLinks {
+        flex-direction: row;
+        width: auto;
+        padding: 0;
+    }
+
+    .navLinks li {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+    .navLinks a {
+        font-size: 16px;
+    }
+}
+</file>
+
+<file path="src/app/_components/Navbar/Navbar.tsx">
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import styles from './Navbar.module.css';
+import Image from 'next/image';
+import HamburgerButton from './HamburgerButton';
+
+export default function Navbar({isSmaller}: {isSmaller: boolean}) {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const mobileMenuRef = useRef<HTMLDivElement>(null);
+    const hamburgerRef = useRef<HTMLButtonElement>(null);
+
+    const toggleMenu = () => {
+        setIsMenuOpen(!isMenuOpen);
     };
 
-    initLightbox();
-
-    return () => {
-      if (lightboxInstance) {
-        lightboxInstance.destroy();
-      }
+    const handleClickOutside = (event: MouseEvent) => {
+        if (
+            mobileMenuRef.current &&
+            !mobileMenuRef.current.contains(event.target as Node) &&
+            hamburgerRef.current &&
+            !hamburgerRef.current.contains(event.target as Node)
+        ) {
+            setIsMenuOpen(false);
+        }
     };
-  }, [images]);
+    const closeMobileMenu = () => setIsMenuOpen(false)
 
-  return (
-    <div className={styles.galleryWrapper}>
-      <div className={styles.gallery}>
-        {images.map((img, index) => (
-          <a
-            href={img.full}
-            className={`glightbox ${styles.imageLink}`}
-            data-gallery="my-gallery"
-            key={`${img.full}-${index}`}
-          >
-            <img
-              src={img.thumb}
-              alt={img.description || `Gallery item ${index + 1}`}
-              className={styles.image}
-            />
-            <div className={styles.caption}>
-              <span>{img.description}</span>
+    useEffect(() => {
+        console.log('isMenuOpen:', isMenuOpen);
+        if (isMenuOpen) {
+            window.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            window.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isMenuOpen]);
+
+    return (
+        <nav className={styles.container+(isSmaller ? ' '+styles.smallerNavbar : '')}>
+            <div className={styles.inner}>
+                <Link className={styles.logoWrapper} href="/">
+                    <Image
+                        src="/assets/logo.webp" alt="logo"
+                        fill
+                        priority
+                        className={styles.logoImage}
+                    />
+                </Link>
+                <div className={styles.hamburgerContainer}>
+                    <HamburgerButton
+                        ref={hamburgerRef}
+                        isOpen={isMenuOpen}
+                        onClick={toggleMenu}
+                        className={styles.hamburger} />
+                </div>
+                <div className={styles.mobileMenuOuter + ' ' + (isMenuOpen ? styles.showMobileMenu : '')}>
+                    <div className={styles.mobileMenuInner} ref={mobileMenuRef}>
+                        <ul className={styles.navLinks}>
+                            <li onClick={closeMobileMenu}><Link href="/">STRONA GŁÓWNA</Link></li>
+                            <li onClick={closeMobileMenu}><Link href="/#services">OFERTA</Link></li>
+                             <li onClick={closeMobileMenu}><Link href="/#pricing">CENNIK</Link></li>
+                            <li onClick={closeMobileMenu}><Link href="/gallery">GALERIA</Link></li>
+                            <li onClick={closeMobileMenu}><Link href="/#attractions">KASZUBY</Link></li>
+                            <li onClick={closeMobileMenu}><Link href="/#contact">KONTAKT</Link></li>
+                            <li onClick={closeMobileMenu}><Link href="/booking">REZERWACJE</Link></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-          </a>
-        ))}
-      </div>
-    </div>
-  );
+        </nav>
+    );
+}
+</file>
+
+<file path="src/app/_components/Navbar/TopBar.module.css">
+.container {
+    height: 31px;
+    background-color: var(--primary-color);
+    padding: 2px 0;
+    width: 100%;
+}
+
+.inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.contactInfo {
+    display: flex;
+    align-items: center;
+}
+
+.contactInfo a {
+    color: var(--text-light);
+    font-size: 12px;
+    margin-right: 20px;
+    opacity: 0.9;
+    transition: color var(--transition);
+    text-decoration: none;
+}
+
+.socialIcons {
+    display: flex;
+    align-items: center;
+}
+
+.socialIcons a {
+    color: var(--text-light);
+    font-size: 18px;
+    opacity: 0.9;
+    transition: color var(--transition), transform var(--transition);
+    text-decoration: none;
+}
+
+.socialIcons a:hover {
+    color: #1877F2;
+    opacity: 1;
+    transform: scale(1.1);
+}
+</file>
+
+<file path="src/app/_components/Navbar/TopBar.tsx">
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFacebook } from '@fortawesome/free-brands-svg-icons';
+import styles from './TopBar.module.css';
+
+export default function TopBar() {
+    return (
+        <div className={styles.container}>
+            <div className={styles.inner}>
+                <div className={styles.contactInfo}>
+                    <a href="tel:+48668388570">+48 668 388 570</a>
+                    <a href="mailto:kontakt@wilczechatki.pl">kontakt@wilczechatki.pl</a>
+                </div>
+                <div className={styles.socialIcons}>
+                    <a 
+                        href="https://facebook.com/profile.php?id=61584455637648"
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        aria-label="Facebook"
+                    >
+                        <FontAwesomeIcon 
+                            icon={faFacebook} 
+                            style={{ width: '20px', height: '20px' }} 
+                        />
+                    </a>
+                </div>
+            </div>
+        </div>
+    );
 }
 </file>
 

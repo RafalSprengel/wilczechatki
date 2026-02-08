@@ -1,5 +1,5 @@
 'use client';
-
+import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import styles from './HeroSlider.module.css';
 
@@ -113,8 +113,8 @@ export default function HeroSlider() {
               <h2 className={styles.slideTopic}>{item.topic}</h2>
               <p className={styles.slideDesc}>{item.description}</p>
               <div className={styles.slideActions}>
-                <button className={styles.btnPrimary}>ZAREZERWUJ</button>
-                <button className={styles.btnOutline}>GALERIA</button>
+                <Link href="/booking" className={styles.btnPrimary}>ZAREZERWUJ</Link>
+                <Link href="/gallery" className={styles.btnOutline}>GALERIA</Link>
               </div>
             </div>
           </div>

@@ -1,8 +1,8 @@
 import { Sansita, PT_Serif, Mulish } from "next/font/google";
 import type { Metadata } from 'next';
 import './globals.css';
-import Header from './components/Header/Header';
-import Footer from './components/Footer/Footer';
+import Header from '@components/Header/Header';
+import Footer from '@components/Footer/Footer';
 
 import { config } from '@fortawesome/fontawesome-svg-core';
 import '@fortawesome/fontawesome-svg-core/styles.css';

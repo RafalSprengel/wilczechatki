@@ -12,14 +12,21 @@
     --transition: 0.3s ease-in-out;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 section:nth-child(odd) {
     background-color: var(--section-bg-dark);
 }
+
 section:nth-child(even) {
     background-color: var(--section-bg-light);
 }
+
 section {
     padding: 60px 20px;
+    scroll-margin-top: 40px;
 }
 
 body,
@@ -34,6 +41,13 @@ label {
 * {
     margin: 0;
     box-sizing: border-box;
+}
+
+p {
+    color: #555;
+    font-size: 1.05rem;
+    color: #555;
+    line-height: 1.8;
 }
 
 body {
@@ -74,7 +88,7 @@ h1 {
 }
 
 h2 {
-    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-size: clamp(1.8rem, 3.3vw, 2.4rem);
     line-height: 1.2;
 }
 
