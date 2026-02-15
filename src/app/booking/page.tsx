@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import QuantityPicker from '@components/QuantityPicker/QuantityPicker';
+import CalendarPicker from '../_components/CalendarPicker/CalendarPicker';
 import styles from "./page.module.css";
 
 export default function Booking() {
@@ -30,7 +31,8 @@ export default function Booking() {
                         12 lutego 2026 - 18 lutego 2026 (6 nocy)
                     </div>
                     <div className={`${styles.setDate} ${isDateBoxOpen ? styles.expanded : ''}`}>
-                        Zmiana daty
+                        <CalendarPicker />
+                        <button className={styles.buttOk} onClick={() => setIsDateBoxOpen(false)} >Gotowe</button>
                     </div>
                 </div>
                 <div className={styles.gestsBox}>

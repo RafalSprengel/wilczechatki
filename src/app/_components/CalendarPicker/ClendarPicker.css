@@ -1,0 +1,206 @@
+@font-face {
+    font-family: 'Material Symbols Outlined';
+    font-style: normal;
+    font-weight: 100 700;
+    src: url(https://fonts.gstatic.com/s/materialsymbolsoutlined/v136/kJEhBvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oFsI.woff2) format('woff2');
+}
+
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+}
+
+.calendar {
+    min-width: 290px;
+    max-width: 350px;
+    text-align: center;
+}
+
+.calendar__container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 30px;
+    align-items: center;
+    height: 90vh;
+}
+
+.navigation {
+    display: flex;
+    justify-content: space-between;
+    height: 44px;
+    color: #4a4949;
+}
+
+.navigation__arrow {
+    width: 44px;
+    padding: 5px;
+    margin: auto;
+    cursor: pointer;
+}
+
+.navigation__arrow:hover {
+    background-color: rgb(231, 231, 231);
+}
+
+.navigation__current-month {
+    margin: 0 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.navigation__current-month:hover {
+    background-color: rgb(231, 231, 231);
+}
+
+.week-days {
+    display: flex;
+}
+
+.week-days__names {
+    padding: 5px;
+    flex: 0 0 14.28%;
+    text-transform: uppercase;
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
+    color: #565656;
+    font-size: 0.8em;
+}
+
+.month-container {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.day {
+    padding: 10px 0px;
+    flex: 0 0 14.28%;
+    cursor: pointer;
+    background-color: white;
+    border: solid 1px white;
+    border-radius: 3px;
+    color: #4a4949;
+    user-select: none;
+    box-shadow: 3px 3px 7px 0px #d2d2d280;
+    z-index: 2;
+}
+
+.day:hover {
+    background-color: #8d8c8c;
+}
+
+.day__blank {
+    padding: 10px;
+    flex: 0 0 14.28%;
+    cursor: pointer;
+}
+
+.day__today {
+    border: dotted 2px red;
+}
+
+.day__reserved {
+    color: gray;
+    opacity: 0.5;
+    position: relative;
+    pointer-events: none;
+}
+
+.day__reserved::before,
+.day__reserved::after {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: 7px;
+    width: 70%;
+    height: 1px;
+    background-color: red;
+    transform-origin: center;
+}
+
+.day__reserved::before {
+    transform: rotate(45deg);
+}
+
+.day__reserved::after {
+    transform: rotate(-45deg);
+}
+
+.day__sunday,
+.day__saturday {
+    color: #d10000;
+}
+
+.day__selected-as-start,
+.day__selected-as-end {
+    /* background-color: #D99800; */
+    background-color: #ffe299;
+    color: white;
+}
+
+
+
+.day__selected-between {
+    background-color: #ffe299 !important;
+    color: white;
+}
+
+.day__hovered {
+    background-color: #FFE299;
+    color: white;
+}
+
+.day__disabled {
+    background-color: #0a0250;
+    color: white;
+}
+
+.day__past {
+    color: #d3d3d3;
+}
+
+.day__weekend {
+    color: #d3d3d3;
+    pointer-events: none;
+}
+
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.buttons__add,
+.buttons__clear {
+    padding: 15px 20px;
+    cursor: pointer;
+    border: 2px solid silver;
+    border-radius: 5px;
+    font-weight: 500;
+}
+
+.summary {
+    display: flex;
+    justify-content: center;
+}
+
+.summary__start-date,
+.summary__end-date {
+    margin: 5px;
+    padding: 5px;
+}
