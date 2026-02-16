@@ -23,7 +23,6 @@
     align-items: center;
     margin: 20px;
     margin-top: 40px
-
 }
 
 .dateBox,
@@ -46,7 +45,7 @@
 .setGests {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: center;
     width: 100%;
     height: 0px;
@@ -54,7 +53,11 @@
     transition: height var(--transition);
 }
 
-.expanded {
+.expandedDate {
+    height: 500px;
+}
+
+.expandedGests {
     height: 230px;
 }
 
@@ -81,13 +84,14 @@
     color: #fff
 }
 
-.buttOk{
-border: none;
-border-radius: 5px;
-border: 1px solid #ddd;
-background-color: inherit;
-margin: 20px 0;
-padding: 10px;
-width: 100px;;
+.buttOk {
+    border: none;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    background-color: inherit;
+    margin: 20px 0;
+    padding: 10px;
+    width: 100px;
+    ;
 
 }

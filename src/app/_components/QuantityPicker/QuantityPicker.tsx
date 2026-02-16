@@ -3,7 +3,6 @@
 import styles from './QuantityPicker.module.css';
 
 interface QuantityPickerProps {
-    label: string;
     value: number;
     onIncrement: () => void;
     onDecrement: () => void;
@@ -12,7 +11,6 @@ interface QuantityPickerProps {
 }
 
 export default function QuantityPicker({
-    label,
     value,
     onIncrement,
     onDecrement,
@@ -21,7 +19,6 @@ export default function QuantityPicker({
 }: QuantityPickerProps) {
     return (
         <div className={styles.container}>
-            <span className={styles.label}>{label}</span>
             <div className={styles.controls}>
                 <button
                     type="button"
