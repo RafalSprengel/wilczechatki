@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import QuantityPicker from '../_components/QuantityPicker/QuantityPicker';
 import CalendarPicker from '../_components/CalendarPicker/CalendarPicker';
 import styles from "./page.module.css";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHouse, faCheck } from '@fortawesome/free-solid-svg-icons';
 
 interface BookingDates {
     start: string | null;
@@ -17,20 +19,17 @@ export default function Booking() {
     const [isCabinsBoxOpen, setIsCabinsBoxOpen] = useState(false);
     const [adults, setAdults] = useState(1);
     const [children, setChildren] = useState(0);
+    const [cabinsCount, setCabinsCount] = useState(1);
     const [bookingDates, setBookingDates] = useState<BookingDates>({
         start: null,
         end: null,
         count: 0
     });
 
-
     const handleDateChange = (dates: BookingDates) => {
         setBookingDates(dates);
     };
 
-    useEffect(() => {
-        console.log(bookingDates)
-    })
     return (
         <div className={styles.container}>
             <div className={styles.head}>
@@ -78,12 +77,51 @@ export default function Booking() {
                         <button className={styles.buttOk} onClick={() => setIsGestBoxOpen(false)}>Gotowe</button>
                     </div>
                 </div>
+
                 <div className={styles.cabinsBox}>
                     <div className={styles.cabins} onClick={() => setIsCabinsBoxOpen(!isCabinsBoxOpen)}>
-                        Ilość domków
+                        {cabinsCount === 1 ? '1 domek' : '2 domki'}
                     </div>
                     <div className={`${styles.setCabins} ${isCabinsBoxOpen ? styles.expandedCabins : ''}`}>
-                        tutaj opcje domków
+                        <div className={styles.cabinsSelection}>
+                            <label className={styles.cabinOption}>
+                                <input 
+                                    type="radio" 
+                                    name="cabins" 
+                                    checked={cabinsCount === 1} 
+                                    onChange={() => setCabinsCount(1)} 
+                                />
+                                <div className={styles.cabinVisual}>
+                                    <div className={styles.iconStack}>
+                                        <FontAwesomeIcon icon={faHouse} className={styles.cabinIcon} />
+                                    </div>
+                                    <div className={styles.tickBox}>
+                                        <FontAwesomeIcon icon={faCheck} />
+                                    </div>
+                                    <span>1 Domek</span>
+                                </div>
+                            </label>
+
+                            <label className={styles.cabinOption}>
+                                <input 
+                                    type="radio" 
+                                    name="cabins" 
+                                    checked={cabinsCount === 2} 
+                                    onChange={() => setCabinsCount(2)} 
+                                />
+                                <div className={styles.cabinVisual}>
+                                    <div className={styles.iconStack}>
+                                        <FontAwesomeIcon icon={faHouse} className={styles.cabinIcon} />
+                                        <FontAwesomeIcon icon={faHouse} className={`${styles.cabinIcon} ${styles.offsetIcon}`} />
+                                    </div>
+                                    <div className={styles.tickBox}>
+                                        <FontAwesomeIcon icon={faCheck} />
+                                    </div>
+                                    <span>2 Domki</span>
+                                </div>
+                            </label>
+                        </div>
+                        <button className={styles.buttOk} onClick={() => setIsCabinsBoxOpen(false)}>Gotowe</button>
                     </div>
                 </div>
                 <button className={styles.button}> Szukaj </button>
