@@ -59,16 +59,24 @@
     transition: height var(--transition);
 }
 
+.info {
+    margin-top: 10px;
+    margin-bottom: 10px;;
+    font-size: 0.8rem;
+    width: 100%;
+    ;
+}
+
 .expandedDate {
-    height: 450px;
+    height: 530px;
 }
 
 .expandedGests {
-    height: 240px;
+    height: 290px;
 }
 
 .expandedCabins {
-    height: 230px;
+    height: 250px;
 }
 
 .cabinsSelection {
@@ -137,11 +145,11 @@
     transition: background-color 0.3s ease;
 }
 
-.cabinOption input:checked + .cabinVisual {
+.cabinOption input:checked+.cabinVisual {
     opacity: 1;
 }
 
-.cabinOption input:checked + .cabinVisual .tickBox {
+.cabinOption input:checked+.cabinVisual .tickBox {
     background-color: #262a10;
 }
 
@@ -174,7 +182,7 @@
     border: 1px solid #ddd;
     border-radius: 5px;
     background-color: transparent;
-    margin: 20px 0;
+    margin: 30px 0;
     padding: 10px;
     width: 100px;
     cursor: pointer;

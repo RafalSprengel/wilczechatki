@@ -17,7 +17,7 @@ export default function Booking() {
     const [isDateBoxOpen, setIsDateBoxOpen] = useState(false);
     const [isGestBoxOpen, setIsGestBoxOpen] = useState(false);
     const [isCabinsBoxOpen, setIsCabinsBoxOpen] = useState(false);
-    const [adults, setAdults] = useState(1);
+    const [adults, setAdults] = useState(0);
     const [children, setChildren] = useState(0);
     const [cabinsCount, setCabinsCount] = useState(1);
     const [bookingDates, setBookingDates] = useState<BookingDates>({
@@ -26,9 +26,32 @@ export default function Booking() {
         count: 0
     });
 
+    const maxGuestsPerCabin = 6;
+    const maxGuest = maxGuestsPerCabin * cabinsCount;
+
+    useEffect(() => {
+        if (adults + children > maxGuest) {
+            setAdults(0);
+            setChildren(0);
+        }
+    }, [cabinsCount, maxGuest, adults, children]);
+
     const handleDateChange = (dates: BookingDates) => {
         setBookingDates(dates);
     };
+
+    const renderGuestsText = () => {
+        if (adults === 0 && children === 0) {
+            return 'Wybierz ilość osób';
+        }
+        
+        const adultsText = adults === 1 ? '1 dorosły' : `${adults} dorosłych`;
+        const childrenText = children === 0 ? '' : (children === 1 ? ', 1 dziecko' : `, ${children} dzieci`);
+        
+        return `${adultsText}${childrenText}`;
+    };
+
+    const isSearchDisabled = adults === 0 || !bookingDates.start || !bookingDates.end;
 
     return (
         <div className={styles.container}>
@@ -51,7 +74,7 @@ export default function Booking() {
 
                 <div className={styles.gestsBox}>
                     <div className={styles.gests} onClick={() => setIsGestBoxOpen(!isGestBoxOpen)}>
-                        {adults} {adults > 1 ? 'dorosłych' : 'dorosły'}, {children} {((children > 1) || (children === 0)) ? 'dzieci' : 'dziecko'}
+                        {renderGuestsText()}
                     </div>
                     <div className={`${styles.setGests} ${isGestBoxOpen ? styles.expandedGests : ''}`}>
                         <div className={styles.pickerWrap}>
@@ -60,8 +83,8 @@ export default function Booking() {
                                 onIncrement={() => setAdults(adults + 1)}
                                 onDecrement={() => setAdults(adults - 1)}
                                 value={adults}
-                                min={1}
-                                max={6}
+                                min={0}
+                                max={maxGuest - children}
                             />
                         </div>
                         <div className={styles.pickerWrap}>
@@ -71,9 +94,10 @@ export default function Booking() {
                                 onDecrement={() => setChildren(children - 1)}
                                 value={children}
                                 min={0}
-                                max={10}
+                                max={maxGuest - adults}
                             />
                         </div>
+                        <span className={styles.info}>* Maxymalnie do 6 osób na domek</span>
                         <button className={styles.buttOk} onClick={() => setIsGestBoxOpen(false)}>Gotowe</button>
                     </div>
                 </div>
@@ -124,7 +148,16 @@ export default function Booking() {
                         <button className={styles.buttOk} onClick={() => setIsCabinsBoxOpen(false)}>Gotowe</button>
                     </div>
                 </div>
-                <button className={styles.button}> Szukaj </button>
+                <button 
+                    className={styles.button} 
+                    disabled={isSearchDisabled}
+                    style={{ 
+                        opacity: isSearchDisabled ? 0.5 : 1, 
+                        cursor: isSearchDisabled ? 'not-allowed' : 'pointer' 
+                    }}
+                > 
+                    Szukaj 
+                </button>
             </div>
         </div>
     );
