@@ -185,7 +185,7 @@ export default function Booking() {
                         </div>
                         <div className={styles.statusContent}>
                             <h3>Termin jest dostępny!</h3>
-                            <p>Wybrany okres: {bookingDates.start} - {bookingDates.end} dla {cabinsCount} {cabinsCount === 1 ? 'domku' : 'domków'}.</p>
+                            <p>Wybrany termin: {bookingDates.start} - {bookingDates.end} dla {cabinsCount} {cabinsCount === 1 ? 'domku' : 'domków'}.</p>
                         </div>
                         <button className={styles.btnReserve} onClick={() => setShowForm(true)}>
                             Zarezerwuj teraz

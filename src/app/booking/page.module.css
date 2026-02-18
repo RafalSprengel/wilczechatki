@@ -255,6 +255,7 @@
     cursor: pointer;
     margin-left: auto;
     transition: background 0.2s;
+    margin-bottom: 20px;
 }
 
 .btnReserve:hover { background-color: #16a34a; }
