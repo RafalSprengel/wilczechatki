@@ -4,9 +4,11 @@ import dbConnect from '@/db/connection';
 import Booking from '@/db/models/Booking';
 
 export async function checkAvailability(startDate: string, endDate: string, requestedCabins: number) {
+    //console.clear()
+    console.log(startDate, endDate, requestedCabins);
     try {
         await dbConnect();
-        
+
         const start = new Date(startDate);
         const end = new Date(endDate);
 
@@ -16,9 +18,9 @@ export async function checkAvailability(startDate: string, endDate: string, requ
                 { startDate: { $lt: end }, endDate: { $gt: start } }
             ]
         });
-
+        console.log(overlappingBookings);
         const totalCabins = 2;
-        
+
         const maxOccupiedOnAnyDay = (checkStart: Date, checkEnd: Date) => {
             let max = 0;
             for (let d = new Date(checkStart); d < checkEnd; d.setDate(d.getDate() + 1)) {

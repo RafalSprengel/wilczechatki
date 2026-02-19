@@ -15,9 +15,7 @@ interface BookingDates {
 }
 
 export default function Booking() {
-    const [isDateBoxOpen, setIsDateBoxOpen] = useState(false);
-    const [isGestBoxOpen, setIsGestBoxOpen] = useState(false);
-    const [isCabinsBoxOpen, setIsCabinsBoxOpen] = useState(false);
+    const [activeBox, setActiveBox] = useState<string | null>(null);
     const [adults, setAdults] = useState(0);
     const [children, setChildren] = useState(0);
     const [cabinsCount, setCabinsCount] = useState(1);
@@ -31,6 +29,10 @@ export default function Booking() {
 
     const maxGuestsPerCabin = 6;
     const maxGuest = maxGuestsPerCabin * cabinsCount;
+
+    const toggleBox = (boxName: string) => {
+        setActiveBox(activeBox === boxName ? null : boxName);
+    };
 
     const handleSearch = async () => {
         if (!bookingDates.start || !bookingDates.end) return;
@@ -75,24 +77,11 @@ export default function Booking() {
                 <h2>Rezerwacje</h2>
             </div>
             <div className={styles.searchBox}>
-                <div className={styles.dateBox}>
-                    <div className={styles.date} onClick={() => setIsDateBoxOpen(!isDateBoxOpen)}>
-                        {(bookingDates.start && bookingDates.end) ? `od ${bookingDates.start} do ${bookingDates.end} (${bookingDates.count} dni)` : 'Wybierz datę'}
-                    </div>
-                    <div className={`${styles.setDate} ${isDateBoxOpen ? styles.expandedDate : ''}`}>
-                        <CalendarPicker
-                            unavailableDates={[]}
-                            onDateChange={handleDateChange}
-                        />
-                        <button className={styles.buttOk} onClick={() => setIsDateBoxOpen(false)}>Gotowe</button>
-                    </div>
-                </div>
-
                 <div className={styles.gestsBox}>
-                    <div className={styles.gests} onClick={() => setIsGestBoxOpen(!isGestBoxOpen)}>
+                    <div className={styles.gests} onClick={() => toggleBox('guests')}>
                         {renderGuestsText()}
                     </div>
-                    <div className={`${styles.setGests} ${isGestBoxOpen ? styles.expandedGests : ''}`}>
+                    <div className={`${styles.setGests} ${activeBox === 'guests' ? styles.expandedGests : ''}`}>
                         <div className={styles.pickerWrap}>
                             <span className={styles.label}>Dorośli: </span>
                             <QuantityPicker
@@ -114,15 +103,15 @@ export default function Booking() {
                             />
                         </div>
                         <span className={styles.info}>* Maxymalnie do 6 osób na domek</span>
-                        <button className={styles.buttOk} onClick={() => setIsGestBoxOpen(false)}>Gotowe</button>
+                        <button className={styles.buttOk} onClick={() => setActiveBox(null)}>Gotowe</button>
                     </div>
                 </div>
 
                 <div className={styles.cabinsBox}>
-                    <div className={styles.cabins} onClick={() => setIsCabinsBoxOpen(!isCabinsBoxOpen)}>
+                    <div className={styles.cabins} onClick={() => toggleBox('cabins')}>
                         {cabinsCount === 1 ? '1 domek' : '2 domki'}
                     </div>
-                    <div className={`${styles.setCabins} ${isCabinsBoxOpen ? styles.expandedCabins : ''}`}>
+                    <div className={`${styles.setCabins} ${activeBox === 'cabins' ? styles.expandedCabins : ''}`}>
                         <div className={styles.cabinsSelection}>
                             <label className={styles.cabinOption}>
                                 <input
@@ -161,9 +150,23 @@ export default function Booking() {
                                 </div>
                             </label>
                         </div>
-                        <button className={styles.buttOk} onClick={() => setIsCabinsBoxOpen(false)}>Gotowe</button>
+                        <button className={styles.buttOk} onClick={() => setActiveBox(null)}>Gotowe</button>
                     </div>
                 </div>
+
+                <div className={styles.dateBox}>
+                    <div className={styles.date} onClick={() => toggleBox('dates')}>
+                        {(bookingDates.start && bookingDates.end) ? `od ${bookingDates.start} do ${bookingDates.end} (${bookingDates.count} dni)` : 'Wybierz datę'}
+                    </div>
+                    <div className={`${styles.setDate} ${activeBox === 'dates' ? styles.expandedDate : ''}`}>
+                        <CalendarPicker
+                            unavailableDates={[]}
+                            onDateChange={handleDateChange}
+                        />
+                        <button className={styles.buttOk} onClick={() => setActiveBox(null)}>Gotowe</button>
+                    </div>
+                </div>
+
                 <button
                     className={styles.button}
                     disabled={isSearchDisabled || availabilityStatus === 'checking'}

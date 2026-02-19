@@ -43,8 +43,13 @@ export async function seedPrices() {
         ];
 
         await PriceConfig.deleteMany({});
-        await PriceConfig.insertMany(initialPrices);
-        return { success: true, message: "Cennik (4 sezony) został zaktualizowany!" };
+        const inserted = await PriceConfig.insertMany(initialPrices);
+        const count = await PriceConfig.countDocuments();
+
+        return { 
+            success: true, 
+            message: `Zapisano ${inserted.length} sezonów. Łącznie w bazie: ${count}.` 
+        };
     } catch (error: any) {
         return { success: false, error: error.message };
     }
@@ -55,8 +60,8 @@ export async function seedBookings() {
         await dbConnect();
         const initialBookings = [
             {
-                startDate: new Date("2026-05-10"),
-                endDate: new Date("2026-05-15"),
+                startDate: new Date("2026-02-25"),
+                endDate: new Date("2026-05-27"),
                 adults: 2,
                 children: 0,
                 cabinsCount: 1,
@@ -101,8 +106,13 @@ export async function seedBookings() {
         ];
 
         await Booking.deleteMany({});
-        await Booking.insertMany(initialBookings);
-        return { success: true, message: "Rezerwacje (4 przykłady) dodane!" };
+        const inserted = await Booking.insertMany(initialBookings);
+        const count = await Booking.countDocuments();
+
+        return { 
+            success: true, 
+            message: `Dodano ${inserted.length} rezerwacji. Łącznie w bazie: ${count}.` 
+        };
     } catch (error: any) {
         return { success: false, error: error.message };
     }
@@ -113,7 +123,7 @@ export async function clearAllData() {
         await dbConnect();
         await PriceConfig.deleteMany({});
         await Booking.deleteMany({});
-        return { success: true, message: "Baza została wyczyszczona!" };
+        return { success: true, message: "Baza została całkowicie wyczyszczona!" };
     } catch (error: any) {
         return { success: false, error: error.message };
     }

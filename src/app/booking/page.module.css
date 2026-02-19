@@ -75,17 +75,20 @@
 .setCabins {
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
     align-items: center;
     width: 100%;
-    height: 0px;
+    max-height: 0;
     overflow: hidden;
-    transition: height var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+    transition: max-height var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.expandedDate { height: 530px; }
-.expandedGests { height: 320px; }
-.expandedCabins { height: 230px; }
+.expandedDate,
+.expandedGests,
+.expandedCabins {
+    max-height: 1000px;
+    padding-top: 35px;
+    padding-bottom: 10px;
+}
 
 .info {
     margin-top: 15px;
@@ -242,8 +245,16 @@
     box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
 }
 
-.statusContent h3 { margin: 0; color: #166534; }
-.statusContent p { margin: 5px 0 0; color: #15803d; font-size: 0.9rem; }
+.statusContent h3 {
+    margin: 0;
+    color: #166534;
+}
+
+.statusContent p {
+    margin: 5px 0 0;
+    color: #15803d;
+    font-size: 0.9rem;
+}
 
 .btnReserve {
     background-color: var(--accent-success);
@@ -258,7 +269,9 @@
     margin-bottom: 20px;
 }
 
-.btnReserve:hover { background-color: #16a34a; }
+.btnReserve:hover {
+    background-color: #16a34a;
+}
 
 .statusUnavailable {
     background-color: var(--accent-error-light);
@@ -272,7 +285,10 @@
 
 .formOverlay {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background-color: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(4px);
     display: flex;
@@ -294,7 +310,10 @@
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
-.bookingForm h2 { margin-bottom: 10px; color: var(--primary-dark); }
+.bookingForm h2 {
+    margin-bottom: 10px;
+    color: var(--primary-dark);
+}
 
 .input {
     padding: 12px 15px;
@@ -305,7 +324,9 @@
     transition: border-color 0.2s;
 }
 
-.input:focus { border-color: var(--primary-dark); }
+.input:focus {
+    border-color: var(--primary-dark);
+}
 
 .checkboxLabel {
     display: flex;
@@ -316,7 +337,9 @@
     margin: 10px 0;
 }
 
-.checkboxLabel input { margin-top: 3px; }
+.checkboxLabel input {
+    margin-top: 3px;
+}
 
 .formButtons {
     display: flex;
@@ -346,12 +369,29 @@
 }
 
 @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @media (max-width: 600px) {
-    .statusAvailable { flex-direction: column; text-align: center; }
-    .btnReserve { margin-left: 0; width: 100%; }
-    .formButtons { flex-direction: column-reverse; }
+    .statusAvailable {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .btnReserve {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .formButtons {
+        flex-direction: column-reverse;
+    }
 }

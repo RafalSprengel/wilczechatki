@@ -7,9 +7,9 @@ import styles from './page.module.css';
 export default function DevPage() {
     const [logs, setLogs] = useState<string[]>([]);
 
-    const addLog = (msg: string) => {
-        setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev].slice(0, 10));
-    };
+   const addLog = (msg: string) => {
+    setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`].slice(-10));
+};
 
     const runAction = async (name: string, actionFn: () => Promise<any>) => {
         addLog(`Uruchamiam: ${name}...`);
