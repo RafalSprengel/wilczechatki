@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react';
-import { checkAvailability } from '@/actions/bookings';
+import { checkAvailability } from '@/actions/bookings_old';
 import QuantityPicker from '../_components/QuantityPicker/QuantityPicker';
 import CalendarPicker from '../_components/CalendarPicker/CalendarPicker';
 import styles from "./page.module.css";

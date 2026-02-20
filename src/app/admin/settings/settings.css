@@ -1,0 +1,369 @@
+:root {
+  --color-primary: #2c3e50;
+  --color-secondary: #7f8c8d;
+  --color-accent: #3498db;
+  --color-success: #2ecc71;
+  --color-danger: #e74c3c;
+  --color-bg-light: #f8f9fa;
+  --color-border: #eee;
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.admin-settings-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-header {
+  margin-bottom: 30px;
+  border-bottom: 2px solid var(--color-border);
+  padding-bottom: 20px;
+}
+
+.admin-title {
+  font-size: 2rem;
+  color: var(--color-primary);
+  margin: 0 0 10px 0;
+  line-height: 1.2;
+}
+
+.admin-subtitle {
+  font-size: 1rem;
+  color: var(--color-secondary);
+  margin: 0;
+}
+
+.settings-card {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 25px;
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  background-color: var(--color-bg-light);
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  margin: 0;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.card-badge {
+  background-color: var(--color-accent);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.setting-row {
+  padding: 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.setting-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.setting-label {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--color-primary);
+  word-wrap: break-word;
+}
+
+.setting-description {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #555;
+  margin: 0 0 15px 0;
+}
+
+.setting-info-text {
+  font-size: 1rem;
+  margin: 10px 0;
+  color: #444;
+}
+
+.setting-control {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px;
+  padding-left: 20px;
+  border-left: 1px solid transparent;
+}
+
+@media (min-width: 769px) {
+  .setting-control {
+    border-left-color: var(--color-border);
+  }
+}
+
+.toggle-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  border: none;
+  border-radius: 34px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s;
+  padding: 0;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.toggle-switch:active {
+  transform: scale(0.98);
+}
+
+.toggle-switch:focus-visible {
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.4);
+}
+
+.toggle-on {
+  background-color: var(--color-success);
+}
+
+.toggle-off {
+  background-color: #bdc3c7;
+}
+
+.toggle-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.toggle-knob {
+  position: absolute;
+  content: "";
+  top: 4px;
+  left: 4px;
+  width: 26px;
+  height: 26px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.toggle-on .toggle-knob {
+  transform: translateX(26px);
+}
+
+.toggle-status-label {
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-height: 1.2em;
+}
+
+.status-active {
+  color: var(--color-success);
+}
+
+.status-inactive {
+  color: var(--color-secondary);
+}
+
+.status-message {
+  font-size: 0.85rem;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  text-align: center;
+  animation: fadeIn 0.3s ease-in-out;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.msg-success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.msg-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.loading-spinner {
+  font-size: 0.8rem;
+  color: var(--color-accent);
+  font-style: italic;
+  display: block;
+  margin-top: 5px;
+}
+
+.btn-secondary {
+  background-color: #ecf0f1;
+  color: var(--color-primary);
+  border: 1px solid #bdc3c7;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  margin-top: 10px;
+  width: auto;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #bdc3c7;
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .admin-settings-container {
+    padding: 20px 15px;
+  }
+
+  .admin-title {
+    font-size: 1.75rem;
+  }
+
+  .card-header {
+    padding: 15px 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .card-badge {
+    align-self: flex-start;
+  }
+
+  .setting-row {
+    padding: 20px;
+    flex-direction: column;
+    gap: 25px;
+  }
+
+  .setting-control {
+    width: 100%;
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid var(--color-border);
+    padding-top: 20px;
+    align-items: flex-start;
+  }
+  
+  .toggle-wrapper {
+    align-items: flex-start;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-title {
+    font-size: 1.5rem;
+  }
+
+  .admin-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .settings-card {
+    border-radius: 6px;
+    margin-bottom: 20px;
+  }
+
+  .card-header {
+    padding: 15px;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+  }
+
+  .setting-row {
+    padding: 15px;
+    gap: 20px;
+  }
+
+  .setting-label {
+    font-size: 1rem;
+  }
+
+  .setting-description {
+    font-size: 0.9rem;
+  }
+
+  .setting-control {
+    align-items: center;
+    padding-top: 15px;
+  }
+
+  .toggle-wrapper {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toggle-status-label {
+    font-size: 0.75rem;
+  }
+
+  .btn-secondary {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .status-message {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+  }
+}

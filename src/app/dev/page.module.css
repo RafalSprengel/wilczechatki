@@ -4,21 +4,21 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 10px; /* Mniejszy padding na małych ekranach */
+    padding: 10px;
 }
 
 .devContainer {
     background-color: #1a1d23;
     width: 100%;
     max-width: 1100px;
-    min-height: 85vh; /* Zmienione z height na min-height dla elastyczności */
+    min-height: 85vh;
     border-radius: 12px;
     border: 1px solid #2d333b;
     display: flex;
     flex-direction: column;
     padding: 20px;
     color: #adbac7;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     margin: 10px 0;
 }
 
@@ -50,9 +50,21 @@
 
 .grid {
     display: grid;
-    grid-template-columns: 1fr 2fr; /* Domyślnie dwie kolumny */
+    grid-template-columns: 1fr 2fr;
     gap: 20px;
     flex-grow: 1;
+}
+
+.actions {
+    display: flex;
+    flex-direction: column;
+}
+
+.actions h3, .console h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1rem;
+    color: #cdd9e5;
 }
 
 .buttonGroup {
@@ -65,12 +77,36 @@
     background-color: #347d39;
     color: white;
     border: none;
-    padding: 14px; /* Większy obszar klikalny dla palca */
+    padding: 14px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
     transition: 0.2s;
     font-size: 0.9rem;
+    text-align: left;
+}
+
+.btnPrimary:hover {
+    background-color: #2c6830;
+}
+
+.btnSecondary {
+    background-color: #2d333b;
+    color: #cdd9e5;
+    border: 1px solid #444c56;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.2s;
+    font-size: 0.85rem;
+    text-align: left;
+}
+
+.btnSecondary:hover {
+    background-color: #373e47;
+    border-color: #539bf5;
+    color: #ffffff;
 }
 
 .btnDanger {
@@ -82,12 +118,24 @@
     cursor: pointer;
     transition: 0.2s;
     font-size: 0.9rem;
+    text-align: left;
+    font-weight: 600;
+}
+
+.btnDanger:hover {
+    background-color: #912525;
+}
+
+.divider {
+    border: 0;
+    border-top: 1px solid #2d333b;
+    margin: 10px 0;
 }
 
 .console {
     display: flex;
     flex-direction: column;
-    min-height: 300px; /* Minimalna wysokość konsoli na mobile */
+    min-height: 300px;
 }
 
 .logWindow {
@@ -99,17 +147,39 @@
     font-size: 0.85rem;
     overflow-y: auto;
     border: 1px solid #2d333b;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
+.empty {
+    color: #444c56;
+    font-style: italic;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.logEntry {
+    color: #cdd9e5;
+    word-break: break-all;
+    padding: 4px 0;
+    border-bottom: 1px solid #161b22;
+}
+
+.logEntry:last-child {
+    border-bottom: none;
+    color: #ffffff;
+    font-weight: 500;
+}
 
 @media (max-width: 768px) {
     .wrapper {
         padding: 0;
-        align-items: flex-start; 
+        align-items: flex-start;
     }
 
     .devContainer {
-        border-radius: 0; 
+        border-radius: 0;
         border: none;
         min-height: 100vh;
         margin: 0;
@@ -117,7 +187,7 @@
     }
 
     .grid {
-        grid-template-columns: 1fr; 
+        grid-template-columns: 1fr;
     }
 
     .header h1 {
@@ -125,6 +195,10 @@
     }
 
     .logWindow {
-        max-height: 40vh; 
+        max-height: 40vh;
+    }
+    
+    .btnPrimary, .btnSecondary, .btnDanger {
+        text-align: center;
     }
 }

@@ -1,130 +1,327 @@
 'use server'
 
 import dbConnect from '@/db/connection';
-import PriceConfig from '@/db/models/PriceConfig';
+import Property from '@/db/models/Property';
 import Booking from '@/db/models/Booking';
+import PriceConfig from '@/db/models/PriceConfig';
+import SystemConfig from '@/db/models/SystemConfig';
+import mongoose from 'mongoose';
+import { ClientSession } from 'mongoose';
 
-export async function seedPrices() {
+async function ensureConnected() {
+    await dbConnect();
+    if (mongoose.connection.readyState !== 1) {
+        throw new Error('Nie udało się nawiązać połączenia z bazą danych.');
+    }
+}
+
+// --- FUNKCJE POMOCNICZE (ZMODYFIKOWANE) ---
+
+export async function seedProperties(session?: ClientSession) {
     try {
-        await dbConnect();
-        const initialPrices = [
+        await ensureConnected();
+        
+        // Czyścimy tylko jeśli NIE mamy sesji (czyli wywołanie indywidualne)
+        if (!session) {
+            await Property.deleteMany({});
+        }
+
+        const data = [
             {
-                seasonName: "Wiosna 2026",
-                startDate: new Date("2026-03-01"),
-                endDate: new Date("2026-05-31"),
-                pricePerNightOneCabin: 350,
-                pricePerNightTwoCabins: 600,
-                minNights: 2
+                name: "Chatka A (Wilcza)",
+                slug: "chatka-a",
+                description: "Przytulny domek z kominkiem, idealny dla par i małych rodzin.",
+                baseCapacity: 6,
+                maxCapacityWithExtra: 8,
+                images: ["/images/chatka-a-1.jpg"],
+                isActive: true
             },
             {
-                seasonName: "Wakacje 2026",
-                startDate: new Date("2026-06-01"),
-                endDate: new Date("2026-08-31"),
-                pricePerNightOneCabin: 550,
-                pricePerNightTwoCabins: 1000,
-                minNights: 5
-            },
-            {
-                seasonName: "Jesień 2026",
-                startDate: new Date("2026-09-01"),
-                endDate: new Date("2026-11-30"),
-                pricePerNightOneCabin: 300,
-                pricePerNightTwoCabins: 550,
-                minNights: 2
-            },
-            {
-                seasonName: "Zima 2026",
-                startDate: new Date("2026-12-01"),
-                endDate: new Date("2026-12-31"),
-                pricePerNightOneCabin: 450,
-                pricePerNightTwoCabins: 800,
-                minNights: 3
+                name: "Chatka B (Leśna)",
+                slug: "chatka-b",
+                description: "Domek z widokiem na las, wyposażony w saunę.",
+                baseCapacity: 6,
+                maxCapacityWithExtra: 8,
+                images: ["/images/chatka-b-1.jpg"],
+                isActive: true
             }
         ];
 
-        await PriceConfig.deleteMany({});
-        const inserted = await PriceConfig.insertMany(initialPrices);
-        const count = await PriceConfig.countDocuments();
+        const properties = session 
+            ? await Property.insertMany(data, { session })
+            : await Property.insertMany(data);
 
-        return { 
-            success: true, 
-            message: `Zapisano ${inserted.length} sezonów. Łącznie w bazie: ${count}.` 
+        return {
+            success: true,
+            message: `Utworzono ${properties.length} domki.`
+        };
+    } catch (error: any) {
+        console.error("Błąd seedowania domków:", error);
+        return { success: false, error: error.message };
+    }
+}
+
+export async function seedSystemConfig(session?: ClientSession) {
+    try {
+        await ensureConnected();
+        
+        if (!session) {
+            await SystemConfig.deleteMany({});
+        }
+
+        const data = [{
+            _id: 'main',
+            autoBlockOtherCabins: true,
+            maxGuestsPerCabin: 6,
+            childrenFreeAgeLimit: 13
+        }];
+
+        if (session) {
+            await SystemConfig.insertMany(data, { session });
+        } else {
+            await SystemConfig.insertMany(data);
+        }
+
+        return {
+            success: true,
+            message: `Konfiguracja systemu zaktualizowana.`
         };
     } catch (error: any) {
         return { success: false, error: error.message };
     }
 }
 
-export async function seedBookings() {
+export async function seedPriceConfig(session?: ClientSession) {
     try {
-        await dbConnect();
-        const initialBookings = [
+        await ensureConnected();
+        
+        if (!session) {
+            await PriceConfig.deleteMany({});
+        }
+
+        const data = [{
+            _id: 'main',
+            baseRates: {
+                weekday: [
+                    { minGuests: 2, maxGuests: 3, price: 300 },
+                    { minGuests: 4, maxGuests: 5, price: 400 },
+                    { minGuests: 6, maxGuests: 10, price: 500 }
+                ],
+                weekend: [
+                    { minGuests: 2, maxGuests: 3, price: 400 },
+                    { minGuests: 4, maxGuests: 5, price: 500 },
+                    { minGuests: 6, maxGuests: 10, price: 600 }
+                ],
+                extraBedPrice: 50,
+                childrenFreeAgeLimit: 13
+            },
+            seasons: [
+                {
+                    name: "Wakacje 2026",
+                    startDate: new Date("2026-07-01"),
+                    endDate: new Date("2026-08-31"),
+                    weekday: [
+                        { minGuests: 2, maxGuests: 3, price: 450 },
+                        { minGuests: 4, maxGuests: 5, price: 600 },
+                        { minGuests: 6, maxGuests: 10, price: 800 }
+                    ],
+                    weekend: [
+                        { minGuests: 2, maxGuests: 3, price: 550 },
+                        { minGuests: 4, maxGuests: 5, price: 700 },
+                        { minGuests: 6, maxGuests: 10, price: 900 }
+                    ],
+                    extraBedPrice: 70,
+                    isActive: true
+                }
+            ]
+        }];
+
+        if (session) {
+            await PriceConfig.insertMany(data, { session });
+        } else {
+            await PriceConfig.insertMany(data);
+        }
+
+        return {
+            success: true,
+            message: "Konfiguracja cenowa została zapisana."
+        };
+    } catch (error: any) {
+        console.error("Błąd seedowania cen:", error);
+        return { success: false, error: error.message };
+    }
+}
+
+export async function seedBookings(session?: ClientSession) {
+    try {
+        await ensureConnected();
+
+        // Pobranie domków (zawsze potrzebne)
+        const props = session 
+            ? await Property.find({ isActive: true }).session(session)
+            : await Property.find({ isActive: true });
+
+        if (props.length < 2) {
+            return { success: false, error: "Najpierw uruchom seedProperties()." };
+        }
+
+        const cabinA = props.find(p => p.slug === 'chatka-a');
+        const cabinB = props.find(p => p.slug === 'chatka-b');
+
+        if (!cabinA || !cabinB) {
+            return { success: false, error: "Nie znaleziono domków." };
+        }
+
+        // Czyszczenie tylko przy wywołaniu indywidualnym
+        if (!session) {
+            await Booking.deleteMany({});
+        }
+
+        const data = [
             {
-                startDate: new Date("2026-02-25"),
-                endDate: new Date("2026-05-27"),
-                adults: 2,
-                children: 0,
-                cabinsCount: 1,
-                totalPrice: 1750,
+                propertyId: cabinA._id,
+                guestName: "Rafał Testowy",
+                guestEmail: "rafal@example.com",
+                guestPhone: "123456789",
+                startDate: new Date("2026-03-10"),
+                endDate: new Date("2026-03-15"),
+                totalPrice: 1500,
+                numberOfGuests: 3,
+                extraBedsCount: 0,
                 status: 'confirmed',
-                customerName: "Rafał Testowy",
-                customerEmail: "rafal@example.com"
+                bookingType: 'real',
+                paymentId: "PAY_SINGLE_001"
             },
             {
-                startDate: new Date("2026-06-15"),
-                endDate: new Date("2026-06-22"),
-                adults: 4,
-                children: 4,
-                cabinsCount: 2,
-                totalPrice: 7000,
+                propertyId: cabinA._id,
+                guestName: "Marek Nowak",
+                guestEmail: "marek@example.com",
+                guestPhone: "987654321",
+                startDate: new Date("2026-06-20"),
+                endDate: new Date("2026-06-27"),
+                totalPrice: 3500,
+                numberOfGuests: 5,
+                extraBedsCount: 1,
                 status: 'confirmed',
-                customerName: "Marek Nowak",
-                customerEmail: "marek@example.com"
+                bookingType: 'real',
+                paymentId: "PAY_DOUBLE_002"
             },
             {
+                propertyId: cabinB._id,
+                guestName: "Marek Nowak",
+                guestEmail: "marek@example.com",
+                guestPhone: "987654321",
+                startDate: new Date("2026-06-20"),
+                endDate: new Date("2026-06-27"),
+                totalPrice: 3500,
+                numberOfGuests: 5,
+                extraBedsCount: 1,
+                status: 'confirmed',
+                bookingType: 'real',
+                paymentId: "PAY_DOUBLE_002"
+            },
+            {
+                propertyId: cabinB._id,
+                guestName: "Anna Wiśniewska",
+                guestEmail: "anna@example.com",
+                guestPhone: "555666777",
                 startDate: new Date("2026-07-01"),
-                endDate: new Date("2026-07-08"),
-                adults: 2,
-                children: 2,
-                cabinsCount: 1,
-                totalPrice: 3850,
+                endDate: new Date("2026-07-05"),
+                totalPrice: 2000,
+                numberOfGuests: 4,
+                extraBedsCount: 0,
                 status: 'confirmed',
-                customerName: "Anna Wiśniewska",
-                customerEmail: "anna@example.com"
+                bookingType: 'real',
+                paymentId: "PAY_SHADOW_003"
             },
             {
-                startDate: new Date("2026-07-05"),
-                endDate: new Date("2026-07-12"),
-                adults: 3,
-                children: 0,
-                cabinsCount: 1,
-                totalPrice: 3850,
-                status: 'confirmed',
-                customerName: "Piotr Zieliński",
-                customerEmail: "piotr@example.com"
+                propertyId: cabinA._id,
+                guestName: "SYSTEM BLOCK",
+                guestEmail: "system@local",
+                guestPhone: "",
+                startDate: new Date("2026-07-01"),
+                endDate: new Date("2026-07-05"),
+                totalPrice: 0,
+                numberOfGuests: 0,
+                extraBedsCount: 0,
+                status: 'blocked',
+                bookingType: 'shadow',
+                linkedBookingId: null,
+                paymentId: null
             }
         ];
 
-        await Booking.deleteMany({});
-        const inserted = await Booking.insertMany(initialBookings);
-        const count = await Booking.countDocuments();
+        const inserted = session 
+            ? await Booking.insertMany(data, { session })
+            : await Booking.insertMany(data);
 
-        return { 
-            success: true, 
-            message: `Dodano ${inserted.length} rezerwacji. Łącznie w bazie: ${count}.` 
+        return {
+            success: true,
+            message: `Dodano ${inserted.length} rezerwacji.`
         };
+
     } catch (error: any) {
+        console.error("Błąd seedowania rezerwacji:", error);
         return { success: false, error: error.message };
+    }
+}
+
+// --- GŁÓWNA FUNKCJA KOORDYNUJĄCA ---
+
+export async function seedAllData() {
+    await ensureConnected();
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        // 1. Wyczyść WSZYSTKO na start (tylko raz)
+        await Property.deleteMany({}, { session });
+        await Booking.deleteMany({}, { session });
+        await PriceConfig.deleteMany({}, { session });
+        await SystemConfig.deleteMany({}, { session });
+
+        // 2. Wywołaj funkcje składowe przekazując sesję
+        // Kolejność jest ważna: najpierw domki, potem rezerwacje (które potrzebują ID domków)
+        await seedProperties(session);
+        await seedSystemConfig(session);
+        await seedPriceConfig(session);
+        
+        // seedBookings pobierze domki z bazy (przez sesję) i utworzy rezerwacje
+        await seedBookings(session);
+
+        await session.commitTransaction();
+        return { success: true, message: "Baza została zresetowana i zasiana wszystkimi danymi!" };
+
+    } catch (error: any) {
+        await session.abortTransaction();
+        console.error("Błąd seedowania:", error);
+        return { success: false, error: error.message };
+    } finally {
+        session.endSession();
     }
 }
 
 export async function clearAllData() {
+    await ensureConnected();
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
-        await dbConnect();
-        await PriceConfig.deleteMany({});
-        await Booking.deleteMany({});
-        return { success: true, message: "Baza została całkowicie wyczyszczona!" };
+        await Property.deleteMany({}, { session });
+        await Booking.deleteMany({}, { session });
+        await PriceConfig.deleteMany({}, { session });
+        await SystemConfig.deleteMany({}, { session });
+
+        await session.commitTransaction();
+        return { success: true, message: "Wszystkie kolekcje zostały pomyślnie wyczyszczone!" };
+
     } catch (error: any) {
+        await session.abortTransaction();
+        console.error("Błąd czyszczenia bazy:", error);
         return { success: false, error: error.message };
+    } finally {
+        session.endSession();
     }
 }

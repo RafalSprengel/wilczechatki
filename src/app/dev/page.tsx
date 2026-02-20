@@ -1,15 +1,22 @@
 'use client'
 
 import { useState } from 'react';
-import { seedPrices, seedBookings, clearAllData } from '@/actions/seed';
+import { 
+    seedAllData, 
+    seedProperties, 
+    seedBookings, 
+    seedSystemConfig, 
+    seedPriceConfig,
+    clearAllData 
+} from '@/actions/seed';
 import styles from './page.module.css';
 
 export default function DevPage() {
     const [logs, setLogs] = useState<string[]>([]);
 
-   const addLog = (msg: string) => {
-    setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`].slice(-10));
-};
+    const addLog = (msg: string) => {
+        setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`].slice(-10));
+    };
 
     const runAction = async (name: string, actionFn: () => Promise<any>) => {
         addLog(`Uruchamiam: ${name}...`);
@@ -17,7 +24,7 @@ export default function DevPage() {
         if (res.success) {
             addLog(`✅ SUCCESS: ${res.message}`);
         } else {
-            addLog(`❌ ERROR: ${res.error}`);
+            addLog(`❌ ERROR: ${res.error || res.message}`);
         }
     };
 
@@ -31,17 +38,32 @@ export default function DevPage() {
 
                 <div className={styles.grid}>
                     <section className={styles.actions}>
-                        <h3>Database Seeds</h3>
+                        <h3>Database Actions</h3>
                         <div className={styles.buttonGroup}>
-                            <button className={styles.btnPrimary} onClick={() => runAction('Zasiej Ceny', seedPrices)}>
-                                Seed PriceConfig
+                            <button className={styles.btnPrimary} onClick={() => runAction('Seed All (Reset)', seedAllData)}>
+                                Seed All Data (Full Reset)
                             </button>
-                            <button className={styles.btnPrimary} onClick={() => runAction('Zasiej Rezerwacje', seedBookings)}>
-                                Seed Bookings
-                            </button>
+                            
                             <hr className={styles.divider} />
-                            <button className={styles.btnDanger} onClick={() => runAction('Wyczyść Bazę', clearAllData)}>
-                                Clean All Collections
+                            
+                            <button className={styles.btnSecondary} onClick={() => runAction('Seed Properties', seedProperties)}>
+                                Seed Properties Only
+                            </button>
+                            <button className={styles.btnSecondary} onClick={() => runAction('Seed Price Config', seedPriceConfig)}>
+                                Seed Price Config
+                            </button>
+                            <button className={styles.btnSecondary} onClick={() => runAction('Seed System Config', seedSystemConfig)}>
+                                Seed System Config
+                            </button>
+                            <button className={styles.btnSecondary} onClick={() => runAction('Seed Bookings', seedBookings)}>
+                                Seed Bookings Only
+                            </button>
+                            
+                            <hr className={styles.divider} />
+                            
+                            {/* 2. Podpięcie prawdziwej funkcji */}
+                            <button className={styles.btnDanger} onClick={() => runAction('Clear Database', clearAllData)}>
+                                Clear All Collections
                             </button>
                         </div>
                     </section>

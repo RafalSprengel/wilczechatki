@@ -1,51 +1,52 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
-const BookingSchema = new mongoose.Schema({
-  startDate: { 
-    type: Date, 
+export interface IBooking extends Document {
+  propertyId: mongoose.Types.ObjectId;
+  guestName?: string;
+  guestEmail?: string;
+  guestPhone?: string;
+  startDate: Date;
+  endDate: Date;
+  totalPrice: number;
+  numberOfGuests?: number;
+  extraBedsCount?: number;
+  status: 'confirmed' | 'blocked' | 'cancelled' | 'pending';
+  bookingType: 'real' | 'shadow';
+  linkedBookingId?: mongoose.Types.ObjectId;
+  paymentId?: string;
+}
+
+const BookingSchema = new Schema<IBooking>({
+  propertyId: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'Property', 
     required: true 
   },
-  endDate: { 
-    type: Date, 
-    required: true 
-  },
-  adults: { 
-    type: Number, 
-    required: true,
-    min: 1 
-  },
-  children: { 
-    type: Number, 
-    default: 0 
-  },
-  cabinsCount: { 
-    type: Number, 
-    required: true, 
-    enum: [1, 2] 
-  },
-  totalPrice: { 
-    type: Number, 
-    required: true 
-  },
+  guestName: { type: String },
+  guestEmail: { type: String },
+  guestPhone: { type: String },
+  startDate: { type: Date, required: true },
+  endDate: { type: Date, required: true },
+  totalPrice: { type: Number, required: true, default: 0 },
+  numberOfGuests: { type: Number, default: 0 },
+  extraBedsCount: { type: Number, default: 0 },
   status: { 
     type: String, 
-    enum: ['pending', 'confirmed', 'cancelled'], 
+    enum: ['confirmed', 'blocked', 'cancelled', 'pending'], 
     default: 'pending' 
   },
-  customerName: { 
-    type: String, 
-    required: true 
+  bookingType: {
+    type: String,
+    enum: ['real', 'shadow'],
+    default: 'real'
   },
-  customerEmail: { 
-    type: String, 
-    required: true 
-  },
-  customerPhone: { 
-    type: String 
-  },
-  message: { 
-    type: String 
-  }
+  linkedBookingId: { type: Schema.Types.ObjectId, ref: 'Booking' },
+  paymentId: { type: String }
 }, { timestamps: true });
 
-export default mongoose.models.Booking || mongoose.model('Booking', BookingSchema);
+// Indeksy dla wydajności
+BookingSchema.index({ propertyId: 1, startDate: 1, endDate: 1 });
+BookingSchema.index({ status: 1 });
+BookingSchema.index({ bookingType: 1 });
+
+export default mongoose.models.Booking || mongoose.model<IBooking>('Booking', BookingSchema);
