@@ -138,6 +138,11 @@
 }
 
 .loadingState, .emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    justify-content: center;
     text-align: center;
     padding: 40px;
     color: #7f8c8d;
