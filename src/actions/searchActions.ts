@@ -3,7 +3,7 @@
 import dbConnect from '@/db/connection';
 import Property, { IProperty } from '@/db/models/Property';
 import Booking from '@/db/models/Booking';
-import PriceConfig from '@/db/models/PriceConfig';
+import PriceConfig, { IPriceConfig, ISeason } from '@/db/models/PriceConfig'; // 1. Import typów
 import { Types } from 'mongoose';
 
 export interface SearchOption {
@@ -13,7 +13,7 @@ export interface SearchOption {
   totalPrice: number;
   maxGuests: number;
   description: string;
-  available: true; // Zawsze true, bo filtrujemy tylko dostępne
+  available: true;
 }
 
 interface SearchParams {
@@ -25,7 +25,6 @@ interface SearchParams {
 
 /**
  * Pomocnicza funkcja do liczenia ceny na podstawie PriceConfig
- * (Uproszczona wersja - w produkcji warto wydzielić to do utils)
  */
 async function calculateTotalPrice(
   startDate: string,
@@ -38,7 +37,6 @@ async function calculateTotalPrice(
   const config = await PriceConfig.findById('main');
   
   if (!config) {
-    // Fallback jeśli brak konfiguracji (ceny bazowe z pamięci)
     return 0; 
   }
 
@@ -46,8 +44,6 @@ async function calculateTotalPrice(
   const end = new Date(endDate);
   let total = 0;
 
-  // Jeśli to rezerwacja podwójna ("Całość"), dzielimy gości na dwa domki do celów wyceny
-  // Zakładamy równomierny podział dla uproszczenia logiki progów cenowych
   const guestsPerCabin = isDouble ? Math.ceil(guests / 2) : guests;
   const extraBedsPerCabin = isDouble ? Math.ceil(extraBeds / 2) : extraBeds;
 
@@ -55,24 +51,21 @@ async function calculateTotalPrice(
     const day = d.getDay();
     const isWeekend = (day === 5 || day === 6);
     
-    // Sprawdź sezon
-    const activeSeason = config.seasons.find(s => 
+    // 2. Jawne typowanie parametru 's' jako ISeason
+    const activeSeason = config.seasons.find((s: ISeason) => 
       s.isActive && d >= s.startDate && d <= s.endDate
     );
 
     const ratesSource = activeSeason || config.baseRates;
     const bedPrice = activeSeason?.extraBedPrice ?? config.baseRates.extraBedPrice;
 
-    // Dobierz próg cenowy
     const tierKey = isWeekend ? 'weekend' : 'weekday';
     const tier = ratesSource[tierKey].find(r => 
       guestsPerCabin >= r.minGuests && guestsPerCabin <= r.maxGuests
     ) || ratesSource[tierKey][ratesSource[tierKey].length - 1];
 
-    // Cena za jeden domek tej nocy
     const nightPrice = tier.price + (extraBedsPerCabin * bedPrice);
 
-    // Jeśli to całość, mnożymy cenę x2 (bo są dwa domki)
     total += isDouble ? nightPrice * 2 : nightPrice;
   }
 
@@ -91,16 +84,12 @@ export async function searchAvailableProperties({
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    //Pobierz wszystkie aktywne domki
     const properties = await Property.find({ isActive: true });
     
     if (properties.length === 0) return [];
 
     const propertyIds = properties.map(p => p._id.toString());
 
-    // Znajdź WSZYSTKIE kolizje w tym terminie
-    // Uwzględniamy status 'confirmed' oraz 'blocked' (shadow bookings)
-    // Algorytm: (StartIstn <= KoniecNowy) AND (KoniecIstn >= StartNowy)
     const conflictingBookings = await Booking.find({
       propertyId: { $in: propertyIds.map(id => new Types.ObjectId(id)) },
       status: { $in: ['confirmed', 'blocked'] },
@@ -108,14 +97,12 @@ export async function searchAvailableProperties({
       endDate: { $gte: start }
     }).select('propertyId');
 
-    // Zbiór ID zajętych domków
     const bookedPropertyIds = new Set(
       conflictingBookings.map(b => b.propertyId.toString())
     );
 
     const options: SearchOption[] = [];
 
-    // Generuj opcje pojedyncze
     for (const prop of properties) {
       const isBooked = bookedPropertyIds.has(prop._id.toString());
       
@@ -127,15 +114,13 @@ export async function searchAvailableProperties({
           propertyIds: [prop._id.toString()],
           displayName: prop.name,
           totalPrice: price,
-          maxGuests: prop.baseCapacity + (prop.maxCapacityWithExtra - prop.baseCapacity), // Uproszczenie
+          maxGuests: prop.baseCapacity + (prop.maxCapacityWithExtra - prop.baseCapacity),
           description: "Wynajem pojedynczego domku. Dostęp do wspólnego terenu.",
           available: true
         });
       }
     }
 
-    // Generuj opcję "Cała Posesja" (tylko jeśli WSZYSTKIE domki są wolne)
-    // Sprawdzamy czy żaden z naszych domków nie jest na liście zajętych
     const allFree = properties.every(p => !bookedPropertyIds.has(p._id.toString()));
 
     if (allFree && properties.length > 1) {
@@ -152,7 +137,6 @@ export async function searchAvailableProperties({
       });
     }
 
-    // Sortowanie: Najpierw "Cała Posesja", potem pojedyncze malejąco po cenie lub alfabetycznie
     return options.sort((a, b) => {
       if (a.type === 'double') return -1;
       if (b.type === 'double') return 1;
