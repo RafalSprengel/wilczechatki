@@ -72,6 +72,7 @@ export default function Calendar() {
     const loadData = async () => {
       try {
         setLoading(true);
+        setError(null);
         const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
         const startDate = new Date(selectedYear, selectedMonth, 1);
         const startDateStr = startDate.toISOString().split('T')[0];
@@ -109,11 +110,9 @@ export default function Calendar() {
     }
   };
 
-  //if (loading) return <div className={styles.container}>Ładowanie kalendarza...</div>;
   if (error) return <div className={styles.container}>{error}</div>;
-  if (data.length === 0) return <div className={styles.container}>Brak danych.</div>;
 
-  const cabinIds = Object.keys(data[0].cabins);
+  const cabinIds = data.length > 0 ? Object.keys(data[0].cabins) : [];
 
   const getDayInfo = (dateStr: string) => {
     const date = new Date(dateStr + 'T00:00:00');
@@ -131,7 +130,6 @@ export default function Calendar() {
   return (
     <div className={styles.container}>
       <div className={styles.headerControls}>
-        {/* Przycisk Poprzedni Miesiąc */}
         <button onClick={handlePrevMonth} className={styles.navButton} title="Poprzedni miesiąc">
           &#8249;
         </button>
@@ -141,6 +139,7 @@ export default function Calendar() {
           onChange={(e) => setSelectedMonth(Number(e.target.value))}
           className={styles.selectInput}
           aria-label="Wybierz miesiąc"
+          disabled={loading}
         >
           {MONTH_NAMES.map((name, index) => (
             <option key={name} value={index}>{name}</option>
@@ -152,13 +151,13 @@ export default function Calendar() {
           onChange={(e) => setSelectedYear(Number(e.target.value))}
           className={styles.selectInput}
           aria-label="Wybierz rok"
+          disabled={loading}
         >
           {years.map((year) => (
             <option key={year} value={year}>{year}</option>
           ))}
         </select>
 
-        {/* Przycisk Następny Miesiąc */}
         <button onClick={handleNextMonth} className={styles.navButton} title="Następny miesiąc">
           &#8250;
         </button>
@@ -174,15 +173,21 @@ export default function Calendar() {
               ))}
             </tr>
           </thead>
-          {(loading) ? (
-            <tbody>
+          <tbody>
+            {loading ? (
               <tr>
-                <td colSpan={cabinIds.length + 1}>Ładowanie...</td>
+                <td colSpan={cabinIds.length + 1} className={styles.loadingCell}>
+                  Ładowanie...
+                </td>
               </tr>
-            </tbody>
-          ) :
-            <tbody>
-              {data.map((row) => {
+            ) : data.length === 0 ? (
+              <tr>
+                <td colSpan={cabinIds.length + 1} className={styles.emptyCell}>
+                  Brak danych do wyświetlenia.
+                </td>
+              </tr>
+            ) : (
+              data.map((row) => {
                 const { dayName, dayClass } = getDayInfo(row.date);
 
                 return (
@@ -234,19 +239,20 @@ export default function Calendar() {
                     })}
                   </tr>
                 );
-              })}
-            </tbody>
-          }
-
+              })
+            )}
+          </tbody>
         </table>
       </div>
 
-      <div className={styles.legend}>
-        <span><span className={`${styles.dot} ${styles.bookedDot}`}></span> Zajęty</span>
-        <span><span className={`${styles.dot} ${styles.cleaningDot}`}></span> Sprzątanie</span>
-        <span><span className={`${styles.dot} ${styles.blockedSysDot}`}></span> Zabl. (Auto)</span>
-        <span><span className={`${styles.dot} ${styles.freeDot}`}></span> Wolny</span>
-      </div>
+      {!loading && data.length > 0 && (
+        <div className={styles.legend}>
+          <span><span className={`${styles.dot} ${styles.bookedDot}`}></span> Zajęty</span>
+          <span><span className={`${styles.dot} ${styles.cleaningDot}`}></span> Sprzątanie</span>
+          <span><span className={`${styles.dot} ${styles.blockedSysDot}`}></span> Zabl. (Auto)</span>
+          <span><span className={`${styles.dot} ${styles.freeDot}`}></span> Wolny</span>
+        </div>
+      )}
     </div>
   );
 }

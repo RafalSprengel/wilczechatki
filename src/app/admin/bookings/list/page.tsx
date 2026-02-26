@@ -22,71 +22,67 @@ export default async function BookingsListPage() {
           <p>Brak rezerwacji w systemie.</p>
         </div>
       ) : (
-        <div className={styles.tableWrapper}>
-          <table className={styles.bookingsTable}>
-            <thead>
-              <tr>
-                <th>Data dodania</th>
-                <th>Gość</th>
-                <th>Obiekt</th>
-                <th>Termin</th>
-                <th>Nocy</th>
-                <th>Cena</th>
-                <th>Status</th>
-                <th>Akcje</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bookings.map((booking) => {
-                const start = new Date(booking.startDate);
-                const end = new Date(booking.endDate);
-                const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-                
-              
-                const statusKey = booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
-                const statusLabel = 
-                  booking.status === 'confirmed' ? 'Potwierdzona' : 
-                  booking.status === 'blocked' ? 'Zablokowana' : 
-                  booking.status === 'cancelled' ? 'Anulowana' : 'Oczekująca';
+        <div className={styles.cardsList}>
+          {bookings.map((booking) => {
+            const start = new Date(booking.startDate);
+            const end = new Date(booking.endDate);
+            const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+            const statusKey = booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
+            const statusLabel =
+              booking.status === 'confirmed' ? 'Potwierdzona' :
+              booking.status === 'blocked' ? 'Zablokowana' :
+              booking.status === 'cancelled' ? 'Anulowana' : 'Oczekująca';
 
-                return (
-                  <tr key={booking._id} className={styles.rowLink}>
-                    <td>{new Date(booking.createdAt).toLocaleDateString('pl-PL')}</td>
-                    
-                    <td className={styles.guestCell}>
-                      <div className={styles.guestName}>{booking.guestName || 'Gość'}</div>
-                      <div className={styles.guestContact}>{booking.guestEmail || '-'}</div>
-                    </td>
-                    
-                    <td>{booking.propertyName || 'Domek'}</td>
-                    
-                    <td>
+            return (
+              <article key={booking._id} className={styles.bookingCard}>
+                <div className={styles.cardHeader}>
+                  <h3 className={styles.guestName}>{booking.guestName || 'Gość'}</h3>
+                  {booking.bookingType === 'shadow' && (
+                    <span className={`${styles.badge} ${styles.badgeShadow}`}>Blokada systemowa</span>
+                  )}
+                </div>
+
+                <div className={styles.guestEmail}>{booking.guestEmail || '-'}</div>
+
+                <div className={styles.propertyName}>{booking.propertyName || 'Domek'}</div>
+
+                <div className={styles.detailsGrid}>
+                  <div className={styles.detailRow}>
+                    <span className={styles.label}>Rezerwacja:</span>
+                    <span className={styles.value}>
                       {start.toLocaleDateString('pl-PL')} - {end.toLocaleDateString('pl-PL')}
-                    </td>
-                    
-                    <td className={styles.centerCell}>{nights}</td>
-                    
-                    <td className={styles.priceCell}>{booking.totalPrice.toFixed(2)} zł</td>
-                    
-                    <td>
-                      <span className={`${styles.badge} ${styles[`badge${statusKey}`]}`}>
-                        {statusLabel}
-                      </span>
-                    </td>
-                    
-                    <td>
-                      <Link 
-                        href={`/admin/bookings/list/${booking._id}`} 
-                        className={styles.editBtn}
-                      >
-                        Edytuj
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    </span>
+                  </div>
+                  <div className={styles.detailRow}>
+                    <span className={styles.label}>Nocy:</span>
+                    <span className={styles.value}>{nights}</span>
+                  </div>
+                  <div className={styles.detailRow}>
+                    <span className={styles.label}>Cena:</span>
+                    <span className={`${styles.value} ${styles.priceValue}`}>
+                      {booking.totalPrice.toFixed(2)} zł
+                    </span>
+                  </div>
+                </div>
+
+                <div className={styles.cardFooter}>
+                  <span className={`${styles.badge} ${styles[`badge${statusKey}`]}`}>
+                    {statusLabel}
+                  </span>
+                  <span className={styles.addedDate}>
+                    dodano: {new Date(booking.createdAt).toLocaleDateString('pl-PL')}
+                  </span>
+                </div>
+
+                <Link
+                  href={`/admin/bookings/list/${booking._id}`}
+                  className={styles.editBtn}
+                >
+                  Edytuj
+                </Link>
+              </article>
+            );
+          })}
         </div>
       )}
     </div>

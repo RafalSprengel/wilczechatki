@@ -15,6 +15,8 @@ export default function AdminLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isBookingsActive = pathname?.startsWith('/admin/bookings');
+  const isPropertiesActive = pathname === '/admin/properties' || pathname?.startsWith('/admin/properties/');
+  const isPricesActive = pathname === '/admin/prices' || pathname?.startsWith('/admin/prices/');
   const isSettingsActive = pathname === '/admin/settings';
   const isDevActive = pathname === '/admin/dev';
 
@@ -46,8 +48,13 @@ export default function AdminLayout({
   }, [isBookingsActive]);
 
   const getLinkClassName = (path: string, isActive: boolean, isSubLink: boolean = false) => {
-    let className = `${styles.navLink}`;
-    if (isSubLink) className += ` ${styles.subLink}`;
+    let className = isSubLink ? `${styles.subLink}` : `${styles.navLink}`;
+    if (isActive) className += ` ${styles.active}`;
+    return className;
+  };
+
+  const getStaticLinkClassName = (isActive: boolean) => {
+    let className = `${styles.navLinkStatic}`;
     if (isActive) className += ` ${styles.active}`;
     return className;
   };
@@ -73,43 +80,63 @@ export default function AdminLayout({
         
         <nav className={styles.sidebarNav}>
           <div>
-            <div className={styles.navGroupTitle}>Rezerwacje</div>
+            <div className={styles.navGroupTitle}>Zarządzanie</div>
             
-            <div 
-              className={getLinkClassName('', isBookingsActive)}
-              onClick={toggleBookings}
-              style={{ cursor: 'pointer', justifyContent: 'space-between' }}
-            >
-              <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-                <span className={styles.navIcon}>📅</span>
-                <span>Obsługa Rezerwacji</span>
+            <div>
+              <div 
+                className={getLinkClassName('', isBookingsActive)}
+                onClick={toggleBookings}
+                style={{ justifyContent: 'space-between' }}
+              >
+                <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                  <span className={styles.navIcon}>📅</span>
+                  <span>Rezerwacje</span>
+                </div>
+                <span>{isBookingsOpen ? '▲' : '▼'}</span>
               </div>
-              <span>{isBookingsOpen ? '▲' : '▼'}</span>
+
+              <div className={`${styles.submenu} ${isBookingsOpen ? styles.open : ''}`}>
+                <Link 
+                  href="/admin/bookings/add" 
+                  className={getLinkClassName('/admin/bookings/add', pathname === '/admin/bookings/add', true)}
+                  onClick={handleMenuLinkClick}
+                >
+                  ➕ Dodaj Nową
+                </Link>
+                <Link 
+                  href="/admin/bookings/calendar" 
+                  className={getLinkClassName('/admin/bookings/calendar', pathname === '/admin/bookings/calendar', true)}
+                  onClick={handleMenuLinkClick}
+                >
+                  🗓️ Kalendarz
+                </Link>
+                <Link 
+                  href="/admin/bookings/list" 
+                  className={getLinkClassName('/admin/bookings/list', pathname === '/admin/bookings/list', true)}
+                  onClick={handleMenuLinkClick}
+                >
+                  📋 Lista Rezerwacji
+                </Link>
+              </div>
             </div>
 
-            <div className={`${styles.submenu} ${isBookingsOpen ? styles.open : ''}`}>
-              <Link 
-                href="/admin/bookings/add" 
-                className={getLinkClassName('/admin/bookings/add', pathname === '/admin/bookings/add', true)}
-                onClick={handleMenuLinkClick}
-              >
-                ➕ Dodaj Nową
-              </Link>
-              <Link 
-                href="/admin/bookings/calendar" 
-                className={getLinkClassName('/admin/bookings/calendar', pathname === '/admin/bookings/calendar', true)}
-                onClick={handleMenuLinkClick}
-              >
-                🗓️ Kalendarz
-              </Link>
-              <Link 
-                href="/admin/bookings/list" 
-                className={getLinkClassName('/admin/bookings/list', pathname === '/admin/bookings/list', true)}
-                onClick={handleMenuLinkClick}
-              >
-                📋 Lista Rezerwacji
-              </Link>
-            </div>
+            <Link 
+              href="/admin/properties" 
+              className={getStaticLinkClassName(isPropertiesActive)}
+              onClick={handleMenuLinkClick}
+            >
+              <span className={styles.navIcon}>🏠</span>
+              <span>Domki</span>
+            </Link>
+
+            <Link 
+              href="/admin/prices" 
+              className={getStaticLinkClassName(isPricesActive)}
+              onClick={handleMenuLinkClick}
+            >
+              <span className={styles.navIcon}>💰</span>
+              <span>Ceny</span>
+            </Link>
           </div>
 
           <div>

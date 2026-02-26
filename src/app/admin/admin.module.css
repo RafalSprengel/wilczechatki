@@ -31,7 +31,7 @@
 }
 
 .adminSidebar {
-  width: 260px;
+  width: 280px;
   background-color: #1e293b;
   color: #cbd5e1;
   display: flex;
@@ -41,7 +41,14 @@
   overflow-y: auto;
   z-index: 50;
   transition: transform 0.3s ease;
-  left: 0;
+  left: auto;
+  right: 0;
+  transform: translateX(100%);
+}
+
+.adminSidebar.mobileOpen {
+  transform: translateX(0);
+  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
 }
 
 .sidebarHeader {
@@ -76,7 +83,7 @@
   margin-top: 10px;
 }
 
-.navLink {
+.navLink, .navLinkStatic {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -87,14 +94,16 @@
   transition: all 0.2s ease;
   border-left: 3px solid transparent;
   cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.navLink:hover {
+.navLink:hover, .navLinkStatic:hover {
   background-color: rgba(255, 255, 255, 0.05);
   color: #fff;
 }
 
-.navLink.active {
+.navLink.active, .navLinkStatic.active {
   background-color: rgba(59, 130, 246, 0.15);
   color: #60a5fa;
   border-left-color: #60a5fa;
@@ -105,6 +114,7 @@
   font-size: 1.2rem;
   width: 24px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .submenu {
@@ -112,20 +122,32 @@
   overflow: hidden;
   max-height: 0;
   transition: max-height 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
 }
 
 .submenu.open {
-  max-height: 200px;
+  max-height: 300px;
 }
 
 .subLink {
-  padding-left: 50px;
+  padding: 10px 24px 10px 50px;
   font-size: 0.9rem;
   color: #94a3b8;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.subLink:hover {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.02);
 }
 
 .subLink.active {
   color: #fff;
+  font-weight: 600;
 }
 
 .sidebarFooter {
@@ -151,48 +173,47 @@
 
 .adminContent {
   flex: 1;
-  margin-left: 260px;
-  padding: 30px;
-  width: calc(100% - 260px);
+  margin-left: 0;
+  width: 100%;
+  padding: 20px 15px;
   box-sizing: border-box;
   transition: filter 0.3s ease;
 }
 
-@media (max-width: 768px) {
+.mobileToggle {
+  display: block;
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  left: auto;
+  z-index: 60;
+  background: #1e293b;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+@media (min-width: 769px) {
   .adminSidebar {
-    left: auto;
-    right: 0;
-    transform: translateX(100%);
-    width: 280px;
+    left: 0;
+    right: auto;
+    transform: translateX(0);
+    width: 260px;
   }
 
   .adminSidebar.mobileOpen {
-    transform: translateX(0);
-    box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+    box-shadow: none;
   }
 
   .adminContent {
-    margin-left: 0;
-    width: 100%;
-    padding: 20px 15px;
+    margin-left: 260px;
+    width: calc(100% - 260px);
+    padding: 30px;
   }
 
   .mobileToggle {
-    display: block !important;
-    position: fixed;
-    top: 15px;
-    right: 15px;
-    left: auto;
-    z-index: 60;
-    background: #1e293b;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
+    display: none;
   }
-}
-
-.mobileToggle {
-  display: none;
 }

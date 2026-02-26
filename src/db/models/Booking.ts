@@ -17,10 +17,10 @@ export interface IBooking extends Document {
 }
 
 const BookingSchema = new Schema<IBooking>({
-  propertyId: { 
-    type: Schema.Types.ObjectId, 
-    ref: 'Property', 
-    required: true 
+  propertyId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Property',
+    required: true
   },
   guestName: { type: String },
   guestEmail: { type: String },
@@ -30,18 +30,25 @@ const BookingSchema = new Schema<IBooking>({
   totalPrice: { type: Number, required: true, default: 0 },
   numberOfGuests: { type: Number, default: 0 },
   extraBedsCount: { type: Number, default: 0 },
-  status: { 
-    type: String, 
-    enum: ['confirmed', 'blocked', 'cancelled', 'pending'], 
-    default: 'pending' 
+  status: {
+    type: String,
+    enum: ['confirmed', 'blocked', 'cancelled', 'pending'],
+    default: 'pending'
   },
   bookingType: {
     type: String,
     enum: ['real', 'shadow'],
     default: 'real'
   },
-  linkedBookingId: { type: Schema.Types.ObjectId, ref: 'Booking' },
-  paymentId: { type: String }
+  linkedBookingId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Booking',
+    required: false  // ← Dodaj to
+  },
+  paymentId: {
+    type: String,
+    required: false  // ← Dodaj to
+  }
 }, { timestamps: true });
 
 BookingSchema.index({ propertyId: 1, startDate: 1, endDate: 1 });

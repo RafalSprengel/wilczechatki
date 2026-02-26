@@ -1,5 +1,4 @@
 'use server'
-
 import dbConnect from '@/db/connection';
 import Property, { IProperty } from '@/db/models/Property';
 import Booking from '@/db/models/Booking';
@@ -45,16 +44,16 @@ async function calculateTotalPrice(
   for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
     const day = d.getDay();
     const isWeekend = (day === 5 || day === 6);
-    
-    const activeSeason = config.seasons.find((s: ISeason) => 
+
+    const activeSeason = config.seasons.find((s: ISeason) =>
       s.isActive && d >= s.startDate && d <= s.endDate
     );
 
     const ratesSource = activeSeason || config.baseRates;
     const bedPrice = activeSeason?.extraBedPrice ?? config.baseRates.extraBedPrice;
-
     const tierKey = isWeekend ? 'weekend' : 'weekday';
-    const tier = ratesSource[tierKey].find(r => 
+
+    const tier = ratesSource[tierKey].find(r =>
       guestsPerCabin >= r.minGuests && guestsPerCabin <= r.maxGuests
     ) || ratesSource[tierKey][ratesSource[tierKey].length - 1];
 
@@ -65,26 +64,23 @@ async function calculateTotalPrice(
   return total;
 }
 
-export async function searchAction({ 
-  startDate, 
-  endDate, 
-  guests, 
-  extraBeds = 0 
+export async function searchAction({
+  startDate,
+  endDate,
+  guests,
+  extraBeds = 0
 }: SearchParams): Promise<SearchOption[]> {
   try {
     await dbConnect();
-
     const start = new Date(startDate);
     const end = new Date(endDate);
 
     let sysConfig = await SystemConfig.findById('main');
-    
     if (!sysConfig) {
-      sysConfig = { autoBlockOtherCabins: true } as any; 
+      sysConfig = { autoBlockOtherCabins: true } as any;
     }
-    
-    const isAutoBlockEnabled = sysConfig.autoBlockOtherCabins;
 
+    const isAutoBlockEnabled = sysConfig.autoBlockOtherCabins;
     const properties = await Property.find({ isActive: true });
     if (properties.length === 0) return [];
 
@@ -103,42 +99,69 @@ export async function searchAction({
 
     const options: SearchOption[] = [];
 
-    for (const prop of properties) {
-      const isBooked = bookedPropertyIds.has(prop._id.toString());
-      
-      if (!isBooked) {
-        const price = await calculateTotalPrice(startDate, endDate, guests, extraBeds, false);
-        
+    if (isAutoBlockEnabled) {
+      const anyBooked = bookedPropertyIds.size > 0;
+      const allBooked = bookedPropertyIds.size === properties.length;
+
+      if (!anyBooked) {
+        for (const prop of properties) {
+          const price = await calculateTotalPrice(startDate, endDate, guests, extraBeds, false);
+          options.push({
+            type: 'single',
+            propertyIds: [prop._id.toString()],
+            displayName: prop.name,
+            totalPrice: price,
+            maxGuests: prop.baseCapacity + (prop.maxCapacityWithExtra - prop.baseCapacity),
+            description: "Wynajem pojedynczego domku. Drugi domek zostanie automatycznie zablokowany na ten termin.",
+            available: true
+          });
+        }
+
+        const doublePrice = await calculateTotalPrice(startDate, endDate, guests, extraBeds, true);
         options.push({
-          type: 'single',
-          propertyIds: [prop._id.toString()],
-          displayName: prop.name,
+          type: 'double',
+          propertyIds: properties.map(p => p._id.toString()),
+          displayName: "Cała Posesja (Wszystkie domki)",
+          totalPrice: doublePrice,
+          maxGuests: properties.reduce((sum, p) => sum + p.baseCapacity, 0),
+          description: "Maksymalna prywatność. Wynajem całej posesji.",
+          available: true
+        });
+      } else if (allBooked) {
+        return [];
+      } else {
+        return [];
+      }
+    } else {
+      for (const prop of properties) {
+        const isBooked = bookedPropertyIds.has(prop._id.toString());
+        if (!isBooked) {
+          const price = await calculateTotalPrice(startDate, endDate, guests, extraBeds, false);
+          options.push({
+            type: 'single',
+            propertyIds: [prop._id.toString()],
+            displayName: prop.name,
+            totalPrice: price,
+            maxGuests: prop.baseCapacity + (prop.maxCapacityWithExtra - prop.baseCapacity),
+            description: "Wynajem pojedynczego domku. Drugi domek może być wynajmowany niezależnie.",
+            available: true
+          });
+        }
+      }
+
+      const allFree = properties.every(p => !bookedPropertyIds.has(p._id.toString()));
+      if (allFree && properties.length > 1) {
+        const price = await calculateTotalPrice(startDate, endDate, guests, extraBeds, true);
+        options.push({
+          type: 'double',
+          propertyIds: properties.map(p => p._id.toString()),
+          displayName: "Cała Posesja (Wszystkie domki)",
           totalPrice: price,
-          maxGuests: prop.baseCapacity + (prop.maxCapacityWithExtra - prop.baseCapacity),
-          description: isAutoBlockEnabled 
-            ? "Wynajem pojedynczego domku. Przy tej rezerwacji drugi domek zostanie automatycznie zablokowany." 
-            : "Wynajem pojedynczego domku. Drugi domek może być wynajmowany niezależnie.",
+          maxGuests: properties.reduce((sum, p) => sum + p.baseCapacity, 0),
+          description: "Maksymalna prywatność. Wynajem wszystkich dostępnych domków.",
           available: true
         });
       }
-    }
-
-    const allFree = properties.every(p => !bookedPropertyIds.has(p._id.toString()));
-
-    if (allFree && properties.length > 1) {
-      const price = await calculateTotalPrice(startDate, endDate, guests, extraBeds, true);
-      
-      options.push({
-        type: 'double',
-        propertyIds: properties.map(p => p._id.toString()),
-        displayName: "Cała Posesja (Wszystkie domki)",
-        totalPrice: price,
-        maxGuests: properties.reduce((sum, p) => sum + p.baseCapacity, 0),
-        description: isAutoBlockEnabled
-          ? "Maksymalna prywatność. Rezerwacja całej posesji blokuje możliwość wynajmu pojedynczych domków."
-          : "Maksymalna prywatność. Wynajem wszystkich dostępnych domków w jednej transakcji.",
-        available: true
-      });
     }
 
     return options.sort((a, b) => {
@@ -146,7 +169,6 @@ export async function searchAction({
       if (b.type === 'double') return 1;
       return b.totalPrice - a.totalPrice;
     });
-
   } catch (error) {
     console.error("Błąd wyszukiwania dostępności:", error);
     throw new Error("Nie udało się pobrać dostępnych terminów.");

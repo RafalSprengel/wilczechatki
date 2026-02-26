@@ -1,5 +1,4 @@
 'use server'
-
 import dbConnect from '@/db/connection';
 import Booking from '@/db/models/Booking';
 import Property from '@/db/models/Property';
@@ -14,6 +13,8 @@ interface CreateBookingParams {
   guestEmail: string;
   totalPrice: number;
   paymentId: string;
+  numberOfGuests?: number;
+  extraBedsCount?: number;
 }
 
 export async function createBookingWithConditionalBlock({
@@ -23,25 +24,24 @@ export async function createBookingWithConditionalBlock({
   guestName,
   guestEmail,
   totalPrice,
-  paymentId
+  paymentId,
+  numberOfGuests = 0,
+  extraBedsCount = 0
 }: CreateBookingParams) {
-  
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
     await dbConnect();
-
     const start = new Date(startDate);
     const end = new Date(endDate);
     const selectedPropId = new mongoose.Types.ObjectId(propertyId);
 
     let config = await SystemConfig.findById('main').session(session);
-    
     if (!config) {
-      config = await SystemConfig.create([{ 
-        _id: 'main', 
-        autoBlockOtherCabins: true 
+      config = await SystemConfig.create([{
+        _id: 'main',
+        autoBlockOtherCabins: true
       }], { session });
       config = config[0];
     }
@@ -55,6 +55,8 @@ export async function createBookingWithConditionalBlock({
       startDate: start,
       endDate: end,
       totalPrice,
+      numberOfGuests,
+      extraBedsCount,
       status: 'confirmed',
       bookingType: 'real',
       paymentId,
@@ -63,8 +65,8 @@ export async function createBookingWithConditionalBlock({
     const mainBookingId = mainBooking[0]._id;
 
     if (shouldAutoBlock) {
-      const otherProperties = await Property.find({ 
-        isActive: true, 
+      const otherProperties = await Property.find({
+        isActive: true,
         _id: { $ne: selectedPropId }
       }).session(session);
 
@@ -76,6 +78,8 @@ export async function createBookingWithConditionalBlock({
           startDate: start,
           endDate: end,
           totalPrice: 0,
+          numberOfGuests: 0,
+          extraBedsCount: 0,
           status: 'blocked',
           bookingType: 'shadow',
           linkedBookingId: mainBookingId,
@@ -83,22 +87,18 @@ export async function createBookingWithConditionalBlock({
         }));
 
         await Booking.create(shadowBookingsData, { session });
-        console.log(`Utworzono ${otherProperties.length} blokad technicznych zgodnie z konfiguracją.`);
       }
-    } else {
-      console.log("Auto-blokada wyłączona w konfiguracji. Rezerwacja tylko wybranego domku.");
     }
 
     await session.commitTransaction();
-    
-    return { 
-      success: true, 
-      bookingId: mainBookingId, 
-      message: shouldAutoBlock 
-        ? "Rezerwacja potwierdzona. Inne domki zostały automatycznie zablokowane." 
-        : "Rezerwacja potwierdzona. Inne domki pozostały dostępne." 
-    };
 
+    return {
+      success: true,
+      bookingId: mainBookingId,
+      message: shouldAutoBlock
+        ? "Rezerwacja potwierdzona. Inne domki zostały automatycznie zablokowane."
+        : "Rezerwacja potwierdzona."
+    };
   } catch (error) {
     await session.abortTransaction();
     console.error("Błąd tworzenia rezerwacji:", error);

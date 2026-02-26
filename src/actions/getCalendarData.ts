@@ -1,5 +1,4 @@
 'use server'
-
 import dbConnect from '@/db/connection';
 import Booking from '@/db/models/Booking';
 import Property from '@/db/models/Property';
@@ -21,9 +20,9 @@ export interface BookingDetails {
 export interface CalendarDay {
   date: string;
   datePL: string;
-  cabins: Record<string, { 
-    status: 'free' | 'booked' | 'cleaning' | 'blocked_sys'; 
-    details?: BookingDetails 
+  cabins: Record<string, {
+    status: 'free' | 'booked' | 'cleaning' | 'blocked_sys';
+    details?: BookingDetails
   }>;
   isFullyBlocked?: boolean;
 }
@@ -36,9 +35,9 @@ export async function getCalendarData(daysToShow: number = 60, startDateString?:
 
   const startDate = startDateString ? new Date(startDateString + 'T00:00:00') : today;
   startDate.setHours(0, 0, 0, 0);
-  
- const endDate = new Date(startDate);
-  endDate.setDate(endDate.getDate() + daysToShow - 1); 
+
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + daysToShow - 1);
 
   const sysConfig = await SystemConfig.findById('main');
   const isAutoBlockEnabled = sysConfig?.autoBlockOtherCabins ?? true;
@@ -52,14 +51,14 @@ export async function getCalendarData(daysToShow: number = 60, startDateString?:
     propertyId: { $in: propertyIds },
     status: { $in: ['confirmed', 'blocked'] },
     startDate: { $lte: endDate },
-    endDate: { $gte: today }
+    endDate: { $gte: startDate }
   })
-  .select('propertyId guestName guestEmail guestPhone numberOfGuests totalPrice status startDate endDate')
-  .sort({ startDate: 1 });
+    .select('propertyId guestName guestEmail guestPhone numberOfGuests totalPrice status startDate endDate bookingType linkedBookingId')
+    .sort({ startDate: 1 });
 
   const result: CalendarDay[] = [];
   const seenDates = new Set<string>();
-   const currentDay = new Date(startDate);
+  const currentDay = new Date(startDate);
 
   while (currentDay <= endDate) {
     const dateStr = currentDay.toISOString().split('T')[0];
@@ -68,25 +67,26 @@ export async function getCalendarData(daysToShow: number = 60, startDateString?:
       currentDay.setDate(currentDay.getDate() + 1);
       continue;
     }
-    seenDates.add(dateStr);
 
+    seenDates.add(dateStr);
     const [year, month, day] = dateStr.split('-');
     const datePL = `${day}-${month}-${year}`;
-    
     const dayTime = currentDay.getTime();
+
     const cabinsStatus: Record<string, any> = {};
     let bookedCount = 0;
+    let realBookingCount = 0;
 
     for (const prop of properties) {
       const propId = prop._id.toString();
-      
-      const activeBooking = bookings.find(b => 
+
+      const activeBooking = bookings.find(b =>
         b.propertyId.toString() === propId &&
         new Date(b.startDate).getTime() <= dayTime &&
-        new Date(b.endDate).getTime() > dayTime 
+        new Date(b.endDate).getTime() > dayTime
       );
 
-      const checkOutBooking = bookings.find(b => 
+      const checkOutBooking = bookings.find(b =>
         b.propertyId.toString() === propId &&
         new Date(b.endDate).getTime() === dayTime
       );
@@ -99,35 +99,44 @@ export async function getCalendarData(daysToShow: number = 60, startDateString?:
         const end = new Date(bookingToUse.endDate);
         const duration = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 
-        cabinsStatus[propId] = {
-          status: isCheckOutDay ? 'cleaning' : 'booked',
-          details: {
-            guestName: bookingToUse.guestName || 'Gość',
-            guestEmail: bookingToUse.guestEmail || '-',
-            guestPhone: bookingToUse.guestPhone || '-',
-            numberOfGuests: bookingToUse.numberOfGuests || 0,
-            totalPrice: bookingToUse.totalPrice || 0,
-            status: bookingToUse.status,
-            durationDays: duration,
-            startDate: bookingToUse.startDate.toISOString().split('T')[0],
-            endDate: bookingToUse.endDate.toISOString().split('T')[0],
-          }
-        };
-        bookedCount++;
+        const isShadow = bookingToUse.bookingType === 'shadow';
+
+        if (isShadow) {
+          cabinsStatus[propId] = {
+            status: 'blocked_sys',
+            details: undefined
+          };
+          bookedCount++;
+        } else {
+          cabinsStatus[propId] = {
+            status: isCheckOutDay ? 'cleaning' : 'booked',
+            details: {
+              guestName: bookingToUse.guestName || 'Gość',
+              guestEmail: bookingToUse.guestEmail || '-',
+              guestPhone: bookingToUse.guestPhone || '-',
+              numberOfGuests: bookingToUse.numberOfGuests || 0,
+              totalPrice: bookingToUse.totalPrice || 0,
+              status: bookingToUse.status,
+              durationDays: duration,
+              startDate: bookingToUse.startDate.toISOString().split('T')[0],
+              endDate: bookingToUse.endDate.toISOString().split('T')[0],
+            }
+          };
+          bookedCount++;
+          realBookingCount++;
+        }
       } else {
         cabinsStatus[propId] = { status: 'free' };
       }
     }
 
-    let isFullyBlocked = false;
-    if (isAutoBlockEnabled && bookedCount > 0 && bookedCount < properties.length) {
-      isFullyBlocked = true;
+    if (isAutoBlockEnabled && realBookingCount > 0 && realBookingCount < properties.length) {
       for (const prop of properties) {
         const propId = prop._id.toString();
         if (cabinsStatus[propId].status === 'free') {
-          cabinsStatus[propId] = { 
+          cabinsStatus[propId] = {
             status: 'blocked_sys',
-            details: undefined 
+            details: undefined
           };
         }
       }
@@ -137,7 +146,7 @@ export async function getCalendarData(daysToShow: number = 60, startDateString?:
       date: dateStr,
       datePL,
       cabins: cabinsStatus,
-      isFullyBlocked
+      isFullyBlocked: realBookingCount === properties.length
     });
 
     currentDay.setDate(currentDay.getDate() + 1);
