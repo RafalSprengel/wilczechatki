@@ -3,6 +3,7 @@ import styles from './page.module.css';
 import { getAllProperties, togglePropertyActive, deleteProperty } from '@/actions/adminPropertyActions';
 import { revalidatePath } from 'next/cache';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
+import DeletePropertyButton from './DeletePropertyButton';
 
 export default async function PropertiesPage() {
   const properties = await getAllProperties();
@@ -57,7 +58,7 @@ export default async function PropertiesPage() {
                 <Link href={`/admin/properties/${prop._id}`} className={styles.btnEdit}>✏️ Edytuj</Link>
                 <form action={handleDelete}>
                   <input type="hidden" name="id" value={prop._id} />
-                  <button type="submit" className={styles.btnDelete} onClick={(e) => { if (!confirm('Czy na pewno usunąć ten domek?')) e.preventDefault(); }}>🗑️ Usuń</button>
+                  <DeletePropertyButton />
                 </form>
               </div>
             </article>

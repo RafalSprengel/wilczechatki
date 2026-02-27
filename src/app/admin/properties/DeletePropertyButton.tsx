@@ -7,12 +7,10 @@ export default function DeletePropertyButton() {
       type="submit"
       className={styles.btnDelete}
       onClick={(e) => {
-        if (!confirm('Czy na pewno usunąć ten domek? Ta operacja jest nieodwracalna.')) {
-          e.preventDefault()
-        }
+        if (!confirm('Czy na pewno usunąć ten domek?')) e.preventDefault()
       }}
     >
-      🗑️ Usuń domek
+      🗑️ Usuń
     </button>
   )
 }
