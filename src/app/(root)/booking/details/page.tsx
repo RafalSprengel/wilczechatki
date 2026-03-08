@@ -127,7 +127,7 @@ export default function BookingDetailsPage() {
       </header>
 
       <div className={styles.summaryCard}>
-        <h2 className={styles.summaryTitle}>Podsumowanie rezerwacji</h2>
+        <h2 className={styles.summaryTitle}>Szczegóły rezerwacji</h2>
         <div className={styles.summaryGrid}>
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Termin:</span>
