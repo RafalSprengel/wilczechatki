@@ -1,64 +1,68 @@
 'use client'
-
-import React, { useState, useRef } from 'react';
-import { searchAction, SearchOption } from '@/actions/searchActions';
-import QuantityPicker from '../../_components/QuantityPicker/QuantityPicker';
-import CalendarPicker from '../../_components/CalendarPicker/CalendarPicker';
-import { useClickOutside } from '@/hooks/useClickOutside';
-import styles from "./page.module.css";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUsers, faSpinner, faExclamationCircle, faHouse } from '@fortawesome/free-solid-svg-icons';
+import React, { useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { searchAction, SearchOption } from '@/actions/searchActions'
+import QuantityPicker from '../../_components/QuantityPicker/QuantityPicker'
+import CalendarPicker from '../../_components/CalendarPicker/CalendarPicker'
+import { useClickOutside } from '@/hooks/useClickOutside'
+import styles from './page.module.css'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faUsers, faSpinner, faExclamationCircle, faHouse } from '@fortawesome/free-solid-svg-icons'
 
 interface BookingDates {
-    start: string | null;
-    end: string | null;
-    count: number;
+    start: string | null
+    end: string | null
+    count: number
 }
 
+interface BookingDraft {
+    startDate: string
+    endDate: string
+    adults: number
+    children: number
+    extraBeds: number
+    selectedOption: SearchOption | null
+}
+
+const STORAGE_KEY = 'wilczechatki_booking_draft'
+
 export default function BookingPage() {
-    const [activeBox, setActiveBox] = useState<string | null>(null);
-    const [adults, setAdults] = useState(2);
-    const [children, setChildren] = useState(0);
-    
+    const router = useRouter()
+    const [activeBox, setActiveBox] = useState<string | null>(null)
+    const [adults, setAdults] = useState(2)
+    const [children, setChildren] = useState(0)
     const [bookingDates, setBookingDates] = useState<BookingDates>({
         start: null,
         end: null,
         count: 0
-    });
-    
-    const [isLoading, setIsLoading] = useState(false);
-    const [searchResults, setSearchResults] = useState<SearchOption[]>([]);
-    const [hasSearched, setHasSearched] = useState(false);
-    const [selectedOption, setSelectedOption] = useState<SearchOption | null>(null);
-    const [showForm, setShowForm] = useState(false);
+    })
+    const [isLoading, setIsLoading] = useState(false)
+    const [searchResults, setSearchResults] = useState<SearchOption[] | null>(null)
 
-    const guestsRef = useRef<HTMLDivElement>(null);
-    const datesRef = useRef<HTMLDivElement>(null);
+    const guestsRef = useRef<HTMLDivElement>(null)
+    const datesRef = useRef<HTMLDivElement>(null)
 
     useClickOutside(guestsRef, () => {
-        if (activeBox === 'guests') setActiveBox(null);
-    });
+        if (activeBox === 'guests') setActiveBox(null)
+    })
 
     useClickOutside(datesRef, () => {
-        if (activeBox === 'dates') setActiveBox(null);
-    });
+        if (activeBox === 'dates') setActiveBox(null)
+    })
 
-    const totalGuests = adults + children;
+    const totalGuests = adults + children
 
     const toggleBox = (boxName: string) => {
-        setActiveBox(activeBox === boxName ? null : boxName);
-    };
+        setActiveBox(activeBox === boxName ? null : boxName)
+    }
 
-    const closeAllBoxes = () => setActiveBox(null);
+    const closeAllBoxes = () => setActiveBox(null)
 
     const handleSearch = async () => {
-        if (!bookingDates.start || !bookingDates.end || totalGuests === 0) return;
+        if (!bookingDates.start || !bookingDates.end || totalGuests === 0) return
 
-        setIsLoading(true);
-        setSearchResults([]);
-        setSelectedOption(null);
-        setHasSearched(true);
-        closeAllBoxes();
+        setIsLoading(true)
+        setSearchResults(null)
 
         try {
             const results = await searchAction({
@@ -66,29 +70,38 @@ export default function BookingPage() {
                 endDate: bookingDates.end,
                 guests: totalGuests,
                 extraBeds: 0
-            });
-            setSearchResults(results);
+            })
+            setSearchResults(results)
         } catch (error) {
-            console.error("Błąd wyszukiwania:", error);
-            alert("Wystąpił błąd podczas sprawdzania dostępności.");
+            console.error('Search error:', error)
+            alert('Wystąpił błąd podczas sprawdzania dostępności.')
+            setSearchResults([])
         } finally {
-            setIsLoading(false);
+            setIsLoading(false)
         }
-    };
+    }
 
     const handleSelectOption = (option: SearchOption) => {
-        setSelectedOption(option);
-        setShowForm(true);
-    };
+        const draft: BookingDraft = {
+            startDate: bookingDates.start!,
+            endDate: bookingDates.end!,
+            adults,
+            children,
+            extraBeds: 0,
+            selectedOption: option
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(draft))
+        router.push('/booking/details')
+    }
 
     const renderGuestsText = () => {
-        if (totalGuests === 0) return 'Wybierz ilość osób';
-        const adultsText = adults === 1 ? '1 dorosły' : `${adults} dorosłych`;
-        const childrenText = children === 0 ? '' : (children === 1 ? ', 1 dziecko' : `, ${children} dzieci`);
-        return `${adultsText}${childrenText}`;
-    };
+        if (totalGuests === 0) return 'Wybierz ilość osób'
+        const adultsText = adults === 1 ? '1 dorosły' : `${adults} dorosłych`
+        const childrenText = children === 0 ? '' : children === 1 ? ', 1 dziecko' : `, ${children} dzieci`
+        return `${adultsText}${childrenText}`
+    }
 
-    const isSearchDisabled = totalGuests === 0 || !bookingDates.start || !bookingDates.end;
+    const isSearchDisabled = totalGuests === 0 || !bookingDates.start || !bookingDates.end
 
     return (
         <div className={styles.container}>
@@ -99,15 +112,14 @@ export default function BookingPage() {
             <div className={styles.searchBox}>
                 <div className={styles.gestsBox}>
                     <div className={styles.gests} onClick={() => toggleBox('guests')}>
-                        <div style={{display: 'flex', alignItems: 'center'}}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
                             <FontAwesomeIcon icon={faUsers} className={styles.iconSmall} />
                             <span>{renderGuestsText()}</span>
                         </div>
-                        {/* Mała strzałka wskazująca interaktywność */}
-                        <span style={{fontSize: '0.8rem', color: '#aaa'}}>&#9662;</span>
+                        <span style={{ fontSize: '0.8rem', color: '#aaa' }}>&#9662;</span>
                     </div>
-                    
-                    <div 
+
+                    <div
                         ref={guestsRef}
                         className={`${styles.setGests} ${activeBox === 'guests' ? styles.expandedGests : ''}`}
                     >
@@ -138,17 +150,17 @@ export default function BookingPage() {
 
                 <div className={styles.dateBox}>
                     <div className={styles.date} onClick={() => toggleBox('dates')}>
-                        <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%'}}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                             <span>
-                                {(bookingDates.start && bookingDates.end) 
-                                    ? `${bookingDates.start} — ${bookingDates.end}` 
+                                {bookingDates.start && bookingDates.end
+                                    ? `${bookingDates.start} — ${bookingDates.end}`
                                     : 'Wybierz daty'}
                             </span>
-                            <span style={{fontSize: '0.8rem', color: '#aaa'}}>&#9662;</span>
+                            <span style={{ fontSize: '0.8rem', color: '#aaa' }}>&#9662;</span>
                         </div>
                     </div>
-                    
-                    <div 
+
+                    <div
                         ref={datesRef}
                         className={`${styles.setDate} ${activeBox === 'dates' ? styles.expandedDate : ''}`}
                     >
@@ -177,7 +189,7 @@ export default function BookingPage() {
                     </div>
                 )}
 
-                {!isLoading && hasSearched && searchResults.length === 0 && (
+                {!isLoading && searchResults !== null && searchResults.length === 0 && (
                     <div className={styles.emptyState}>
                         <FontAwesomeIcon icon={faExclamationCircle} className={styles.emptyIcon} />
                         <h3>Brak wolnych terminów</h3>
@@ -186,12 +198,12 @@ export default function BookingPage() {
                     </div>
                 )}
 
-                {!isLoading && searchResults.length > 0 && (
+                {!isLoading && searchResults !== null && searchResults.length > 0 && (
                     <div className={styles.resultsGrid}>
                         <h3 className={styles.resultsTitle}>
                             Dostępne opcje ({searchResults.length})
                         </h3>
-                        
+
                         {searchResults.map((option, index) => (
                             <div key={`${option.displayName}-${index}`} className={styles.resultCard}>
                                 <div className={styles.cardHeader}>
@@ -202,7 +214,7 @@ export default function BookingPage() {
                                         <span className={styles.privacyBadge}>Prywatny teren</span>
                                     )}
                                 </div>
-                                
+
                                 <h4 className={styles.cardTitle}>
                                     {option.type === 'double' ? (
                                         <>
@@ -211,9 +223,9 @@ export default function BookingPage() {
                                         </>
                                     ) : option.displayName}
                                 </h4>
-                                
+
                                 <p className={styles.cardDesc}>{option.description}</p>
-                                
+
                                 <div className={styles.cardDetails}>
                                     <span>Maks. {option.maxGuests} osób</span>
                                 </div>
@@ -223,7 +235,7 @@ export default function BookingPage() {
                                     <span className={styles.priceValue}>{option.totalPrice} zł</span>
                                 </div>
 
-                                <button 
+                                <button
                                     className={styles.btnSelect}
                                     onClick={() => handleSelectOption(option)}
                                 >
@@ -234,60 +246,6 @@ export default function BookingPage() {
                     </div>
                 )}
             </div>
-
-            {showForm && selectedOption && (
-                <div className={styles.formOverlay} onClick={() => setShowForm(false)}>
-                    <div className={styles.bookingForm} onClick={(e) => e.stopPropagation()}>
-                        <div className={styles.formHeader}>
-                            <h2>Podsumowanie</h2>
-                            <button className={styles.closeBtn} onClick={() => setShowForm(false)}>×</button>
-                        </div>
-                        
-                        <div className={styles.summaryBox}>
-                            <p><strong>Obiekt:</strong> {selectedOption.displayName}</p>
-                            <p><strong>Termin:</strong> {bookingDates.start} do {bookingDates.end}</p>
-                            <p><strong>Goście:</strong> {totalGuests} osób ({adults} dosp., {children} dz.)</p>
-                            {selectedOption.type === 'double' && (
-                                <p className={styles.highlightInfo}>🎉 Wynajmujesz cały obiekt!</p>
-                            )}
-                            <hr className={styles.divider} />
-                            <p className={styles.totalPrice}>Do zapłaty: <strong>{selectedOption.totalPrice} zł</strong></p>
-                        </div>
-
-                        <form className={styles.dataForm} onSubmit={(e) => {
-                            e.preventDefault();
-                            alert("Tu nastąpi przekierowanie do płatności (Stripe/Przelewy24).");
-                        }}>
-                            <label className={styles.inputGroup}>
-                                <span>Imię i Nazwisko</span>
-                                <input type="text" name="name" required placeholder="np. Jan Kowalski" />
-                            </label>
-                            
-                            <label className={styles.inputGroup}>
-                                <span>Email</span>
-                                <input type="email" name="email" required placeholder="jan@example.com" />
-                            </label>
-                            
-                            <label className={styles.inputGroup}>
-                                <span>Telefon</span>
-                                <input type="tel" name="phone" required placeholder="+48 123 456 789" />
-                            </label>
-
-                            <label className={styles.checkboxLabel}>
-                                <input type="checkbox" required />
-                                <span>Akceptuję regulamin i politykę prywatności</span>
-                            </label>
-
-                            <div className={styles.formButtons}>
-                                <button type="button" className={styles.btnCancel} onClick={() => setShowForm(false)}>Anuluj</button>
-                                <button type="submit" className={styles.btnSubmit}>
-                                    Przejdź do płatności
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
         </div>
-    );
+    )
 }

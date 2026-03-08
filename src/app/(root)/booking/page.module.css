@@ -2,27 +2,28 @@
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
-    padding: 20px 15px; 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
+    padding: 20px 15px;
+    color: var(--text-main);
     min-height: 60vh;
+    font-family: var(--font-body);
 }
 
 .head h2 {
     text-align: center;
-    color: #2c3e50;
+    color: var(--text-main);
     margin-bottom: 20px;
-    font-size: 1.5rem; 
+    font-size: 1.5rem;
     line-height: 1.2;
+    font-family: var(--font-heading);
 }
 
 .searchBox {
-    background: #ffffff;
+    background: var(--bg-white);
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     padding: 15px;
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
     gap: 12px;
     align-items: stretch;
     position: relative;
@@ -31,49 +32,46 @@
 
 .gestsBox,
 .dateBox {
-    width: 100%; 
+    width: 100%;
     position: relative;
 }
 
 .gests,
-.date,
-.cabins {
-    background: #f8f9fa;
+.date {
+    background: var(--secondary-color);
     border: 1px solid #e9ecef;
     border-radius: 8px;
-    padding: 14px 15px; 
+    padding: 14px 15px;
     cursor: pointer;
     font-weight: 500;
-    color: #495057;
+    color: var(--text-main);
     transition: all 0.2s;
     display: flex;
     align-items: center;
-    justify-content: space-between; 
+    justify-content: space-between;
     font-size: 1rem;
-    min-height: 50px; 
+    min-height: 50px;
 }
 
 .gests:hover,
-.date:hover,
-.cabins:hover {
-    border-color: #3498db;
-    background: #fff;
+.date:hover {
+    border-color: var(--accent-color);
+    background: var(--bg-white);
 }
 
 .iconSmall {
-    color: #3498db;
+    color: var(--accent-color);
     margin-right: 10px;
     font-size: 1.1rem;
 }
 
 .setGests,
-.setDate,
-.setCabins {
+.setDate {
     position: absolute;
     top: 100%;
     left: 0;
-    width: 100%; 
-    background: white;
+    width: 100%;
+    background: var(--bg-white);
     border: 1px solid #eee;
     border-radius: 8px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
@@ -87,8 +85,7 @@
 }
 
 .expandedGests,
-.expandedDate,
-.expandedCabins {
+.expandedDate {
     display: flex;
 }
 
@@ -101,7 +98,7 @@
 
 .label {
     font-size: 0.9rem;
-    color: #555;
+    color: var(--text-main);
     font-weight: 600;
 }
 
@@ -114,21 +111,22 @@
 }
 
 .buttOk {
-    background: #2c3e50;
-    color: white;
+    background: var(--primary-color);
+    color: var(--text-light);
     border: none;
-    padding: 12px; 
+    padding: 12px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
     font-size: 1rem;
-    width: 100%; 
+    width: 100%;
     margin-top: 5px;
+    font-family: var(--font-body);
 }
 
 .button {
-    background: #27ae60;
-    color: white;
+    background: var(--accent-color);
+    color: var(--text-light);
     border: none;
     padding: 16px 30px;
     border-radius: 8px;
@@ -136,16 +134,17 @@
     font-weight: bold;
     cursor: pointer;
     transition: background 0.2s;
-    width: 100%; 
+    width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 54px;
     margin-top: 5px;
+    font-family: var(--font-body);
 }
 
 .button:hover:not(:disabled) {
-    background: #219150;
+    background: #a6934a;
 }
 
 .button:disabled {
@@ -154,7 +153,6 @@
     opacity: 0.7;
 }
 
-/* --- WYNIKI --- */
 .resultsContainer {
     margin-top: 30px;
     min-height: 200px;
@@ -175,7 +173,7 @@
 
 .emptyIcon {
     font-size: 3rem;
-    color: #e74c3c;
+    color: var(--error-color);
     display: block;
 }
 
@@ -188,15 +186,15 @@
 .resultsTitle {
     grid-column: 1 / -1;
     margin-bottom: 15px;
-    color: #2c3e50;
+    color: var(--text-main);
     border-bottom: 2px solid #eee;
     padding-bottom: 10px;
     font-size: 1.2rem;
+    font-family: var(--font-heading);
 }
 
-/* Karta Wyniku */
 .resultCard {
-    background: white;
+    background: var(--bg-white);
     border: 1px solid #eef2f5;
     border-radius: 10px;
     padding: 20px;
@@ -212,7 +210,7 @@
 .resultCard:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-    border-color: #3498db;
+    border-color: var(--accent-color);
 }
 
 .cardHeader {
@@ -224,8 +222,8 @@
 }
 
 .cardBadge {
-    background: #3498db;
-    color: white;
+    background: var(--accent-color);
+    color: var(--text-light);
     padding: 4px 8px;
     border-radius: 4px;
     font-size: 0.65rem;
@@ -236,7 +234,7 @@
 
 .privacyBadge {
     background: #9b59b6;
-    color: white;
+    color: var(--text-light);
     padding: 4px 8px;
     border-radius: 4px;
     font-size: 0.65rem;
@@ -246,8 +244,9 @@
 .cardTitle {
     margin: 0;
     font-size: 1.15rem;
-    color: #2c3e50;
+    color: var(--text-main);
     line-height: 1.3;
+    font-family: var(--font-heading);
 }
 
 .cardDesc {
@@ -281,14 +280,14 @@
 .priceValue {
     font-size: 1.3rem;
     font-weight: bold;
-    color: #27ae60;
+    color: var(--accent-color);
 }
 
 .btnSelect {
     width: 100%;
     padding: 14px;
-    background: #2c3e50;
-    color: white;
+    background: var(--primary-color);
+    color: var(--text-light);
     border: none;
     border-radius: 6px;
     font-weight: 600;
@@ -296,203 +295,16 @@
     transition: background 0.2s;
     font-size: 1rem;
     margin-top: 10px;
+    font-family: var(--font-body);
 }
 
 .btnSelect:hover {
     background: #34495e;
 }
 
-.formOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    z-index: 1000;
-    padding: 0;
-}
-
-.bookingForm {
-    background: white;
-    padding: 25px 20px;
-    border-radius: 16px 16px 0 0; 
-    width: 100%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-    position: relative;
-    animation: slideUp 0.3s ease-out;
-    margin-bottom: 0;
-}
-
-@keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
-}
-
-.formHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
-}
-
-.formHeader h2 {
-    margin: 0;
-    font-size: 1.3rem;
-    color: #2c3e50;
-    text-align: left;
-}
-
-.closeBtn {
-    background: #f1f1f1;
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    font-size: 1.5rem;
-    line-height: 1;
-    cursor: pointer;
-    color: #555;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-}
-
-.closeBtn:hover {
-    background: #e0e0e0;
-    color: #000;
-}
-
-.summaryBox {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-size: 0.9rem;
-}
-
-.summaryBox p {
-    margin: 6px 0;
-    line-height: 1.4;
-}
-
-.divider {
-    border: 0;
-    border-top: 1px solid #ddd;
-    margin: 12px 0;
-}
-
-.totalPrice {
-    font-size: 1.1rem;
-    color: #27ae60;
-    text-align: right;
-    margin-top: 10px;
-    font-weight: 700;
-}
-
-.dataForm {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.inputGroup {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.inputGroup span {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #555;
-}
-
-.inputGroup input {
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 1rem; 
-    width: 100%;
-    box-sizing: border-box;
-    min-height: 44px;
-}
-
-.inputGroup input:focus {
-    outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-}
-
-.checkboxLabel {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    font-size: 0.9rem;
-    color: #555;
-    cursor: pointer;
-    line-height: 1.4;
-}
-
-.checkboxLabel input {
-    margin-top: 4px;
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-}
-
-.formButtons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.btnCancel {
-    width: 100%;
-    padding: 14px;
-    background: #ecf0f1;
-    color: #2c3e50;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 1rem;
-}
-
-.btnSubmit {
-    width: 100%;
-    padding: 14px;
-    background: #27ae60;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 1rem;
-    order: -1; 
-    order: 2;
-}
-
-.btnCancel {
-    order: 1;
-}
-
-.btnSubmit:hover {
-    background: #219150;
-}
-
 .spinIcon {
     font-size: 2.5rem;
-    color: #3498db;
+    color: var(--accent-color);
     margin-bottom: 10px;
     display: block;
 }
@@ -507,15 +319,7 @@
 }
 
 .badgeSingle {
-    background-color: #3498db;
-}
-
-.highlightInfo {
-    color: #27ae60;
-    font-weight: bold;
-    font-size: 0.9rem;
-    margin-top: 8px;
-    display: block;
+    background-color: var(--accent-color);
 }
 
 @media (min-width: 600px) {
@@ -530,7 +334,7 @@
     }
 
     .searchBox {
-        flex-direction: row; 
+        flex-direction: row;
         align-items: flex-end;
         gap: 15px;
         padding: 20px;
@@ -550,8 +354,7 @@
     }
 
     .setGests,
-    .setDate,
-    .setCabins {
+    .setDate {
         width: 320px;
         left: 0;
     }
@@ -566,38 +369,10 @@
         gap: 25px;
     }
 
-    .formOverlay {
-        align-items: center;
-        padding: 20px;
-    }
-
-    .bookingForm {
-        border-radius: 12px;
-        margin-bottom: 0;
-        animation: fadeIn 0.3s ease-out;
-        max-height: 85vh;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
-    }
-
-    .formButtons {
-        flex-direction: row;
-        gap: 10px;
-    }
-
-    .btnCancel, .btnSubmit {
-        width: auto;
-        flex: 1;
-        order: unset;
-    }
-    
     .cardTitle {
         font-size: 1.2rem;
     }
-    
+
     .priceValue {
         font-size: 1.4rem;
     }
