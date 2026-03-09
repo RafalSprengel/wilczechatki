@@ -61,8 +61,6 @@
 }
 
 .tableWrapper {
-    overflow-x: auto;
-    overflow-y: auto;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border: 1px solid var(--cal-color-border);
@@ -205,7 +203,7 @@
     transform: translateX(-50%) translateY(-5px);
     width: 240px;
     max-width: 90vw;
-    z-index: 100;
+    z-index: 200;
     opacity: 0;
     visibility: hidden;
     transition: all 0.2s ease-in-out;
@@ -407,7 +405,6 @@ td:focus-within .tooltipContainer {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Style dla przeszłych dat */
 .pastRow {
     opacity: 0.6;
 }
@@ -432,7 +429,6 @@ td:focus-within .tooltipContainer {
     color: var(--cal-past-text) !important;
 }
 
-/* Zachowaj tooltip dla przeszłych dat */
 .pastRow td:hover .tooltipContainer {
     opacity: 1;
     visibility: visible;
@@ -444,13 +440,27 @@ td:focus-within .tooltipContainer {
     visibility: visible;
 }
 
-/* Zmniejsz kontrast dla przeszłych dat ale zachowaj czytelność */
 .pastRow .statusText {
     color: var(--cal-past-text) !important;
 }
 
 .pastRow .badge {
     opacity: 0.6;
+}
+
+.paymentPaid {
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.paymentDeposit {
+    color: #ca8a04;
+    font-weight: 600;
+}
+
+.paymentUnpaid {
+    color: #dc2626;
+    font-weight: 600;
 }
 
 @media (max-width: 480px) {

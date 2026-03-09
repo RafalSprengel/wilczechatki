@@ -11,6 +11,7 @@ export interface IBaseRates {
   weekend: IRateTier[];
   extraBedPrice: number;
   childrenFreeAgeLimit: number;
+  
 }
 
 export interface ISeason {
@@ -77,7 +78,7 @@ const PriceConfigSchema = new Schema<IPriceConfig>({
 }, {
   timestamps: true,
   versionKey: false,
-  strict: true // To spowoduje błąd przy zapisie nieznanych pól
+  // strict: 'throw' // To spowoduje błąd przy zapisie nieznanych pól
 });
 
 export default mongoose.models.PriceConfig || mongoose.model<IPriceConfig>('PriceConfig', PriceConfigSchema);

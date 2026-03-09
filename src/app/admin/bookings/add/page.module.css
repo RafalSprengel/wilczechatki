@@ -191,6 +191,13 @@
   cursor: not-allowed;
 }
 
+.hint {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 4px;
+  display: block;
+}
+
 @media (max-width: 600px) {
   .container {
     padding: 20px 15px;

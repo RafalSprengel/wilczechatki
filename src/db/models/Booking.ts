@@ -2,18 +2,31 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IBooking extends Document {
   propertyId: mongoose.Types.ObjectId;
-  guestName?: string;
-  guestEmail?: string;
-  guestPhone?: string;
   startDate: Date;
   endDate: Date;
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string;
+  guestAddress?: string;
+  numberOfGuests: number;
+  extraBedsCount: number;
   totalPrice: number;
-  numberOfGuests?: number;
-  extraBedsCount?: number;
-  status: 'confirmed' | 'blocked' | 'cancelled' | 'pending';
+  paymentStatus: 'unpaid' | 'deposit' | 'paid';  // Nowe pole
+  status: 'pending' | 'confirmed' | 'cancelled' | 'blocked';
   bookingType: 'real' | 'shadow';
   linkedBookingId?: mongoose.Types.ObjectId;
-  paymentId?: string;
+  invoice?: boolean;
+  invoiceData?: {
+    companyName?: string;
+    nip?: string;
+    street?: string;
+    city?: string;
+    postalCode?: string;
+  };
+  notes?: string;
+  source?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const BookingSchema = new Schema<IBooking>({
@@ -22,17 +35,57 @@ const BookingSchema = new Schema<IBooking>({
     ref: 'Property',
     required: true
   },
-  guestName: { type: String },
-  guestEmail: { type: String },
-  guestPhone: { type: String },
-  startDate: { type: Date, required: true },
-  endDate: { type: Date, required: true },
-  totalPrice: { type: Number, required: true, default: 0 },
-  numberOfGuests: { type: Number, default: 0 },
-  extraBedsCount: { type: Number, default: 0 },
+  startDate: {
+    type: Date,
+    required: true
+  },
+  endDate: {
+    type: Date,
+    required: true
+  },
+  guestName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  guestEmail: {
+    type: String,
+    required: true,
+    trim: true,
+    lowercase: true
+  },
+  guestPhone: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  guestAddress: {
+    type: String,
+    trim: true
+  },
+  numberOfGuests: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+  extraBedsCount: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  totalPrice: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  paymentStatus: { 
+    type: String,
+    enum: ['unpaid', 'deposit', 'paid'],
+    default: 'unpaid'
+  },
   status: {
     type: String,
-    enum: ['confirmed', 'blocked', 'cancelled', 'pending'],
+    enum: ['pending', 'confirmed', 'cancelled', 'blocked'],
     default: 'pending'
   },
   bookingType: {
@@ -42,20 +95,37 @@ const BookingSchema = new Schema<IBooking>({
   },
   linkedBookingId: {
     type: Schema.Types.ObjectId,
-    ref: 'Booking',
-    required: false  // ← Dodaj to
+    ref: 'Booking'
   },
-  paymentId: {
+  invoice: {
+    type: Boolean,
+    default: false
+  },
+  invoiceData: {
+    companyName: { type: String, trim: true },
+    nip: { type: String, trim: true },
+    street: { type: String, trim: true },
+    city: { type: String, trim: true },
+    postalCode: { type: String, trim: true }
+  },
+  notes: {
     type: String,
-    required: false  // ← Dodaj to
+    trim: true
+  },
+  source: {
+    type: String,
+    trim: true
   }
 }, {
   timestamps: true,
-  strict: true // To spowoduje błąd przy zapisie nieznanych pól
+  // strict: 'throw'
 });
 
+// Indeksy
 BookingSchema.index({ propertyId: 1, startDate: 1, endDate: 1 });
+BookingSchema.index({ startDate: 1, endDate: 1 });
 BookingSchema.index({ status: 1 });
 BookingSchema.index({ bookingType: 1 });
+BookingSchema.index({ paymentStatus: 1 });
 
 export default mongoose.models.Booking || mongoose.model<IBooking>('Booking', BookingSchema);

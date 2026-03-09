@@ -41,6 +41,17 @@ export default async function BookingsListPage() {
                     <div className={styles.detailsGrid}>
                       <div className={styles.detailRow}><span className={styles.label}>Nocy:</span><span className={styles.value}>{nights}</span></div>
                       <div className={styles.detailRow}><span className={styles.label}>Cena:</span><span className={`${styles.value} ${styles.priceValue}`}>{booking.totalPrice.toFixed(2)} zł</span></div>
+                      <div className={styles.detailRow}>
+                        <span className={styles.label}>Płatność:</span>
+                        <span className={`${styles.value} ${booking.paymentStatus === 'paid' ? styles.paymentPaid :
+                            booking.paymentStatus === 'deposit' ? styles.paymentDeposit :
+                              styles.paymentUnpaid
+                          }`}>
+                          {booking.paymentStatus === 'paid' ? 'Opłacone' :
+                            booking.paymentStatus === 'deposit' ? 'Zaliczka' :
+                              'Nieopłacone'}
+                        </span>
+                      </div>
                     </div>
                     <div className={styles.cardFooter}>
                       <span className={`${styles.badge} ${styles[`badge${statusKey}`]}`}>{statusLabel}</span>

@@ -25,7 +25,7 @@ const SystemConfigSchema = new Schema<ISystemConfig>(
   },
   {
     versionKey: false,
-    strict: true // To spowoduje błąd przy zapisie nieznanych pól
+    // strict: 'throw' // To spowoduje błąd przy zapisie nieznanych pól
   }
 );
 

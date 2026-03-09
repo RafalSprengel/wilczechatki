@@ -16,10 +16,30 @@ const MONTH_NAMES = [
 
 const BookingTooltip = ({ details }: { details: BookingDetails }) => {
   if (!details) return null;
-  
-const extraBedsText = details.extraBeds && details.extraBeds > 0 
-  ? `${details.extraBeds} ${details.extraBeds === 1 ? 'dostawka' : 'dostawki'}`
-  : 'brak dostawek';
+
+  const extraBedsText = details.extraBeds && details.extraBeds > 0
+    ? `${details.extraBeds} dostawka${details.extraBeds === 1 ? '' : 'i'}`
+    : 'brak dostawek';
+
+  // Poprawione typowanie dla paymentStatus
+  const paymentStatusText = (() => {
+    switch (details.paymentStatus) {
+      case 'paid': return 'Opłacone';
+      case 'deposit': return 'Zaliczka';
+      case 'unpaid': return 'Nieopłacone';
+      default: return 'Nieznany';
+    }
+  })();
+
+  const paymentStatusClass = (() => {
+    switch (details.paymentStatus) {
+      case 'paid': return styles.paymentPaid;
+      case 'deposit': return styles.paymentDeposit;
+      case 'unpaid': return styles.paymentUnpaid;
+      default: return '';
+    }
+  })();
+
   return (
     <div className={styles.tooltip}>
       <div className={styles.tooltipHeader}>
@@ -37,6 +57,10 @@ const extraBedsText = details.extraBeds && details.extraBeds > 0
       <div className={styles.tooltipRow}>
         <span className={styles.label}>🛏️ Dostawki:</span>
         <span className={styles.valueText}>{extraBedsText}</span>
+      </div>
+      <div className={styles.tooltipRow}>
+        <span className={styles.label}>💳 Płatność:</span>
+        <span className={`${styles.valueText} ${paymentStatusClass}`}>{paymentStatusText}</span>
       </div>
       <div className={styles.tooltipRow}>
         <span className={styles.label}>💰 Cena:</span>
@@ -90,7 +114,7 @@ export default function Calendar() {
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 10 }, (_, i) => currentYear - 2 + i);
-  
+
   const handlePrevMonth = () => {
     if (selectedMonth === 0) {
       setSelectedMonth(11);
@@ -99,7 +123,7 @@ export default function Calendar() {
       setSelectedMonth(selectedMonth - 1);
     }
   };
-  
+
   const handleNextMonth = () => {
     if (selectedMonth === 11) {
       setSelectedMonth(0);
@@ -117,9 +141,9 @@ export default function Calendar() {
   };
 
   if (error) return <div className={styles.container}>{error}</div>;
-  
+
   const cabinIds = data.length > 0 ? Object.keys(data[0].cabins) : [];
-  
+
   const getDayInfo = (dateStr: string) => {
     const date = new Date(dateStr + 'T00:00:00');
     const dayIndex = date.getDay();
@@ -154,53 +178,60 @@ export default function Calendar() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={cabinIds.length + 1} className={styles.loadingCell}>Ładowanie...</td></tr>
+              <tr key="loading"><td colSpan={cabinIds.length + 1} className={styles.loadingCell}>Ładowanie...</td></tr>
             ) : data.length === 0 ? (
-              <tr><td colSpan={cabinIds.length + 1} className={styles.emptyCell}>Brak danych do wyświetlenia.</td></tr>
+              <tr key="empty"><td colSpan={cabinIds.length + 1} className={styles.emptyCell}>Brak danych do wyświetlenia.</td></tr>
             ) : (
-              data.map((row) => {
+              data.map((row, rowIndex) => {
                 const { dayName, dayClass } = getDayInfo(row.date);
                 const past = isPastDate(row.date);
                 const rowClass = past ? styles.pastRow : '';
-                
+
+                // Używamy rowIndex jako dodatkowego elementu unikalności
+                const rowKey = `${row.date}-${rowIndex}`;
+
                 return (
-                  <tr key={row.date} className={rowClass}>
+                  <tr key={rowKey} className={rowClass}>
                     <td className={`${styles.stickyCol} ${styles.dateCell} ${dayClass} ${past ? styles.pastDate : ''}`}>
                       <div className={styles.dateContent}>
                         <span className={styles.dateDay}>{row.datePL}</span>
                         <span className={styles.dateWeekday}>({dayName})</span>
                       </div>
                     </td>
-                    {cabinIds.map((id) => {
+                    {cabinIds.map((id, cellIndex) => {
                       const cellData = row.cabins[id];
+
+                      // Unikalny klucz dla komórki - data + id domku + index dla bezpieczeństwa
+                      const cellKey = `${row.date}-${id}-${cellIndex}`;
+
                       if (!cellData) {
                         return (
-                          <td key={id} className={`${styles.cell} ${styles.free} ${past ? styles.pastFree : ''}`}>
+                          <td key={cellKey} className={`${styles.cell} ${styles.free} ${past ? styles.pastFree : ''}`}>
                             <span className={styles.statusText}>Wolny</span>
                           </td>
                         );
                       }
-                      
+
                       const hasDetails = cellData.status === 'booked' || cellData.status === 'blocked_sys';
                       let statusText = '';
                       let cellClass = styles.cell;
-                      
+
                       switch (cellData.status) {
-                        case 'booked': 
-                          statusText = 'Zajęty'; 
-                          cellClass += ` ${styles.booked} ${past ? styles.pastBooked : ''}`; 
+                        case 'booked':
+                          statusText = 'Zajęty';
+                          cellClass += ` ${styles.booked} ${past ? styles.pastBooked : ''}`;
                           break;
-                        case 'blocked_sys': 
-                          statusText = 'Zabl.'; 
-                          cellClass += ` ${styles.blockedSys} ${past ? styles.pastBlocked : ''}`; 
+                        case 'blocked_sys':
+                          statusText = 'Zabl.';
+                          cellClass += ` ${styles.blockedSys} ${past ? styles.pastBlocked : ''}`;
                           break;
-                        default: 
-                          statusText = 'Wolny'; 
+                        default:
+                          statusText = 'Wolny';
                           cellClass += ` ${styles.free} ${past ? styles.pastFree : ''}`;
                       }
-                      
+
                       return (
-                        <td key={id} className={cellClass} style={{ position: hasDetails ? 'relative' : 'static' }}>
+                        <td key={cellKey} className={cellClass} style={{ position: hasDetails ? 'relative' : 'static' }}>
                           <span className={styles.statusText}>{statusText}</span>
                           {hasDetails && cellData.details && (
                             <div className={styles.tooltipContainer}>

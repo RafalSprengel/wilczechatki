@@ -10,6 +10,7 @@ interface FormData {
   guestPhone: string;
   numberOfGuests: number;
   totalPrice: number;
+  paymentStatus: string;
   status: string;
   startDate: string;
   endDate: string;
@@ -31,6 +32,7 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
     guestPhone: initialData.guestPhone || '',
     numberOfGuests: initialData.numberOfGuests || 0,
     totalPrice: initialData.totalPrice || 0,
+    paymentStatus: initialData.paymentStatus || 'unpaid',
     status: initialData.status,
     startDate: formatDate(initialData.startDate),
     endDate: formatDate(initialData.endDate),
@@ -62,6 +64,7 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
         guestPhone: initialData.guestPhone || '',
         numberOfGuests: initialData.numberOfGuests || 0,
         totalPrice: initialData.totalPrice || 0,
+        paymentStatus: initialData.paymentStatus || 'unpaid',
         status: initialData.status,
         startDate: formatDate(initialData.startDate),
         endDate: formatDate(initialData.endDate),
@@ -200,6 +203,20 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
             readOnly={!isEditing}
             className={!isEditing ? styles.readOnly : ''}
           />
+        </div>
+        <div className={styles.inputGroup}>
+          <label>Status płatności</label>
+          <select
+            name="paymentStatus"
+            value={form.paymentStatus}
+            onChange={handleChange}
+            disabled={!isEditing}
+            className={!isEditing ? styles.readOnly : ''}
+          >
+            <option value="unpaid">Nieopłacone</option>
+            <option value="deposit">Zaliczka</option>
+            <option value="paid">Opłacone</option>
+          </select>
         </div>
         <div className={styles.inputGroup}>
           <label>Status</label>
