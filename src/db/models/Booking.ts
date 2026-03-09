@@ -11,7 +11,7 @@ export interface IBooking extends Document {
   numberOfGuests: number;
   extraBedsCount: number;
   totalPrice: number;
-  paymentStatus: 'unpaid' | 'deposit' | 'paid';  // Nowe pole
+  paidAmount: number;
   status: 'pending' | 'confirmed' | 'cancelled' | 'blocked';
   bookingType: 'real' | 'shadow';
   linkedBookingId?: mongoose.Types.ObjectId;
@@ -29,7 +29,7 @@ export interface IBooking extends Document {
   updatedAt: Date;
 }
 
-const BookingSchema = new Schema<IBooking>({
+const BookingSchema = new Schema({
   propertyId: {
     type: Schema.Types.ObjectId,
     ref: 'Property',
@@ -78,10 +78,10 @@ const BookingSchema = new Schema<IBooking>({
     required: true,
     min: 0
   },
-  paymentStatus: { 
-    type: String,
-    enum: ['unpaid', 'deposit', 'paid'],
-    default: 'unpaid'
+  paidAmount: {
+    type: Number,
+    default: 0,
+    min: 0
   },
   status: {
     type: String,
@@ -117,15 +117,12 @@ const BookingSchema = new Schema<IBooking>({
     trim: true
   }
 }, {
-  timestamps: true,
-  // strict: 'throw'
+  timestamps: true
 });
 
-// Indeksy
 BookingSchema.index({ propertyId: 1, startDate: 1, endDate: 1 });
 BookingSchema.index({ startDate: 1, endDate: 1 });
 BookingSchema.index({ status: 1 });
 BookingSchema.index({ bookingType: 1 });
-BookingSchema.index({ paymentStatus: 1 });
 
-export default mongoose.models.Booking || mongoose.model<IBooking>('Booking', BookingSchema);
+export default mongoose.models.Booking || mongoose.model('Booking', BookingSchema);

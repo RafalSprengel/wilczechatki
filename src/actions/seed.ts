@@ -1,20 +1,22 @@
 'use server'
-
 import dbConnect from '@/db/connection';
 import Property from '@/db/models/Property';
 import Booking from '@/db/models/Booking';
 import PriceConfig from '@/db/models/PriceConfig';
 import SystemConfig from '@/db/models/SystemConfig';
 
+function toPlainObject(doc: any) {
+  return JSON.parse(JSON.stringify(doc));
+}
+
 export async function clearAllData() {
   try {
     await dbConnect();
-    
     await Booking.deleteMany({});
     await Property.deleteMany({});
     await PriceConfig.deleteMany({});
     await SystemConfig.deleteMany({});
-    
+
     return { success: true, message: 'Wszystkie dane zostały usunięte' };
   } catch (error) {
     console.error('Błąd podczas czyszczenia danych:', error);
@@ -25,7 +27,6 @@ export async function clearAllData() {
 export async function seedProperties() {
   try {
     await dbConnect();
-    
     const properties = [
       {
         name: 'Chatka A (Wilcza)',
@@ -48,22 +49,10 @@ export async function seedProperties() {
     ];
 
     await Property.deleteMany({});
-    
-    // Użyj insertMany zamiast pętli
     const created = await Property.insertMany(properties);
-    
-    // Konwertuj na plain objects przed zwróceniem
-    const plainProperties = created.map(doc => ({
-      _id: doc._id.toString(),
-      name: doc.name,
-      slug: doc.slug,
-      description: doc.description,
-      baseCapacity: doc.baseCapacity,
-      maxExtraBeds: doc.maxExtraBeds,
-      images: doc.images,
-      isActive: doc.isActive
-    }));
-    
+
+    const plainProperties = created.map(doc => toPlainObject(doc));
+
     return { 
       success: true, 
       message: `Utworzono ${plainProperties.length} domków`,
@@ -78,7 +67,6 @@ export async function seedProperties() {
 export async function seedPriceConfig() {
   try {
     await dbConnect();
-    
     const priceConfig = {
       _id: 'main',
       baseRates: {
@@ -100,27 +88,9 @@ export async function seedPriceConfig() {
 
     await PriceConfig.deleteMany({});
     const created = await PriceConfig.create(priceConfig);
-    
-    // Konwertuj na plain object
-    const plainConfig = {
-      _id: created._id,
-      baseRates: {
-        weekday: created.baseRates.weekday,
-        weekend: created.baseRates.weekend,
-        extraBedPrice: created.baseRates.extraBedPrice,
-        childrenFreeAgeLimit: created.baseRates.childrenFreeAgeLimit
-      },
-      seasons: created.seasons.map(s => ({
-        name: s.name,
-        startDate: s.startDate,
-        endDate: s.endDate,
-        weekday: s.weekday,
-        weekend: s.weekend,
-        extraBedPrice: s.extraBedPrice,
-        isActive: s.isActive
-      }))
-    };
-    
+
+    const plainConfig = toPlainObject(created);
+
     return { 
       success: true, 
       message: 'Konfiguracja cen została utworzona',
@@ -135,7 +105,6 @@ export async function seedPriceConfig() {
 export async function seedSystemConfig() {
   try {
     await dbConnect();
-    
     const systemConfig = {
       _id: 'main',
       autoBlockOtherCabins: true,
@@ -147,17 +116,9 @@ export async function seedSystemConfig() {
 
     await SystemConfig.deleteMany({});
     const created = await SystemConfig.create(systemConfig);
-    
-    // Konwertuj na plain object
-    const plainConfig = {
-      _id: created._id,
-      autoBlockOtherCabins: created.autoBlockOtherCabins,
-      highSeasonStart: created.highSeasonStart,
-      highSeasonEnd: created.highSeasonEnd,
-      maxGuestsPerCabin: created.maxGuestsPerCabin,
-      childrenFreeAgeLimit: created.childrenFreeAgeLimit
-    };
-    
+
+    const plainConfig = toPlainObject(created);
+
     return { 
       success: true, 
       message: 'Konfiguracja systemowa została utworzona',
@@ -172,8 +133,7 @@ export async function seedSystemConfig() {
 export async function seedBookings() {
   try {
     await dbConnect();
-    
-    const properties = await Property.find();
+    const properties = await Property.find().lean();
     if (properties.length === 0) {
       return { success: false, error: 'Najpierw utwórz domki' };
     }
@@ -182,7 +142,7 @@ export async function seedBookings() {
     const nextWeek = new Date(today);
     nextWeek.setDate(today.getDate() + 7);
     nextWeek.setHours(14, 0, 0, 0);
-    
+
     const twoWeeks = new Date(today);
     twoWeeks.setDate(today.getDate() + 14);
     twoWeeks.setHours(11, 0, 0, 0);
@@ -199,7 +159,7 @@ export async function seedBookings() {
         numberOfGuests: 4,
         extraBedsCount: 1,
         totalPrice: 3500,
-        paymentStatus: 'deposit',
+        paidAmount: 500,
         status: 'confirmed',
         bookingType: 'real',
         notes: 'Przykładowa rezerwacja',
@@ -209,23 +169,9 @@ export async function seedBookings() {
 
     await Booking.deleteMany({});
     const created = await Booking.insertMany(bookings);
-    
-    // Konwertuj na plain objects
-    const plainBookings = created.map(doc => ({
-      _id: doc._id.toString(),
-      propertyId: doc.propertyId.toString(),
-      guestName: doc.guestName,
-      guestEmail: doc.guestEmail,
-      startDate: doc.startDate,
-      endDate: doc.endDate,
-      numberOfGuests: doc.numberOfGuests,
-      extraBedsCount: doc.extraBedsCount,
-      totalPrice: doc.totalPrice,
-      paymentStatus: doc.paymentStatus,
-      status: doc.status,
-      bookingType: doc.bookingType
-    }));
-    
+
+    const plainBookings = created.map(doc => toPlainObject(doc));
+
     return { 
       success: true, 
       message: `Utworzono ${plainBookings.length} rezerwacji`,
@@ -240,20 +186,19 @@ export async function seedBookings() {
 export async function seedAllData() {
   try {
     await dbConnect();
-    
     await clearAllData();
-    
+
     const properties = await seedProperties();
     if (!properties.success) throw new Error(properties.error);
-    
+
     const prices = await seedPriceConfig();
     if (!prices.success) throw new Error(prices.error);
-    
+
     const system = await seedSystemConfig();
     if (!system.success) throw new Error(system.error);
-    
+
     const bookings = await seedBookings();
-    
+
     return { 
       success: true, 
       message: 'Wszystkie dane zostały zresetowane do stanu początkowego' 

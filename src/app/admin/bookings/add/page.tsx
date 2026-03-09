@@ -1,44 +1,68 @@
-'use client';
-import { useEffect, useRef, useState } from 'react';
-import { useActionState } from 'react'; // Zmiana z useFormState na useActionState
-import styles from './page.module.css';
-import { createManualBooking } from '@/actions/adminBookingActions';
-import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
+'use client'
+import { useEffect, useRef, useState } from 'react'
+import { useActionState } from 'react'
+import styles from './page.module.css'
+import { createManualBooking } from '@/actions/adminBookingActions'
+import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton'
 
 const initialState = {
   message: '',
   success: false,
-};
+}
 
 function SubmitButton() {
-  const { pending } = useActionState(); // useFormStatus nadal działa tak samo
+  const { pending } = useActionState()
   return (
     <button type="submit" className={styles.btnSubmit} disabled={pending}>
       {pending ? 'Zapisuję...' : 'Zapisz Rezerwację'}
     </button>
-  );
+  )
 }
 
 export default function AddBookingPage() {
-  const [state, formAction] = useActionState(createManualBooking, initialState); // useActionState zamiast useFormState
-  const formRef = useRef<HTMLFormElement>(null);
-  const [extraBeds, setExtraBeds] = useState(0);
+  const [state, formAction] = useActionState(createManualBooking, initialState)
+  const formRef = useRef<HTMLFormElement>(null)
+  const [extraBeds, setExtraBeds] = useState(0)
+  const [paidAmount, setPaidAmount] = useState(0)
+  const [totalPrice, setTotalPrice] = useState(0)
 
   useEffect(() => {
     if (state.success) {
-      alert(state.message);
-      formRef.current?.reset();
-      setExtraBeds(0);
+      alert(state.message)
+      formRef.current?.reset()
+      setExtraBeds(0)
+      setPaidAmount(0)
+      setTotalPrice(0)
     }
     if (!state.success && state.message) {
-      alert(`Błąd: ${state.message}`);
+      alert(`Błąd: ${state.message}`)
     }
-  }, [state]);
+  }, [state])
 
   const handleExtraBedsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || 0;
-    setExtraBeds(Math.min(4, Math.max(0, value)));
-  };
+    const value = parseInt(e.target.value) || 0
+    setExtraBeds(Math.min(4, Math.max(0, value)))
+  }
+
+  const handlePaidAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value) || 0
+    setPaidAmount(Math.max(0, value))
+  }
+
+  const handleTotalPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value) || 0
+    setTotalPrice(value)
+  }
+
+  const remainingAmount = Math.max(0, totalPrice - paidAmount)
+
+  const getPaymentBadge = () => {
+    if (paidAmount >= totalPrice && totalPrice > 0) return { text: 'Opłacone', class: styles.paymentPaid }
+    if (paidAmount > 0) return { text: 'Zaliczka', class: styles.paymentDeposit }
+    return { text: 'Nieopłacone', class: styles.paymentUnpaid }
+  }
+
+  const paymentBadge = getPaymentBadge()
 
   return (
     <div className={styles.container}>
@@ -90,17 +114,54 @@ export default function AddBookingPage() {
           </div>
         </div>
         
-        <div className={styles.sectionTitle}>Status płatności</div>
+        <div className={styles.sectionTitle}>Płatność</div>
         <div className={styles.grid}>
           <div className={styles.inputGroup}>
-            <label htmlFor="paymentStatus">Status płatności</label>
-            <select id="paymentStatus" name="paymentStatus" required defaultValue="unpaid">
-              <option value="unpaid">Nieopłacone</option>
-              <option value="deposit">Zaliczka wpłacona</option>
-              <option value="paid">Opłacone w całości</option>
-            </select>
+            <label htmlFor="totalPrice">Cena całkowita (PLN) *</label>
+            <input 
+              id="totalPrice" 
+              name="totalPrice" 
+              type="number" 
+              required 
+              placeholder="0.00" 
+              step="0.01"
+              min="0"
+              value={totalPrice || ''}
+              onChange={handleTotalPriceChange}
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <label htmlFor="paidAmount">Wpłacono (PLN)</label>
+            <input 
+              id="paidAmount" 
+              name="paidAmount" 
+              type="number" 
+              placeholder="0.00" 
+              step="0.01"
+              min="0"
+              max={totalPrice}
+              value={paidAmount || ''}
+              onChange={handlePaidAmountChange}
+            />
+            <small className={styles.hint}>Kwota już wpłacona przez gościa</small>
+          </div>
+          <div className={styles.inputGroup}>
+            <label>Do zapłaty</label>
+            <div className={styles.remainingAmount}>
+              <span className={styles.remainingValue}>{remainingAmount.toFixed(2)} zł</span>
+              {remainingAmount > 0 && (
+                <span className={styles.remainingHint}>Do dopłaty przez gościa</span>
+              )}
+              {remainingAmount === 0 && totalPrice > 0 && (
+                <span className={styles.paidFull}>✓ Opłacone w całości</span>
+              )}
+            </div>
+          </div>
+          <div className={styles.inputGroup}>
+            <label>Status płatności</label>
+            <span className={`${styles.badge} ${paymentBadge.class}`}>{paymentBadge.text}</span>
             <small className={styles.hint}>
-              {`'Nieopłacone' - gość zapłaci na miejscu, 'Zaliczka' - wpłacona część, 'Opłacone' - całość zapłacona`}
+              Status wyliczany automatycznie na podstawie kwoty wpłaconej
             </small>
           </div>
         </div>
@@ -119,10 +180,6 @@ export default function AddBookingPage() {
             <label htmlFor="guestPhone">Telefon</label>
             <input id="guestPhone" name="guestPhone" type="tel" required placeholder="+48 123 456 789" />
           </div>
-          <div className={styles.inputGroup}>
-            <label htmlFor="totalPrice">Cena całkowita (PLN)</label>
-            <input id="totalPrice" name="totalPrice" type="number" required placeholder="0.00" step="0.01" />
-          </div>
         </div>
         
         <div className={styles.inputGroup}>
@@ -132,12 +189,14 @@ export default function AddBookingPage() {
         
         <div className={styles.actions}>
           <button type="button" className={styles.btnCancel} onClick={() => {
-            formRef.current?.reset();
-            setExtraBeds(0);
+            formRef.current?.reset()
+            setExtraBeds(0)
+            setPaidAmount(0)
+            setTotalPrice(0)
           }}>Anuluj</button>
           <SubmitButton />
         </div>
       </form>
     </div>
-  );
+  )
 }

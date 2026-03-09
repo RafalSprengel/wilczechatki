@@ -1,44 +1,55 @@
 'use client'
-import { useEffect, useState } from 'react';
-import { getCalendarData, CalendarDay, BookingDetails } from '@/actions/getCalendarData';
-import styles from './page.module.css';
-import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
+import { useEffect, useState } from 'react'
+import { getCalendarData, CalendarDay, BookingDetails } from '@/actions/getCalendarData'
+import styles from './page.module.css'
+import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton'
 
 const WEEK_DAY_NAMES = {
   pl: ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So'],
   en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-};
-const CURRENT_LANG = 'pl';
+}
+const CURRENT_LANG = 'pl'
 const MONTH_NAMES = [
   'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
   'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'
-];
+]
+
+type PaymentStatus = 'unpaid' | 'deposit' | 'paid'
+
+const getPaymentStatus = (totalPrice: number, paidAmount: number): PaymentStatus => {
+  if (paidAmount >= totalPrice && totalPrice > 0) return 'paid'
+  if (paidAmount > 0) return 'deposit'
+  return 'unpaid'
+}
+
+const getPaymentStatusLabel = (status: PaymentStatus): string => {
+  switch (status) {
+    case 'paid': return 'Opłacone'
+    case 'deposit': return 'Zaliczka'
+    case 'unpaid': return 'Nieopłacone'
+    default: return 'Nieznany'
+  }
+}
+
+const getPaymentStatusClass = (status: PaymentStatus): string => {
+  switch (status) {
+    case 'paid': return styles.paymentPaid
+    case 'deposit': return styles.paymentDeposit
+    case 'unpaid': return styles.paymentUnpaid
+    default: return ''
+  }
+}
 
 const BookingTooltip = ({ details }: { details: BookingDetails }) => {
-  if (!details) return null;
+  if (!details) return null
 
   const extraBedsText = details.extraBeds && details.extraBeds > 0
     ? `${details.extraBeds} dostawka${details.extraBeds === 1 ? '' : 'i'}`
-    : 'brak dostawek';
+    : 'brak dostawek'
 
-  // Poprawione typowanie dla paymentStatus
-  const paymentStatusText = (() => {
-    switch (details.paymentStatus) {
-      case 'paid': return 'Opłacone';
-      case 'deposit': return 'Zaliczka';
-      case 'unpaid': return 'Nieopłacone';
-      default: return 'Nieznany';
-    }
-  })();
-
-  const paymentStatusClass = (() => {
-    switch (details.paymentStatus) {
-      case 'paid': return styles.paymentPaid;
-      case 'deposit': return styles.paymentDeposit;
-      case 'unpaid': return styles.paymentUnpaid;
-      default: return '';
-    }
-  })();
+  const paymentStatus = getPaymentStatus(details.totalPrice, details.paidAmount)
+  const paymentStatusText = getPaymentStatusLabel(paymentStatus)
+  const paymentStatusClass = getPaymentStatusClass(paymentStatus)
 
   return (
     <div className={styles.tooltip}>
@@ -48,7 +59,10 @@ const BookingTooltip = ({ details }: { details: BookingDetails }) => {
       </div>
       <div className={styles.tooltipRow}>
         <span className={styles.label}>📅 Termin:</span>
-        <span className={styles.valueText}>{details.startDate} do {details.endDate} <br /><small>({details.durationDays} dni)</small></span>
+        <span className={styles.valueText}>
+          {details.startDate} do {details.endDate} <br />
+          <small>({details.durationDays} dni)</small>
+        </span>
       </div>
       <div className={styles.tooltipRow}>
         <span className={styles.label}>👥 Goście:</span>
@@ -81,79 +95,79 @@ const BookingTooltip = ({ details }: { details: BookingDetails }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 export default function Calendar() {
-  const [data, setData] = useState<CalendarDay[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const currentDate = new Date();
-  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
+  const [data, setData] = useState<CalendarDay[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const currentDate = new Date()
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear())
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth())
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        setLoading(true);
-        setError(null);
-        const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
-        const startDate = new Date(selectedYear, selectedMonth, 1);
-        const startDateStr = startDate.toISOString().split('T')[0];
-        const calendarData = await getCalendarData(daysInMonth, startDateStr);
-        setData(calendarData);
+        setLoading(true)
+        setError(null)
+        const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate()
+        const startDate = new Date(selectedYear, selectedMonth, 1)
+        const startDateStr = startDate.toISOString().split('T')[0]
+        const calendarData = await getCalendarData(daysInMonth, startDateStr)
+        setData(calendarData)
       } catch (err) {
-        console.error(err);
-        setError('Nie udało się załadować kalendarza.');
+        console.error(err)
+        setError('Nie udało się załadować kalendarza.')
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
-    loadData();
-  }, [selectedYear, selectedMonth]);
+    }
+    loadData()
+  }, [selectedYear, selectedMonth])
 
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 10 }, (_, i) => currentYear - 2 + i);
+  const currentYear = new Date().getFullYear()
+  const years = Array.from({ length: 10 }, (_, i) => currentYear - 2 + i)
 
   const handlePrevMonth = () => {
     if (selectedMonth === 0) {
-      setSelectedMonth(11);
-      setSelectedYear(selectedYear - 1);
+      setSelectedMonth(11)
+      setSelectedYear(selectedYear - 1)
     } else {
-      setSelectedMonth(selectedMonth - 1);
+      setSelectedMonth(selectedMonth - 1)
     }
-  };
+  }
 
   const handleNextMonth = () => {
     if (selectedMonth === 11) {
-      setSelectedMonth(0);
-      setSelectedYear(selectedYear + 1);
+      setSelectedMonth(0)
+      setSelectedYear(selectedYear + 1)
     } else {
-      setSelectedMonth(selectedMonth + 1);
+      setSelectedMonth(selectedMonth + 1)
     }
-  };
+  }
 
   const isPastDate = (dateStr: string): boolean => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const checkDate = new Date(dateStr + 'T00:00:00');
-    return checkDate < today;
-  };
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const checkDate = new Date(dateStr + 'T00:00:00')
+    return checkDate < today
+  }
 
-  if (error) return <div className={styles.container}>{error}</div>;
+  if (error) return <div className={styles.container}>{error}</div>
 
-  const cabinIds = data.length > 0 ? Object.keys(data[0].cabins) : [];
+  const cabinIds = data.length > 0 ? Object.keys(data[0].cabins) : []
 
   const getDayInfo = (dateStr: string) => {
-    const date = new Date(dateStr + 'T00:00:00');
-    const dayIndex = date.getDay();
-    const dayName = WEEK_DAY_NAMES[CURRENT_LANG][dayIndex];
-    let dayClass = '';
+    const date = new Date(dateStr + 'T00:00:00')
+    const dayIndex = date.getDay()
+    const dayName = WEEK_DAY_NAMES[CURRENT_LANG][dayIndex]
+    let dayClass = ''
     if (dayIndex === 0 || dayIndex === 6) {
-      dayClass = styles.weekendCell;
+      dayClass = styles.weekendCell
     }
-    return { dayName, dayClass, dayIndex };
-  };
+    return { dayName, dayClass, dayIndex }
+  }
 
   return (
     <div className={styles.container}>
@@ -173,7 +187,7 @@ export default function Calendar() {
           <thead>
             <tr>
               <th className={styles.stickyCol}>Data</th>
-              {cabinIds.map((id, idx) => (<th key={id}>Domek {idx + 1}</th>))}
+              {cabinIds.map((id) => (<th key={id}>Domek</th>))}
             </tr>
           </thead>
           <tbody>
@@ -183,12 +197,10 @@ export default function Calendar() {
               <tr key="empty"><td colSpan={cabinIds.length + 1} className={styles.emptyCell}>Brak danych do wyświetlenia.</td></tr>
             ) : (
               data.map((row, rowIndex) => {
-                const { dayName, dayClass } = getDayInfo(row.date);
-                const past = isPastDate(row.date);
-                const rowClass = past ? styles.pastRow : '';
-
-                // Używamy rowIndex jako dodatkowego elementu unikalności
-                const rowKey = `${row.date}-${rowIndex}`;
+                const { dayName, dayClass } = getDayInfo(row.date)
+                const past = isPastDate(row.date)
+                const rowClass = past ? styles.pastRow : ''
+                const rowKey = `${row.date}-${rowIndex}`
 
                 return (
                   <tr key={rowKey} className={rowClass}>
@@ -199,35 +211,33 @@ export default function Calendar() {
                       </div>
                     </td>
                     {cabinIds.map((id, cellIndex) => {
-                      const cellData = row.cabins[id];
-
-                      // Unikalny klucz dla komórki - data + id domku + index dla bezpieczeństwa
-                      const cellKey = `${row.date}-${id}-${cellIndex}`;
+                      const cellData = row.cabins[id]
+                      const cellKey = `${row.date}-${id}-${cellIndex}`
 
                       if (!cellData) {
                         return (
                           <td key={cellKey} className={`${styles.cell} ${styles.free} ${past ? styles.pastFree : ''}`}>
                             <span className={styles.statusText}>Wolny</span>
                           </td>
-                        );
+                        )
                       }
 
-                      const hasDetails = cellData.status === 'booked' || cellData.status === 'blocked_sys';
-                      let statusText = '';
-                      let cellClass = styles.cell;
+                      const hasDetails = cellData.status === 'booked' || cellData.status === 'blocked_sys'
+                      let statusText = ''
+                      let cellClass = styles.cell
 
                       switch (cellData.status) {
                         case 'booked':
-                          statusText = 'Zajęty';
-                          cellClass += ` ${styles.booked} ${past ? styles.pastBooked : ''}`;
-                          break;
+                          statusText = 'Zajęty'
+                          cellClass += ` ${styles.booked} ${past ? styles.pastBooked : ''}`
+                          break
                         case 'blocked_sys':
-                          statusText = 'Zabl.';
-                          cellClass += ` ${styles.blockedSys} ${past ? styles.pastBlocked : ''}`;
-                          break;
+                          statusText = 'Zabl.'
+                          cellClass += ` ${styles.blockedSys} ${past ? styles.pastBlocked : ''}`
+                          break
                         default:
-                          statusText = 'Wolny';
-                          cellClass += ` ${styles.free} ${past ? styles.pastFree : ''}`;
+                          statusText = 'Wolny'
+                          cellClass += ` ${styles.free} ${past ? styles.pastFree : ''}`
                       }
 
                       return (
@@ -239,10 +249,10 @@ export default function Calendar() {
                             </div>
                           )}
                         </td>
-                      );
+                      )
                     })}
                   </tr>
-                );
+                )
               })
             )}
           </tbody>
@@ -256,5 +266,5 @@ export default function Calendar() {
         </div>
       )}
     </div>
-  );
+  )
 }

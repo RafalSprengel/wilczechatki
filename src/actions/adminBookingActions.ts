@@ -1,5 +1,4 @@
 'use server'
-
 import dbConnect from '@/db/connection';
 import Booking from '@/db/models/Booking';
 import Property from '@/db/models/Property';
@@ -20,13 +19,12 @@ export async function createManualBooking(prevState: any, formData: FormData) {
     const guestEmail = formData.get('guestEmail') as string;
     const guestPhone = formData.get('guestPhone') as string;
     const totalPrice = parseFloat(formData.get('totalPrice') as string) || 0;
-    const paymentStatus = formData.get('paymentStatus') as string || 'unpaid';
+    const paidAmount = parseFloat(formData.get('paidAmount') as string) || 0;
     const internalNotes = formData.get('internalNotes') as string;
 
     const startDate = new Date(startDateStr);
     const endDate = new Date(endDateStr);
 
-    // Walidacja dat
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       return { success: false, message: 'Nieprawidłowy format daty.' };
     }
@@ -35,19 +33,16 @@ export async function createManualBooking(prevState: any, formData: FormData) {
       return { success: false, message: 'Data wyjazdu musi być późniejsza niż data przyjazdu.' };
     }
 
-    // Walidacja podstawowych pól
     if (!propertyId || !guestName || !guestEmail || !guestPhone) {
       return { success: false, message: 'Wszystkie pola są wymagane' };
     }
 
-    // Walidacja dostawek
     if (extraBeds < 0 || extraBeds > 4) {
       return { success: false, message: 'Liczba dostawek musi być między 0 a 4' };
     }
 
-    // Walidacja statusu płatności
-    if (!['paid', 'deposit', 'unpaid'].includes(paymentStatus)) {
-      return { success: false, message: 'Nieprawidłowy status płatności' };
+    if (paidAmount < 0 || paidAmount > totalPrice) {
+      return { success: false, message: 'Kwota wpłacona nie może być ujemna ani przekraczać ceny całkowitej' };
     }
 
     const session = await mongoose.startSession();
@@ -58,7 +53,6 @@ export async function createManualBooking(prevState: any, formData: FormData) {
       const shouldAutoBlock = sysConfig?.autoBlockOtherCabins ?? true;
 
       if (propertyId === 'both') {
-        // Rezerwacja całej posesji
         const properties = await Property.find({ isActive: true }).session(session);
 
         if (properties.length === 0) {
@@ -75,7 +69,7 @@ export async function createManualBooking(prevState: any, formData: FormData) {
           numberOfGuests: numGuests,
           extraBedsCount: extraBeds,
           totalPrice,
-          paymentStatus,
+          paidAmount,
           status: 'confirmed',
           bookingType: 'real',
           notes: internalNotes || '',
@@ -84,7 +78,6 @@ export async function createManualBooking(prevState: any, formData: FormData) {
 
         const mainBookingId = mainBooking[0]._id;
 
-        // Blokady dla pozostałych domków
         const otherProperties = properties.slice(1);
         if (otherProperties.length > 0) {
           const shadowBookingsData = otherProperties.map(otherProp => ({
@@ -97,7 +90,7 @@ export async function createManualBooking(prevState: any, formData: FormData) {
             numberOfGuests: 0,
             extraBedsCount: 0,
             totalPrice: 0,
-            paymentStatus: 'unpaid', // Blokady zawsze unpaid
+            paidAmount: 0,
             status: 'blocked',
             bookingType: 'shadow',
             linkedBookingId: mainBookingId,
@@ -108,10 +101,8 @@ export async function createManualBooking(prevState: any, formData: FormData) {
           await Booking.create(shadowBookingsData, { session });
         }
       } else {
-        // Rezerwacja pojedynczego domku
         const selectedPropId = new mongoose.Types.ObjectId(propertyId);
         
-        // Sprawdź czy property istnieje
         const property = await Property.findById(selectedPropId).session(session);
         if (!property) {
           throw new Error('Nie znaleziono domku o podanym ID');
@@ -127,7 +118,7 @@ export async function createManualBooking(prevState: any, formData: FormData) {
           numberOfGuests: numGuests,
           extraBedsCount: extraBeds,
           totalPrice,
-          paymentStatus,
+          paidAmount,
           status: 'confirmed',
           bookingType: 'real',
           notes: internalNotes || '',
@@ -136,7 +127,6 @@ export async function createManualBooking(prevState: any, formData: FormData) {
 
         const mainBookingId = mainBooking[0]._id;
 
-        // Automatyczne blokady jeśli włączone
         if (shouldAutoBlock) {
           const otherProperties = await Property.find({
             isActive: true,
@@ -154,7 +144,7 @@ export async function createManualBooking(prevState: any, formData: FormData) {
               numberOfGuests: 0,
               extraBedsCount: 0,
               totalPrice: 0,
-              paymentStatus: 'unpaid',
+              paidAmount: 0,
               status: 'blocked',
               bookingType: 'shadow',
               linkedBookingId: mainBookingId,
@@ -227,7 +217,7 @@ export async function getAdminBookingsList() {
           guestEmail: booking.guestEmail || '',
           guestPhone: booking.guestPhone || '',
           totalPrice: booking.totalPrice || 0,
-          paymentStatus: booking.paymentStatus || 'unpaid',
+          paidAmount: booking.paidAmount || 0,
           status: booking.status || 'pending',
           bookingType: booking.bookingType || 'real',
           notes: booking.notes || '',
@@ -270,7 +260,7 @@ export async function getBookingById(bookingId: string) {
       guestEmail: booking.guestEmail || '',
       guestPhone: booking.guestPhone || '',
       totalPrice: booking.totalPrice || 0,
-      paymentStatus: booking.paymentStatus || 'unpaid',
+      paidAmount: booking.paidAmount || 0,
       status: booking.status || 'pending',
       bookingType: booking.bookingType || 'real',
       notes: booking.notes || '',
@@ -293,7 +283,7 @@ export async function updateBooking(bookingId: string, data: any) {
       numberOfGuests: data.numberOfGuests,
       extraBedsCount: data.extraBedsCount || 0,
       totalPrice: data.totalPrice,
-      paymentStatus: data.paymentStatus,
+      paidAmount: data.paidAmount !== undefined ? data.paidAmount : 0,
       status: data.status,
       startDate: data.startDate ? new Date(data.startDate) : undefined,
       endDate: data.endDate ? new Date(data.endDate) : undefined,
@@ -336,7 +326,6 @@ export async function deleteBooking(bookingId: string) {
     const booking = await Booking.findById(bookingId);
 
     if (booking && booking.bookingType === 'real') {
-      // Usuń powiązane blokady
       await Booking.deleteMany({ linkedBookingId: bookingId });
     }
 
