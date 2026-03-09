@@ -1,201 +1,164 @@
 'use server'
-
 import dbConnect from '@/db/connection';
 import Property from '@/db/models/Property';
 import Booking from '@/db/models/Booking';
-import PriceConfig from '@/db/models/PriceConfig';
+import PriceConfig, { ISeason } from '@/db/models/PriceConfig';
 import SystemConfig from '@/db/models/SystemConfig';
+import { Types } from 'mongoose';
 
-export async function clearAllData() {
-  try {
-    await dbConnect();
-    
-    await Booking.deleteMany({});
-    await Property.deleteMany({});
-    await PriceConfig.deleteMany({});
-    await SystemConfig.deleteMany({});
-    
-    return { success: true, message: 'Wszystkie dane zostały usunięte' };
-  } catch (error) {
-    console.error('Błąd podczas czyszczenia danych:', error);
-    return { success: false, error: 'Nie udało się usunąć danych' };
-  }
+export interface SearchOption {
+  type: 'single' | 'double';
+  propertyIds: string[];
+  displayName: string;
+  totalPrice: number;
+  maxGuests: number;
+  maxExtraBeds: number;
+  description: string;
+  available: boolean;
 }
 
-export async function seedProperties() {
-  try {
-    await dbConnect();
-    
-    const properties = [
-      {
-        name: 'Chatka A (Wilcza)',
-        slug: 'chatka-a',
-        description: 'Przytulny domek z kominkiem, idealny dla par i małych rodzin.',
-        baseCapacity: 6,
-        maxExtraBeds: 2,
-        images: ['/images/chatka-a-1.jpg'],
-        isActive: true
-      },
-      {
-        name: 'Chatka B (Leśna)',
-        slug: 'chatka-b',
-        description: 'Domek z widokiem na las, wyposażony w saunę i jacuzzi.',
-        baseCapacity: 6,
-        maxExtraBeds: 2,
-        images: ['/images/chatka-b-1.jpg'],
-        isActive: true
-      }
-    ];
-
-    await Property.deleteMany({});
-    const created = await Property.insertMany(properties);
-    
-    return { 
-      success: true, 
-      message: `Utworzono ${created.length} domków`,
-      data: created 
-    };
-  } catch (error) {
-    console.error('Błąd podczas seedowania domków:', error);
-    return { success: false, error: 'Nie udało się utworzyć domków' };
-  }
+interface SearchParams {
+  startDate: string;
+  endDate: string;
+  guests: number;
+  extraBeds?: number;
 }
 
-export async function seedPriceConfig() {
-  try {
-    await dbConnect();
-    
-    const priceConfig = {
-      baseRates: {
-        weekday: [
-          { minGuests: 1, maxGuests: 3, price: 300 },
-          { minGuests: 4, maxGuests: 5, price: 400 },
-          { minGuests: 6, maxGuests: 8, price: 500 }
-        ],
-        weekend: [
-          { minGuests: 1, maxGuests: 3, price: 400 },
-          { minGuests: 4, maxGuests: 5, price: 500 },
-          { minGuests: 6, maxGuests: 8, price: 600 }
-        ],
-        extraBedPrice: 50
-      },
-      seasons: [],
-      lastUpdated: new Date()
-    };
+async function calculateTotalPrice(
+  startDate: string,
+  endDate: string,
+  guests: number,
+  extraBeds: number,
+  propertiesCount: number = 1
+): Promise<number> {
+  await dbConnect();
+  const config = await PriceConfig.findById('main');
+  if (!config) return 0;
 
-    await PriceConfig.deleteMany({});
-    const created = await PriceConfig.create(priceConfig);
-    
-    return { 
-      success: true, 
-      message: 'Konfiguracja cen została utworzona' 
-    };
-  } catch (error) {
-    console.error('Błąd podczas seedowania cen:', error);
-    return { success: false, error: 'Nie udało się utworzyć konfiguracji cen' };
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  let total = 0;
+
+  const guestsPerCabin = Math.ceil(guests / propertiesCount);
+  const extraBedsPerCabin = Math.ceil(extraBeds / propertiesCount);
+
+  for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
+    const day = d.getDay();
+    const isWeekend = (day === 5 || day === 6);
+
+    const activeSeason = config.seasons.find((s: ISeason) =>
+      s.isActive && d >= s.startDate && d <= s.endDate
+    );
+
+    const ratesSource = activeSeason || config.baseRates;
+    const bedPrice = activeSeason?.extraBedPrice ?? config.baseRates.extraBedPrice;
+    const tierKey = isWeekend ? 'weekend' : 'weekday';
+
+    const tier = ratesSource[tierKey].find(r =>
+      guestsPerCabin >= r.minGuests && guestsPerCabin <= r.maxGuests
+    ) || ratesSource[tierKey][ratesSource[tierKey].length - 1];
+
+    const nightPrice = tier.price + (extraBedsPerCabin * bedPrice);
+    total += nightPrice * propertiesCount;
   }
+
+  return total;
 }
 
-export async function seedSystemConfig() {
+export async function searchAction({
+  startDate,
+  endDate,
+  guests,
+  extraBeds = 0
+}: SearchParams): Promise<SearchOption[]> {
   try {
     await dbConnect();
     
-    const systemConfig = {
-      _id: 'main',
-      autoBlockOtherCabins: true,
-      highSeasonStart: new Date('2026-06-01'),
-      highSeasonEnd: new Date('2026-08-31'),
-      maxGuestsPerCabin: 8,
-      childrenFreeAgeLimit: 13
-    };
+    const start = new Date(startDate);
+    const end = new Date(endDate);
 
-    await SystemConfig.deleteMany({});
-    const created = await SystemConfig.create(systemConfig);
-    
-    return { 
-      success: true, 
-      message: 'Konfiguracja systemowa została utworzona' 
-    };
-  } catch (error) {
-    console.error('Błąd podczas seedowania konfiguracji:', error);
-    return { success: false, error: 'Nie udało się utworzyć konfiguracji systemowej' };
-  }
-}
-
-export async function seedBookings() {
-  try {
-    await dbConnect();
-    
-    const properties = await Property.find();
-    if (properties.length === 0) {
-      return { success: false, error: 'Najpierw utwórz domki' };
+    let sysConfig = await SystemConfig.findById('main');
+    if (!sysConfig) {
+      sysConfig = { autoBlockOtherCabins: true } as any;
     }
 
-    const today = new Date();
-    const nextWeek = new Date(today);
-    nextWeek.setDate(today.getDate() + 7);
-    nextWeek.setHours(12, 0, 0, 0);
+    const properties = await Property.find({ isActive: true });
     
-    const twoWeeks = new Date(today);
-    twoWeeks.setDate(today.getDate() + 14);
-    twoWeeks.setHours(10, 0, 0, 0);
+    if (properties.length === 0) return [];
 
-    const bookings = [
-      {
-        propertyId: properties[0]._id,
-        startDate: nextWeek,
-        endDate: twoWeeks,
-        guestName: 'Jan Kowalski',
-        guestEmail: 'jan@example.com',
-        guestPhone: '+48 123 456 789',
-        guestAddress: 'ul. Przykładowa 1, 00-001 Warszawa',
-        numberOfGuests: 4,
-        extraBedsCount: 1,
-        totalPrice: 3500,
-        paymentStatus: 'deposit',
-        status: 'confirmed',
-        bookingType: 'real',
-        notes: 'Przykładowa rezerwacja',
-        source: 'seed'
-      }
-    ];
+    const propertyIds = properties.map(p => p._id.toString());
 
-    await Booking.deleteMany({});
-    const created = await Booking.insertMany(bookings);
-    
-    return { 
-      success: true, 
-      message: `Utworzono ${created.length} rezerwacji` 
-    };
+    const conflictingBookings = await Booking.find({
+      propertyId: { $in: propertyIds.map(id => new Types.ObjectId(id)) },
+      status: { $in: ['confirmed', 'blocked'] },
+      startDate: { $lte: end },
+      endDate: { $gte: start }
+    }).select('propertyId');
+
+    const bookedPropertyIds = new Set(
+      conflictingBookings.map(b => b.propertyId.toString())
+    );
+
+    const availableProperties = properties.filter(p => !bookedPropertyIds.has(p._id.toString()));
+    const options: SearchOption[] = [];
+
+    // Opcje pojedynczych domków
+    for (const prop of availableProperties) {
+      const price = await calculateTotalPrice(startDate, endDate, guests, extraBeds, 1);
+      
+      // Konwersja na liczby - zabezpieczenie przed stringami
+      const baseCapacity = Number(prop.baseCapacity) || 0;
+      const maxExtraBedsValue = Number(prop.maxExtraBeds) || 0;
+      
+      const maxGuests = baseCapacity + maxExtraBedsValue;
+      
+      options.push({
+        type: 'single',
+        propertyIds: [prop._id.toString()],
+        displayName: prop.name,
+        totalPrice: price,
+        maxGuests: maxGuests,
+        maxExtraBeds: maxExtraBedsValue,
+        description: "Wynajem pojedynczego domku. Drugi domek zostanie automatycznie zablokowany na ten termin.",
+        available: true
+      });
+    }
+
+    // Opcja całej posesji (jeśli wszystkie domki są wolne)
+    if (availableProperties.length === properties.length && properties.length > 1) {
+      // Suma pojemności ze wszystkich domków
+      const totalMaxGuests = properties.reduce((sum, p) => {
+        const base = Number(p.baseCapacity) || 0;
+        const extra = Number(p.maxExtraBeds) || 0;
+        return sum + base + extra;
+      }, 0);
+      
+      const totalMaxExtraBeds = properties.reduce((sum, p) => {
+        return sum + (Number(p.maxExtraBeds) || 0);
+      }, 0);
+      
+      const price = await calculateTotalPrice(startDate, endDate, guests, extraBeds, properties.length);
+      
+      
+      options.push({
+        type: 'double',
+        propertyIds: properties.map(p => p._id.toString()),
+        displayName: "Cała Posesja (Wszystkie domki)",
+        totalPrice: price,
+        maxGuests: totalMaxGuests,
+        maxExtraBeds: totalMaxExtraBeds,
+        description: "Maksymalna prywatność. Wynajem wszystkich domków z dostępem do całego terenu.",
+        available: true
+      });
+    }
+
+    return options.sort((a, b) => {
+      if (a.type === 'double') return -1;
+      if (b.type === 'double') return 1;
+      return a.displayName.localeCompare(b.displayName);
+    });
   } catch (error) {
-    console.error('Błąd podczas seedowania rezerwacji:', error);
-    return { success: false, error: 'Nie udało się utworzyć rezerwacji' };
-  }
-}
-
-export async function seedAllData() {
-  try {
-    await dbConnect();
-    
-    // Kolejność ważna - najpierw domki, potem ceny, potem reszta
-    await clearAllData();
-    const properties = await seedProperties();
-    if (!properties.success) throw new Error(properties.error);
-    
-    const prices = await seedPriceConfig();
-    if (!prices.success) throw new Error(prices.error);
-    
-    const system = await seedSystemConfig();
-    if (!system.success) throw new Error(system.error);
-    
-    const bookings = await seedBookings();
-    
-    return { 
-      success: true, 
-      message: 'Wszystkie dane zostały zresetowane do stanu początkowego' 
-    };
-  } catch (error) {
-    console.error('Błąd podczas seedowania wszystkich danych:', error);
-    return { success: false, error: 'Nie udało się zresetować danych' };
+    console.error("Błąd wyszukiwania dostępności:", error);
+    throw new Error("Nie udało się pobrać dostępnych terminów.");
   }
 }
