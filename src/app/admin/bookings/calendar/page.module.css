@@ -1,7 +1,6 @@
 :root {
     --cal-color-primary: #2e7d32;
-    /* --cal-color-primary-bg: #e8f5e9; */
-     --cal-color-primary-bg: #ffffff;
+    --cal-color-primary-bg: #ffffff;
     --cal-color-booked: #c62828;
     --cal-color-booked-bg: #ffebee;
     --cal-color-cleaning: #ef6c00;
@@ -15,6 +14,9 @@
     --cal-color-header-bg: #f8f9fa;
     --cal-link-color: #1976d2;
     --cal-link-hover: #d32f2f;
+    --cal-past-opacity: 0.6;
+    --cal-past-text: #999;
+    --cal-past-bg: #f5f5f5;
 }
 
 .container {
@@ -387,7 +389,6 @@ td:focus-within .tooltipContainer {
     border-radius: 6px;
     width: 40px;
     height: 42px;
-    /* Dopasowane do wysokości selecta */
     font-size: 1.5rem;
     line-height: 1;
     cursor: pointer;
@@ -398,7 +399,6 @@ td:focus-within .tooltipContainer {
     transition: all 0.2s;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     padding: 0;
-    /* Reset paddingu */
 }
 
 .navButton:hover {
@@ -412,6 +412,58 @@ td:focus-within .tooltipContainer {
 .navButton:active {
     transform: translateY(0);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Style dla przeszłych dat */
+.pastRow {
+    opacity: 0.6;
+}
+
+.pastDate {
+    color: var(--cal-past-text) !important;
+    background-color: var(--cal-past-bg) !important;
+}
+
+.pastFree {
+    background-color: var(--cal-past-bg) !important;
+    color: var(--cal-past-text) !important;
+}
+
+.pastBooked {
+    background-color: var(--cal-past-bg) !important;
+    color: var(--cal-past-text) !important;
+}
+
+.pastCleaning {
+    background-color: var(--cal-past-bg) !important;
+    color: var(--cal-past-text) !important;
+    font-style: italic;
+}
+
+.pastBlocked {
+    background-color: var(--cal-past-bg) !important;
+    color: var(--cal-past-text) !important;
+}
+
+/* Zachowaj tooltip dla przeszłych dat */
+.pastRow td:hover .tooltipContainer {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-2px);
+}
+
+.pastRow .tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Zmniejsz kontrast dla przeszłych dat ale zachowaj czytelność */
+.pastRow .statusText {
+    color: var(--cal-past-text) !important;
+}
+
+.pastRow .badge {
+    opacity: 0.6;
 }
 
 @media (max-width: 480px) {

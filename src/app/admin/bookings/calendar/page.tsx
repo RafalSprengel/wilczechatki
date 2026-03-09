@@ -16,6 +16,11 @@ const MONTH_NAMES = [
 
 const BookingTooltip = ({ details }: { details: BookingDetails }) => {
   if (!details) return null;
+  
+  const extraBedsText = details.extraBeds && details.extraBeds > 0 
+    ? `${details.extraBeds} dostawka${details.extraBeds > 1 ? 'ki' : ''}` 
+    : 'brak dostawek';
+  
   return (
     <div className={styles.tooltip}>
       <div className={styles.tooltipHeader}>
@@ -29,6 +34,10 @@ const BookingTooltip = ({ details }: { details: BookingDetails }) => {
       <div className={styles.tooltipRow}>
         <span className={styles.label}>👥 Goście:</span>
         <span className={styles.valueText}>{details.numberOfGuests} osób</span>
+      </div>
+      <div className={styles.tooltipRow}>
+        <span className={styles.label}>🛏️ Dostawki:</span>
+        <span className={styles.valueText}>{extraBedsText}</span>
       </div>
       <div className={styles.tooltipRow}>
         <span className={styles.label}>💰 Cena:</span>
@@ -82,6 +91,7 @@ export default function Calendar() {
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 10 }, (_, i) => currentYear - 2 + i);
+  
   const handlePrevMonth = () => {
     if (selectedMonth === 0) {
       setSelectedMonth(11);
@@ -90,6 +100,7 @@ export default function Calendar() {
       setSelectedMonth(selectedMonth - 1);
     }
   };
+  
   const handleNextMonth = () => {
     if (selectedMonth === 11) {
       setSelectedMonth(0);
@@ -99,8 +110,17 @@ export default function Calendar() {
     }
   };
 
+  const isPastDate = (dateStr: string): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkDate = new Date(dateStr + 'T00:00:00');
+    return checkDate < today;
+  };
+
   if (error) return <div className={styles.container}>{error}</div>;
+  
   const cabinIds = data.length > 0 ? Object.keys(data[0].cabins) : [];
+  
   const getDayInfo = (dateStr: string) => {
     const date = new Date(dateStr + 'T00:00:00');
     const dayIndex = date.getDay();
@@ -141,9 +161,12 @@ export default function Calendar() {
             ) : (
               data.map((row) => {
                 const { dayName, dayClass } = getDayInfo(row.date);
+                const past = isPastDate(row.date);
+                const rowClass = past ? styles.pastRow : '';
+                
                 return (
-                  <tr key={row.date}>
-                    <td className={`${styles.stickyCol} ${styles.dateCell} ${dayClass}`}>
+                  <tr key={row.date} className={rowClass}>
+                    <td className={`${styles.stickyCol} ${styles.dateCell} ${dayClass} ${past ? styles.pastDate : ''}`}>
                       <div className={styles.dateContent}>
                         <span className={styles.dateDay}>{row.datePL}</span>
                         <span className={styles.dateWeekday}>({dayName})</span>
@@ -152,21 +175,42 @@ export default function Calendar() {
                     {cabinIds.map((id) => {
                       const cellData = row.cabins[id];
                       if (!cellData) {
-                        return (<td key={id} className={`${styles.cell} ${styles.free}`}><span>Wolny</span></td>);
+                        return (
+                          <td key={id} className={`${styles.cell} ${styles.free} ${past ? styles.pastFree : ''}`}>
+                            <span>Wolny</span>
+                          </td>
+                        );
                       }
                       const hasDetails = cellData.status === 'booked' || cellData.status === 'cleaning';
                       let statusText = '';
                       let cellClass = styles.cell;
+                      
                       switch (cellData.status) {
-                        case 'booked': statusText = 'Zajęty'; cellClass += ` ${styles.booked}`; break;
-                        case 'cleaning': statusText = 'Sprzątanie'; cellClass += ` ${styles.cleaning}`; break;
-                        case 'blocked_sys': statusText = 'Zabl.'; cellClass += ` ${styles.blockedSys}`; break;
-                        default: statusText = 'Wolny'; cellClass += ` ${styles.free}`;
+                        case 'booked': 
+                          statusText = 'Zajęty'; 
+                          cellClass += ` ${styles.booked} ${past ? styles.pastBooked : ''}`; 
+                          break;
+                        case 'cleaning': 
+                          statusText = 'Sprzątanie'; 
+                          cellClass += ` ${styles.cleaning} ${past ? styles.pastCleaning : ''}`; 
+                          break;
+                        case 'blocked_sys': 
+                          statusText = 'Zabl.'; 
+                          cellClass += ` ${styles.blockedSys} ${past ? styles.pastBlocked : ''}`; 
+                          break;
+                        default: 
+                          statusText = 'Wolny'; 
+                          cellClass += ` ${styles.free} ${past ? styles.pastFree : ''}`;
                       }
+                      
                       return (
                         <td key={id} className={cellClass} style={{ position: hasDetails ? 'relative' : 'static' }}>
                           <span className={styles.statusText}>{statusText}</span>
-                          {hasDetails && cellData.details && (<div className={styles.tooltipContainer}><BookingTooltip details={cellData.details} /></div>)}
+                          {hasDetails && cellData.details && (
+                            <div className={styles.tooltipContainer}>
+                              <BookingTooltip details={cellData.details} />
+                            </div>
+                          )}
                         </td>
                       );
                     })}

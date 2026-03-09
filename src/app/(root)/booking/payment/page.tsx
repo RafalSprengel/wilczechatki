@@ -4,6 +4,15 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './page.module.css';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
+import { createBookingFromDraft } from '@/actions/bookingActions';
+
+interface SelectedOption {
+  type: 'single' | 'double';
+  displayName: string;
+  totalPrice: number;
+  maxGuests: number;
+  propertyIds?: string[];  // Dodajemy opcjonalne pole propertyIds
+}
 
 interface BookingData {
   startDate: string;
@@ -11,12 +20,7 @@ interface BookingData {
   adults: number;
   children: number;
   extraBeds: number;
-  selectedOption: {
-    type: 'single' | 'double';
-    displayName: string;
-    totalPrice: number;
-    maxGuests: number;
-  } | null;
+  selectedOption: SelectedOption | null;
   guestData: {
     firstName: string;
     lastName: string;
@@ -24,6 +28,13 @@ interface BookingData {
     email: string;
     phone: string;
     invoice: boolean;
+    invoiceData?: {
+      companyName: string;
+      nip: string;
+      street: string;
+      city: string;
+      postalCode: string;
+    };
     termsAccepted: boolean;
   };
 }
@@ -161,13 +172,30 @@ export default function PaymentPage() {
 
     setIsProcessing(true);
     
+    // Symulacja płatności (2 sekundy)
     await new Promise(resolve => setTimeout(resolve, 2000));
     
+    // 70% szans na sukces (dla testów)
     const success = Math.random() > 0.3;
     
     if (success) {
-      localStorage.removeItem(STORAGE_KEY);
-      router.push('/booking/success');
+      try {
+        // Zapisz rezerwację w bazie danych
+        const result = await createBookingFromDraft(bookingData);
+        
+        if (result.success) {
+          // Wyczyść localStorage
+          localStorage.removeItem(STORAGE_KEY);
+          // Przekieruj na stronę sukcesu
+          router.push('/booking/success');
+        } else {
+          console.error('Błąd zapisu rezerwacji:', result.error);
+          router.push('/booking/fail');
+        }
+      } catch (error) {
+        console.error('Błąd podczas zapisu rezerwacji:', error);
+        router.push('/booking/fail');
+      }
     } else {
       router.push('/booking/fail');
     }

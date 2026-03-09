@@ -1,35 +1,78 @@
-import { getPropertyById, updateProperty, deleteProperty } from '@/actions/adminPropertyActions';
-import { notFound, redirect } from 'next/navigation';
-import EditPropertyForm from './EditPropertyForm';
+import Link from 'next/link';
 import styles from './page.module.css';
+import { getAllProperties, togglePropertyActive, deleteProperty } from '@/actions/adminPropertyActions';
+import { revalidatePath } from 'next/cache';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
+import DeletePropertyButton from './DeletePropertyButton';
 
-export default async function EditPropertyPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const property = await getPropertyById(id);
-  if (!property) { notFound(); }
+export default async function PropertiesPage() {
+  const properties = await getAllProperties();
 
-  async function handleDelete() {
+  async function handleToggleActive(formData: FormData) {
     'use server';
-    const result = await deleteProperty(id);
-    if (result.success) { redirect('/admin/properties'); }
+    const id = formData.get('id') as string;
+    const isActive = formData.get('isActive') === 'true';
+    await togglePropertyActive(id, !isActive);
+    revalidatePath('/admin/properties');
+  }
+
+  async function handleDelete(formData: FormData) {
+    'use server';
+    const id = formData.get('id') as string;
+    await deleteProperty(id);
+    revalidatePath('/admin/properties');
   }
 
   return (
     <div className={styles.container}>
       <FloatingBackButton />
       <header className={styles.header}>
-        <h1>Edycja: {property.name}</h1>
-        <p>Modyfikuj dane obiektu w systemie.</p>
+        <h1>Zarządzanie domkami</h1>
+        <p>Dodaj, edytuj lub dezaktywuj obiekty w systemie.</p>
+        <Link href="/admin/properties/add" className={styles.btnAdd}>➕ Dodaj nowy domek</Link>
       </header>
-      <EditPropertyForm property={property} propertyId={id} />
-      <div className={styles.dangerZone}>
-        <h3 className={styles.dangerTitle}>Strefa niebezpieczna</h3>
-        <p className={styles.dangerDesc}>Usunięcie domku jest nieodwracalne. Można usunąć tylko obiekty bez rezerwacji.</p>
-        <form action={handleDelete}>
-          <button type="submit" className={styles.btnDelete} onClick={(e) => { if (!confirm('Czy na pewno usunąć ten domek? Ta operacja jest nieodwracalna.')) e.preventDefault(); }}>🗑️ Usuń domek</button>
-        </form>
-      </div>
+      {properties.length === 0 ? (
+        <div className={styles.emptyState}>
+          <p>Brak domków w systemie.</p>
+          <Link href="/admin/properties/add" className={styles.btnAdd}>Dodaj pierwszy domek</Link>
+        </div>
+      ) : (
+        <div className={styles.propertiesGrid}>
+          {properties.map((prop) => (
+            <article key={prop._id} className={styles.propertyCard}>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.propertyName}>{prop.name}</h3>
+                <span className={`${styles.badge} ${prop.isActive ? styles.badgeActive : styles.badgeInactive}`}>{prop.isActive ? 'Aktywny' : 'Nieaktywny'}</span>
+              </div>
+              {prop.description && (<p className={styles.description}>{prop.description}</p>)}
+              <div className={styles.details}>
+                <div className={styles.detailRow}>
+                  <span className={styles.label}>Pojemność:</span>
+                  <span className={styles.value}>{prop.baseCapacity} + {prop.maxExtraBeds} dostawek</span>
+                </div>
+                {prop.slug && (
+                  <div className={styles.detailRow}>
+                    <span className={styles.label}>Slug:</span>
+                    <code className={styles.code}>{prop.slug}</code>
+                  </div>
+                )}
+              </div>
+              <div className={styles.cardActions}>
+                <form action={handleToggleActive}>
+                  <input type="hidden" name="id" value={prop._id} />
+                  <input type="hidden" name="isActive" value={String(prop.isActive)} />
+                  <button type="submit" className={styles.btnToggle}>{prop.isActive ? '🔘 Dezaktywuj' : '✅ Aktywuj'}</button>
+                </form>
+                <Link href={`/admin/properties/${prop._id}`} className={styles.btnEdit}>✏️ Edytuj</Link>
+                <form action={handleDelete}>
+                  <input type="hidden" name="id" value={prop._id} />
+                  <DeletePropertyButton />
+                </form>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

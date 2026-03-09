@@ -1,13 +1,14 @@
 'use client'
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { searchAction, SearchOption } from '@/actions/searchActions'
 import QuantityPicker from '../../_components/QuantityPicker/QuantityPicker'
 import CalendarPicker from '../../_components/CalendarPicker/CalendarPicker'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import styles from './page.module.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUsers, faSpinner, faExclamationCircle, faHouse } from '@fortawesome/free-solid-svg-icons'
+import { faUsers, faSpinner, faExclamationCircle, faHouse, faBed, faArrowRight } from '@fortawesome/free-solid-svg-icons'
 
 interface BookingDates {
     start: string | null
@@ -24,7 +25,13 @@ interface BookingDraft {
     selectedOption: SearchOption | null
 }
 
+interface SearchResult extends SearchOption {
+    basePrice: number
+    extraBedsPrice: number
+}
+
 const STORAGE_KEY = 'wilczechatki_booking_draft'
+const EXTRA_BED_PRICE = 50
 
 export default function BookingPage() {
     const router = useRouter()
@@ -37,10 +44,26 @@ export default function BookingPage() {
         count: 0
     })
     const [isLoading, setIsLoading] = useState(false)
-    const [searchResults, setSearchResults] = useState<SearchOption[] | null>(null)
+    const [searchResults, setSearchResults] = useState<SearchResult[] | null>(null)
+    const [extraBedsMap, setExtraBedsMap] = useState<Record<string, number>>({})
+    const [hasDraft, setHasDraft] = useState(false)
 
     const guestsRef = useRef<HTMLDivElement>(null)
     const datesRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const draft = localStorage.getItem(STORAGE_KEY)
+        if (draft) {
+            try {
+                const parsed = JSON.parse(draft)
+                if (parsed.selectedOption) {
+                    setHasDraft(true)
+                }
+            } catch {
+                setHasDraft(false)
+            }
+        }
+    }, [])
 
     useClickOutside(guestsRef, () => {
         if (activeBox === 'guests') setActiveBox(null)
@@ -63,6 +86,7 @@ export default function BookingPage() {
 
         setIsLoading(true)
         setSearchResults(null)
+        setExtraBedsMap({})
 
         try {
             const results = await searchAction({
@@ -71,7 +95,14 @@ export default function BookingPage() {
                 guests: totalGuests,
                 extraBeds: 0
             })
-            setSearchResults(results)
+            
+            const resultsWithBasePrice = results.map(r => ({
+                ...r,
+                basePrice: r.totalPrice,
+                extraBedsPrice: 0
+            }))
+            
+            setSearchResults(resultsWithBasePrice)
         } catch (error) {
             console.error('Search error:', error)
             alert('Wystąpił błąd podczas sprawdzania dostępności.')
@@ -81,14 +112,36 @@ export default function BookingPage() {
         }
     }
 
-    const handleSelectOption = (option: SearchOption) => {
+    const handleExtraBedsChange = (optionId: string, value: number) => {
+        setExtraBedsMap(prev => ({
+            ...prev,
+            [optionId]: value
+        }))
+    }
+
+    const getTotalPrice = (option: SearchResult) => {
+        const extraBeds = extraBedsMap[option.displayName] || 0
+        return option.basePrice + (extraBeds * EXTRA_BED_PRICE)
+    }
+
+    const getMaxExtraBeds = (option: SearchResult) => {
+        const currentGuests = adults + children
+        const availableSpots = option.maxGuests - currentGuests
+        return Math.min(option.maxExtraBeds, Math.max(0, availableSpots))
+    }
+
+    const handleSelectOption = (option: SearchResult) => {
+        const extraBeds = extraBedsMap[option.displayName] || 0
         const draft: BookingDraft = {
             startDate: bookingDates.start!,
             endDate: bookingDates.end!,
             adults,
             children,
-            extraBeds: 0,
-            selectedOption: option
+            extraBeds,
+            selectedOption: {
+                ...option,
+                totalPrice: getTotalPrice(option)
+            }
         }
         localStorage.setItem(STORAGE_KEY, JSON.stringify(draft))
         router.push('/booking/details')
@@ -105,6 +158,15 @@ export default function BookingPage() {
 
     return (
         <div className={styles.container}>
+            {hasDraft && (
+                <div className={styles.draftLinkContainer}>
+                    <Link href="/booking/details" className={styles.draftLink}>
+                        <span>➡️ Masz rozpoczętą rezerwację - kliknij aby kontynuować</span>
+                        <FontAwesomeIcon icon={faArrowRight} className={styles.draftArrow} />
+                    </Link>
+                </div>
+            )}
+
             <div className={styles.head}>
                 <h2>Znajdź swój termin</h2>
             </div>
@@ -204,45 +266,76 @@ export default function BookingPage() {
                             Dostępne opcje ({searchResults.length})
                         </h3>
 
-                        {searchResults.map((option, index) => (
-                            <div key={`${option.displayName}-${index}`} className={styles.resultCard}>
-                                <div className={styles.cardHeader}>
-                                    <span className={`${styles.cardBadge} ${option.type === 'double' ? styles.badgeDouble : styles.badgeSingle}`}>
-                                        {option.type === 'double' ? 'CAŁA POSESJA' : 'POJEDYNCZY DOMEK'}
-                                    </span>
-                                    {option.type === 'double' && (
-                                        <span className={styles.privacyBadge}>Prywatny teren</span>
+                        {searchResults.map((option) => {
+                            const extraBeds = extraBedsMap[option.displayName] || 0
+                            const maxExtraBeds = getMaxExtraBeds(option)
+                            const totalPrice = getTotalPrice(option)
+                            
+                            return (
+                                <div key={option.displayName} className={styles.resultCard}>
+                                    <div className={styles.cardHeader}>
+                                        <span className={`${styles.cardBadge} ${option.type === 'double' ? styles.badgeDouble : styles.badgeSingle}`}>
+                                            {option.type === 'double' ? 'CAŁA POSESJA' : 'POJEDYNCZY DOMEK'}
+                                        </span>
+                                        {option.type === 'double' && (
+                                            <span className={styles.privacyBadge}>Prywatny teren</span>
+                                        )}
+                                    </div>
+
+                                    <h4 className={styles.cardTitle}>
+                                        {option.type === 'double' ? (
+                                            <>
+                                                <FontAwesomeIcon icon={faHouse} className={styles.doubleIcon} />
+                                                &nbsp;{option.displayName}
+                                            </>
+                                        ) : option.displayName}
+                                    </h4>
+
+                                    <p className={styles.cardDesc}>{option.description}</p>
+
+                                    <div className={styles.cardDetails}>
+                                        <span>Pojemność: {option.maxGuests} osób</span>
+                                        <span className={styles.separator}> • </span>
+                                        <span>Max dostawek: {option.maxExtraBeds}</span>
+                                    </div>
+
+                                    {maxExtraBeds > 0 && (
+                                        <div className={styles.extraBedsSection}>
+                                            <div className={styles.extraBedsHeader}>
+                                                <FontAwesomeIcon icon={faBed} className={styles.bedIcon} />
+                                                <span className={styles.extraBedsLabel}>Dodatkowe miejsca:</span>
+                                            </div>
+                                            <QuantityPicker
+                                                value={extraBeds}
+                                                onIncrement={() => handleExtraBedsChange(option.displayName, extraBeds + 1)}
+                                                onDecrement={() => handleExtraBedsChange(option.displayName, extraBeds - 1)}
+                                                min={0}
+                                                max={maxExtraBeds}
+                                            />
+                                            <span className={styles.extraBedsPrice}>+{extraBeds * EXTRA_BED_PRICE} zł</span>
+                                        </div>
                                     )}
+
+                                    {maxExtraBeds === 0 && totalGuests < option.maxGuests && (
+                                        <div className={styles.extraBedsNote}>
+                                            Możesz dodać max. {option.maxExtraBeds} dostawek, ale brakuje miejsc dla {totalGuests} osób
+                                        </div>
+                                    )}
+
+                                    <div className={styles.cardPrice}>
+                                        <span className={styles.priceLabel}>Cena całkowita:</span>
+                                        <span className={styles.priceValue}>{totalPrice} zł</span>
+                                    </div>
+
+                                    <button
+                                        className={styles.btnSelect}
+                                        onClick={() => handleSelectOption(option)}
+                                    >
+                                        Wybieram tę opcję
+                                    </button>
                                 </div>
-
-                                <h4 className={styles.cardTitle}>
-                                    {option.type === 'double' ? (
-                                        <>
-                                            <FontAwesomeIcon icon={faHouse} className={styles.doubleIcon} />
-                                            &nbsp;{option.displayName}
-                                        </>
-                                    ) : option.displayName}
-                                </h4>
-
-                                <p className={styles.cardDesc}>{option.description}</p>
-
-                                <div className={styles.cardDetails}>
-                                    <span>Maks. {option.maxGuests} osób</span>
-                                </div>
-
-                                <div className={styles.cardPrice}>
-                                    <span className={styles.priceLabel}>Cena za całość:</span>
-                                    <span className={styles.priceValue}>{option.totalPrice} zł</span>
-                                </div>
-
-                                <button
-                                    className={styles.btnSelect}
-                                    onClick={() => handleSelectOption(option)}
-                                >
-                                    Wybieram tę opcję
-                                </button>
-                            </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 )}
             </div>

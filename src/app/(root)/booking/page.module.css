@@ -1,385 +1,540 @@
 .container {
-    width: 100%;
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 20px 15px;
-    color: var(--text-main);
-    min-height: 60vh;
-    font-family: var(--font-body);
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 20px 15px;
+  color: var(--text-main);
+  min-height: 60vh;
+  font-family: var(--font-body);
 }
 
 .head h2 {
-    text-align: center;
-    color: var(--text-main);
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-    line-height: 1.2;
-    font-family: var(--font-heading);
+  text-align: center;
+  color: var(--text-main);
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-family: var(--font-heading);
 }
 
+/* Draft banner */
+.draftLinkContainer {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.draftLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  color: #92400e;
+  padding: 12px 24px;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.draftLink:hover {
+  background: #fde68a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.draftArrow {
+  font-size: 0.9rem;
+  transition: transform 0.2s;
+}
+
+.draftLink:hover .draftArrow {
+  transform: translateX(5px);
+}
+
+/* Search box */
 .searchBox {
-    background: var(--bg-white);
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-    position: relative;
-    z-index: 10;
+  background: var(--bg-white);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+  position: relative;
+  z-index: 10;
 }
 
 .gestsBox,
 .dateBox {
-    width: 100%;
-    position: relative;
+  width: 100%;
+  position: relative;
 }
 
 .gests,
 .date {
-    background: var(--secondary-color);
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 14px 15px;
-    cursor: pointer;
-    font-weight: 500;
-    color: var(--text-main);
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 1rem;
-    min-height: 50px;
+  background: var(--secondary-color);
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 14px 15px;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-main);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1rem;
+  min-height: 50px;
 }
 
 .gests:hover,
 .date:hover {
-    border-color: var(--accent-color);
-    background: var(--bg-white);
+  border-color: var(--accent-color);
+  background: var(--bg-white);
 }
 
 .iconSmall {
-    color: var(--accent-color);
-    margin-right: 10px;
-    font-size: 1.1rem;
+  color: var(--accent-color);
+  margin-right: 10px;
+  font-size: 1.1rem;
 }
 
 .setGests,
 .setDate {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    background: var(--bg-white);
-    border: 1px solid #eee;
-    border-radius: 8px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    padding: 15px;
-    margin-top: 8px;
-    display: none;
-    z-index: 20;
-    flex-direction: column;
-    gap: 15px;
-    box-sizing: border-box;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: var(--bg-white);
+  border: 1px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  padding: 15px;
+  margin-top: 8px;
+  display: none;
+  z-index: 20;
+  flex-direction: column;
+  gap: 15px;
+  box-sizing: border-box;
 }
 
 .expandedGests,
 .expandedDate {
-    display: flex;
+  display: flex;
 }
 
 .pickerWrap {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
 }
 
 .label {
-    font-size: 0.9rem;
-    color: var(--text-main);
-    font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  font-weight: 600;
 }
 
 .info {
-    font-size: 0.8rem;
-    color: #888;
-    font-style: italic;
-    display: block;
-    margin-top: 5px;
+  font-size: 0.8rem;
+  color: #888;
+  font-style: italic;
+  display: block;
+  margin-top: 5px;
 }
 
 .buttOk {
-    background: var(--primary-color);
-    color: var(--text-light);
-    border: none;
-    padding: 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 1rem;
-    width: 100%;
-    margin-top: 5px;
-    font-family: var(--font-body);
+  background: var(--primary-color);
+  color: var(--text-light);
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  width: 100%;
+  margin-top: 5px;
+  font-family: var(--font-body);
 }
 
 .button {
-    background: var(--accent-color);
-    color: var(--text-light);
-    border: none;
-    padding: 16px 30px;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.2s;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 54px;
-    margin-top: 5px;
-    font-family: var(--font-body);
+  background: var(--accent-color);
+  color: var(--text-light);
+  border: none;
+  padding: 16px 30px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 54px;
+  margin-top: 5px;
+  font-family: var(--font-body);
 }
 
 .button:hover:not(:disabled) {
-    background: #a6934a;
+  background: #a6934a;
 }
 
 .button:disabled {
-    background: #95a5a6;
-    cursor: not-allowed;
-    opacity: 0.7;
+  background: #95a5a6;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
+/* Results */
 .resultsContainer {
-    margin-top: 30px;
-    min-height: 200px;
+  margin-top: 30px;
+  min-height: 200px;
 }
 
 .loadingState,
 .emptyState {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    justify-content: center;
-    text-align: center;
-    padding: 30px 20px;
-    color: #7f8c8d;
-    font-size: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  justify-content: center;
+  text-align: center;
+  padding: 30px 20px;
+  color: #7f8c8d;
+  font-size: 1rem;
 }
 
 .emptyIcon {
-    font-size: 3rem;
-    color: var(--error-color);
-    display: block;
+  font-size: 3rem;
+  color: var(--error-color);
+  display: block;
 }
 
 .resultsGrid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
 }
 
 .resultsTitle {
-    grid-column: 1 / -1;
-    margin-bottom: 15px;
-    color: var(--text-main);
-    border-bottom: 2px solid #eee;
-    padding-bottom: 10px;
-    font-size: 1.2rem;
-    font-family: var(--font-heading);
+  grid-column: 1 / -1;
+  margin-bottom: 15px;
+  color: var(--text-main);
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+  font-size: 1.2rem;
+  font-family: var(--font-heading);
 }
 
 .resultCard {
-    background: var(--bg-white);
-    border: 1px solid #eef2f5;
-    border-radius: 10px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-    width: 100%;
-    box-sizing: border-box;
+  background: var(--bg-white);
+  border: 1px solid #eef2f5;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .resultCard:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-    border-color: var(--accent-color);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  border-color: var(--accent-color);
 }
 
 .cardHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .cardBadge {
-    background: var(--accent-color);
-    color: var(--text-light);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.65rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  background: var(--accent-color);
+  color: var(--text-light);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .privacyBadge {
-    background: #9b59b6;
-    color: var(--text-light);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.65rem;
-    font-weight: bold;
+  background: #9b59b6;
+  color: var(--text-light);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: bold;
 }
 
 .cardTitle {
-    margin: 0;
-    font-size: 1.15rem;
-    color: var(--text-main);
-    line-height: 1.3;
-    font-family: var(--font-heading);
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--text-main);
+  line-height: 1.3;
+  font-family: var(--font-heading);
 }
 
 .cardDesc {
-    font-size: 0.9rem;
-    color: #666;
-    line-height: 1.5;
-    margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.5;
+  margin: 0;
 }
 
 .cardDetails {
-    font-size: 0.85rem;
-    color: #888;
-    border-top: 1px solid #f0f0f0;
-    padding-top: 10px;
+  font-size: 0.85rem;
+  color: #888;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 10px;
 }
 
+/* Extra beds */
+.extraBedsSection {
+  margin: 15px 0;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.extraBedsHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.bedIcon {
+  color: #c9b363;
+  font-size: 0.9rem;
+}
+
+.extraBedsLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.extraBedsPrice {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #16a34a;
+  text-align: right;
+}
+
+.extraBedsNote {
+  margin: 10px 0;
+  padding: 8px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #64748b;
+  text-align: center;
+}
+
+/* Price section */
 .cardPrice {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: auto;
-    padding-top: 15px;
-    border-top: 1px dashed #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 15px;
+  border-top: 1px dashed #ddd;
 }
 
 .priceLabel {
-    font-size: 0.9rem;
-    color: #555;
+  font-size: 0.9rem;
+  color: #555;
 }
 
 .priceValue {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: var(--accent-color);
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--accent-color);
 }
 
 .btnSelect {
-    width: 100%;
-    padding: 14px;
-    background: var(--primary-color);
-    color: var(--text-light);
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-    font-size: 1rem;
-    margin-top: 10px;
-    font-family: var(--font-body);
+  width: 100%;
+  padding: 14px;
+  background: var(--primary-color);
+  color: var(--text-light);
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 1rem;
+  margin-top: 10px;
+  font-family: var(--font-body);
 }
 
 .btnSelect:hover {
-    background: #34495e;
+  background: #34495e;
 }
 
 .spinIcon {
-    font-size: 2.5rem;
-    color: var(--accent-color);
-    margin-bottom: 10px;
-    display: block;
+  font-size: 2.5rem;
+  color: var(--accent-color);
+  margin-bottom: 10px;
+  display: block;
 }
 
 .doubleIcon {
-    color: #9b59b6;
-    margin-right: 5px;
+  color: #9b59b6;
+  margin-right: 5px;
 }
 
 .badgeDouble {
-    background-color: #9b59b6;
+  background-color: #9b59b6;
 }
 
 .badgeSingle {
-    background-color: var(--accent-color);
+  background-color: var(--accent-color);
 }
 
+/* Media queries */
 @media (min-width: 600px) {
-    .container {
-        padding: 40px 20px;
-        max-width: 1000px;
-    }
+  .container {
+    padding: 40px 20px;
+    max-width: 1000px;
+  }
 
-    .head h2 {
-        font-size: 2rem;
-        margin-bottom: 30px;
-    }
+  .head h2 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+  }
 
-    .searchBox {
-        flex-direction: row;
-        align-items: flex-end;
-        gap: 15px;
-        padding: 20px;
-    }
+  .searchBox {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 15px;
+    padding: 20px;
+  }
 
-    .gestsBox,
-    .dateBox {
-        flex: 1;
-        min-width: 200px;
-    }
+  .gestsBox,
+  .dateBox {
+    flex: 1;
+    min-width: 200px;
+  }
 
-    .button {
-        width: auto;
-        min-width: 140px;
-        margin-top: 0;
-        padding: 14px 30px;
-    }
+  .button {
+    width: auto;
+    min-width: 140px;
+    margin-top: 0;
+    padding: 14px 30px;
+  }
 
-    .setGests,
-    .setDate {
-        width: 320px;
-        left: 0;
-    }
+  .setGests,
+  .setDate {
+    width: 320px;
+    left: 0;
+  }
 
-    .buttOk {
-        width: auto;
-        align-self: flex-end;
-    }
+  .buttOk {
+    width: auto;
+    align-self: flex-end;
+  }
 
-    .resultsGrid {
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 25px;
-    }
+  .resultsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+  }
 
-    .cardTitle {
-        font-size: 1.2rem;
-    }
+  .cardTitle {
+    font-size: 1.2rem;
+  }
 
-    .priceValue {
-        font-size: 1.4rem;
-    }
+  .priceValue {
+    font-size: 1.4rem;
+  }
+}
+
+.cardDetails {
+  font-size: 0.85rem;
+  color: #888;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.separator {
+  color: #ddd;
+  font-size: 0.7rem;
+}
+
+.extraBedsSection {
+  margin: 15px 0;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.extraBedsHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.bedIcon {
+  color: #c9b363;
+  font-size: 0.9rem;
+}
+
+.extraBedsLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.extraBedsPrice {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #16a34a;
+  text-align: right;
+}
+
+.extraBedsNote {
+  margin: 10px 0;
+  padding: 8px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #64748b;
+  text-align: center;
 }
 
 @media (min-width: 900px) {
-    .container {
-        padding: 50px 30px;
-    }
+  .container {
+    padding: 50px 30px;
+  }
+}
+
+@media (max-width: 600px) {
+  .draftLink {
+    width: 100%;
+    justify-content: center;
+    font-size: 0.9rem;
+    padding: 10px 16px;
+  }
 }

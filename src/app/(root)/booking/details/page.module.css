@@ -37,7 +37,7 @@
   width: 40px;
   height: 40px;
   border: 4px solid #e2e8f0;
-  border-top-color: #3b82f6;
+  border-top-color: #c9b363;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -98,7 +98,7 @@
 }
 
 .summaryPrice {
-  color: #16a34a;
+  color: #c9b363;
   font-weight: 700;
   font-size: 1.1rem;
 }
@@ -161,8 +161,8 @@
 
 .inputGroup input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #c9b363;
+  box-shadow: 0 0 0 3px rgba(201, 179, 99, 0.1);
 }
 
 .inputError {
@@ -198,18 +198,18 @@
 }
 
 .checkboxLabel input[type="checkbox"]:checked {
-  accent-color: #22c55e;
+  accent-color: #c9b363;
 }
 
 .link {
-  color: #3b82f6;
+  color: #c9b363;
   text-decoration: underline;
   font-weight: 600;
   transition: color 0.2s;
 }
 
 .link:hover {
-  color: #1d4ed8;
+  color: #b39b4a;
 }
 
 .formActions {
@@ -244,19 +244,65 @@
 }
 
 .btnNext {
-  background: #22c55e;
+  background: #c9b363;
   color: white;
   border: none;
   cursor: pointer;
 }
 
 .btnNext:hover:not(:disabled) {
-  background: #16a34a;
+  background: #b39b4a;
 }
 
 .btnNext:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+.invoiceWrapper {
+  margin-top: 20px;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.invoiceWrapper.expanded {
+  grid-template-rows: 1fr;
+}
+
+.invoiceContent {
+  overflow: hidden;
+  min-height: 0;
+  padding: 0 20px;
+}
+
+.invoiceWrapper.expanded .invoiceContent {
+  padding: 20px;
+}
+
+.invoiceTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 15px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #cbd5e1;
+}
+
+.fadeIn {
+  animation: fadeSlideUp 0.3s ease-out forwards;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+@keyframes fadeSlideUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (min-width: 600px) {

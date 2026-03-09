@@ -99,20 +99,20 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
                 required
                 defaultValue={property.baseCapacity}
               />
-              <small className={styles.hint}>Liczba osób w cenie bazowej</small>
+              <small className={styles.hint}>Maksymalna liczba osób na podstawowych łóżkach</small>
             </div>
             <div className={styles.inputGroup}>
-              <label htmlFor="maxCapacityWithExtra">Maks. z dostawkami *</label>
+              <label htmlFor="maxExtraBeds">Maksymalna liczba dostawek *</label>
               <input
-                id="maxCapacityWithExtra"
-                name="maxCapacityWithExtra"
+                id="maxExtraBeds"
+                name="maxExtraBeds"
                 type="number"
-                min="1"
-                max="20"
+                min="0"
+                max="10"
                 required
-                defaultValue={property.maxCapacityWithExtra}
+                defaultValue={property.maxExtraBeds}
               />
-              <small className={styles.hint}>Maksymalna liczba gości z dostawkami</small>
+              <small className={styles.hint}>Ile dodatkowych łóżek można dostawić</small>
             </div>
           </div>
         </div>

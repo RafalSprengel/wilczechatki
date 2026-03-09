@@ -59,13 +59,29 @@ export default function AddPropertyPage() {
           <div className={styles.grid}>
             <div className={styles.inputGroup}>
               <label htmlFor="baseCapacity">Bazowa pojemność *</label>
-              <input id="baseCapacity" name="baseCapacity" type="number" min="1" max="20" defaultValue={6} required />
-              <small className={styles.hint}>Liczba osób w cenie bazowej</small>
+              <input
+                id="baseCapacity"
+                name="baseCapacity"
+                type="number"
+                min="1"
+                max="20"
+                defaultValue={6}
+                required
+              />
+              <small className={styles.hint}>Maksymalna liczba osób na podstawowych łóżkach</small>
             </div>
             <div className={styles.inputGroup}>
-              <label htmlFor="maxCapacityWithExtra">Maks. z dostawkami *</label>
-              <input id="maxCapacityWithExtra" name="maxCapacityWithExtra" type="number" min="1" max="20" defaultValue={8} required />
-              <small className={styles.hint}>Maksymalna liczba gości z dostawkami</small>
+              <label htmlFor="maxExtraBeds">Maksymalna liczba dostawek *</label>
+              <input
+                id="maxExtraBeds"
+                name="maxExtraBeds"
+                type="number"
+                min="0"
+                max="10"
+                defaultValue={2}
+                required
+              />
+              <small className={styles.hint}>Ile dodatkowych łóżek można dostawić</small>
             </div>
           </div>
         </div>

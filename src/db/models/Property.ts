@@ -1,13 +1,15 @@
 import mongoose, { Schema, Document } from 'mongoose';
+
 export interface IProperty extends Document {
   name: string;
   slug?: string;
   description?: string;
   baseCapacity: number;
-  maxCapacityWithExtra: number;
+  maxExtraBeds: number;
   images?: string[];
   isActive: boolean;
 }
+
 const PropertySchema = new Schema<IProperty>({
   name: {
     type: String,
@@ -26,12 +28,12 @@ const PropertySchema = new Schema<IProperty>({
   baseCapacity: {
     type: Number,
     required: true,
-    default: 4
+    default: 6
   },
-  maxCapacityWithExtra: {
+  maxExtraBeds: {
     type: Number,
     required: true,
-    default: 6
+    default: 2
   },
   images: {
     type: [String],
@@ -42,4 +44,5 @@ const PropertySchema = new Schema<IProperty>({
     default: true
   }
 }, { timestamps: true });
+
 export default mongoose.models.Property || mongoose.model<IProperty>('Property', PropertySchema);

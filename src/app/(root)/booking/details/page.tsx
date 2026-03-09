@@ -17,15 +17,26 @@ interface BookingData {
     totalPrice: number;
     maxGuests: number;
   } | null;
-  guestData: {
-    firstName: string;
-    lastName: string;
-    address: string;
-    email: string;
-    phone: string;
-    invoice: boolean;
-    termsAccepted: boolean;
-  };
+  guestData: GuestData;
+}
+
+interface GuestData {
+  firstName: string;
+  lastName: string;
+  address: string;
+  email: string;
+  phone: string;
+  invoice: boolean;
+  invoiceData?: InvoiceData;
+  termsAccepted: boolean;
+}
+
+interface InvoiceData {
+  companyName: string;
+  nip: string;
+  street: string;
+  city: string;
+  postalCode: string;
 }
 
 const STORAGE_KEY = 'wilczechatki_booking_draft';
@@ -33,13 +44,20 @@ const STORAGE_KEY = 'wilczechatki_booking_draft';
 export default function BookingDetailsPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<GuestData>({
     firstName: '',
     lastName: '',
     address: '',
     email: '',
     phone: '',
     invoice: false,
+    invoiceData: {
+      companyName: '',
+      nip: '',
+      street: '',
+      city: '',
+      postalCode: '',
+    },
     termsAccepted: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -52,7 +70,17 @@ export default function BookingDetailsPage() {
         const parsed: BookingData = JSON.parse(savedData);
         setBookingSummary(parsed);
         if (parsed.guestData) {
-          setFormData(parsed.guestData);
+          setFormData(prev => ({
+            ...prev,
+            ...parsed.guestData,
+            invoiceData: parsed.guestData.invoiceData || {
+              companyName: '',
+              nip: '',
+              street: '',
+              city: '',
+              postalCode: '',
+            },
+          }));
         }
       } catch {
         router.push('/booking');
@@ -64,30 +92,84 @@ export default function BookingDetailsPage() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+
     if (!formData.firstName.trim()) newErrors.firstName = 'Imię jest wymagane';
     if (!formData.lastName.trim()) newErrors.lastName = 'Nazwisko jest wymagane';
     if (!formData.address.trim()) newErrors.address = 'Adres jest wymagany';
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email jest wymagany';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Nieprawidłowy format email';
     }
+
     if (!formData.phone.trim()) {
       newErrors.phone = 'Telefon jest wymagany';
     } else if (!/^[\d\s+\-()]+$/.test(formData.phone)) {
       newErrors.phone = 'Nieprawidłowy format telefonu';
     }
+
+    if (formData.invoice) {
+      if (!formData.invoiceData?.companyName.trim()) {
+        newErrors.companyName = 'Nazwa firmy jest wymagana dla faktury VAT';
+      }
+      if (!formData.invoiceData?.nip.trim()) {
+        newErrors.nip = 'NIP jest wymagany dla faktury VAT';
+      } else if (!/^[\d-]{10,13}$/.test(formData.invoiceData.nip.replace(/-/g, ''))) {
+        newErrors.nip = 'Nieprawidłowy format NIP';
+      }
+      if (!formData.invoiceData?.street.trim()) {
+        newErrors.invoiceStreet = 'Ulica jest wymagana dla faktury VAT';
+      }
+      if (!formData.invoiceData?.city.trim()) {
+        newErrors.invoiceCity = 'Miejscowość jest wymagana dla faktury VAT';
+      }
+      if (!formData.invoiceData?.postalCode.trim()) {
+        newErrors.postalCode = 'Kod pocztowy jest wymagany dla faktury VAT';
+      } else if (!/^\d{2}-\d{3}$/.test(formData.invoiceData.postalCode)) {
+        newErrors.postalCode = 'Nieprawidłowy format kodu pocztowego (XX-XXX)';
+      }
+    }
+
     if (!formData.termsAccepted) newErrors.termsAccepted = 'Musisz zaakceptować regulamin';
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+
+    if (name === 'invoice') {
+      setFormData((prev) => ({
+        ...prev,
+        invoice: checked,
+        ...(checked && !prev.invoiceData ? {
+          invoiceData: {
+            companyName: '',
+            nip: '',
+            street: '',
+            city: '',
+            postalCode: '',
+          }
+        } : {})
+      }));
+    } else if (name.startsWith('invoice.')) {
+      const invoiceField = name.split('.')[1];
+      setFormData((prev) => ({
+        ...prev,
+        invoiceData: {
+          ...prev.invoiceData!,
+          [invoiceField]: value,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value,
+      }));
+    }
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
@@ -125,33 +207,6 @@ export default function BookingDetailsPage() {
         <h1>Dane Gościa</h1>
         <p>Wypełnij formularz, aby kontynuować rezerwację</p>
       </header>
-
-      <div className={styles.summaryCard}>
-        <h2 className={styles.summaryTitle}>Szczegóły rezerwacji</h2>
-        <div className={styles.summaryGrid}>
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Termin:</span>
-            <span className={styles.summaryValue}>
-              {bookingSummary.startDate} — {bookingSummary.endDate}
-            </span>
-          </div>
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Obiekt:</span>
-            <span className={styles.summaryValue}>{bookingSummary.selectedOption?.displayName}</span>
-          </div>
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Goście:</span>
-            <span className={styles.summaryValue}>
-              {bookingSummary.adults} dosp. + {bookingSummary.children} dz.
-              {bookingSummary.extraBeds > 0 && ` + ${bookingSummary.extraBeds} dost.`}
-            </span>
-          </div>
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Cena:</span>
-            <span className={styles.summaryPrice}>{bookingSummary.selectedOption?.totalPrice} zł</span>
-          </div>
-        </div>
-      </div>
 
       <form onSubmit={handleSubmit} className={styles.formCard}>
         <div className={styles.formSection}>
@@ -242,8 +297,87 @@ export default function BookingDetailsPage() {
               checked={formData.invoice}
               onChange={handleChange}
             />
-            <span>Chcę otrzymać fakturę VAT (dane firmowe podam w kolejnym kroku)</span>
+            <span>Chcę otrzymać fakturę VAT</span>
           </label>
+
+          <div className={`${styles.invoiceWrapper} ${formData.invoice ? styles.expanded : ''}`}>
+            <div className={styles.invoiceContent}>
+              <h3 className={styles.invoiceTitle}>Dane do faktury VAT</h3>
+
+              <div className={`${styles.inputGroup} ${styles.fadeIn}`} style={{ animationDelay: '0.05s' }}>
+                <label htmlFor="invoice.companyName">Nazwa firmy *</label>
+                <input
+                  id="invoice.companyName"
+                  name="invoice.companyName"
+                  type="text"
+                  value={formData.invoiceData?.companyName || ''}
+                  onChange={handleChange}
+                  className={errors.companyName ? styles.inputError : ''}
+                  placeholder="Pełna nazwa firmy"
+                />
+                {errors.companyName && <span className={styles.errorText}>{errors.companyName}</span>}
+              </div>
+
+              <div className={`${styles.inputGroup} ${styles.fadeIn}`} style={{ animationDelay: '0.1s' }}>
+                <label htmlFor="invoice.nip">NIP *</label>
+                <input
+                  id="invoice.nip"
+                  name="invoice.nip"
+                  type="text"
+                  value={formData.invoiceData?.nip || ''}
+                  onChange={handleChange}
+                  className={errors.nip ? styles.inputError : ''}
+                  placeholder="123-456-78-90"
+                />
+                {errors.nip && <span className={styles.errorText}>{errors.nip}</span>}
+              </div>
+
+              <div className={`${styles.inputGroup} ${styles.fadeIn}`} style={{ animationDelay: '0.15s' }}>
+                <label htmlFor="invoice.street">Ulica i numer *</label>
+                <input
+                  id="invoice.street"
+                  name="invoice.street"
+                  type="text"
+                  value={formData.invoiceData?.street || ''}
+                  onChange={handleChange}
+                  className={errors.invoiceStreet ? styles.inputError : ''}
+                  placeholder="ul. Przykładowa 123"
+                />
+                {errors.invoiceStreet && <span className={styles.errorText}>{errors.invoiceStreet}</span>}
+              </div>
+
+              <div className={`${styles.grid} ${styles.fadeIn}`} style={{ animationDelay: '0.2s' }}>
+                <div className={styles.inputGroup}>
+                  <label htmlFor="invoice.postalCode">Kod pocztowy *</label>
+                  <input
+                    id="invoice.postalCode"
+                    name="invoice.postalCode"
+                    type="text"
+                    value={formData.invoiceData?.postalCode || ''}
+                    onChange={handleChange}
+                    className={errors.postalCode ? styles.inputError : ''}
+                    placeholder="00-000"
+                    maxLength={6}
+                  />
+                  {errors.postalCode && <span className={styles.errorText}>{errors.postalCode}</span>}
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="invoice.city">Miejscowość *</label>
+                  <input
+                    id="invoice.city"
+                    name="invoice.city"
+                    type="text"
+                    value={formData.invoiceData?.city || ''}
+                    onChange={handleChange}
+                    className={errors.invoiceCity ? styles.inputError : ''}
+                    placeholder="Miejscowość"
+                  />
+                  {errors.invoiceCity && <span className={styles.errorText}>{errors.invoiceCity}</span>}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className={styles.formSection}>
