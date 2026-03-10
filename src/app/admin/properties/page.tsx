@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import styles from './page.module.css';
-import { getAllProperties, togglePropertyActive, deleteProperty } from '@/actions/adminPropertyActions';
+import { getAllProperties, togglePropertyActive } from '@/actions/adminPropertyActions';
 import { revalidatePath } from 'next/cache';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
 import DeletePropertyButton from './DeletePropertyButton';
@@ -13,13 +13,6 @@ export default async function PropertiesPage() {
     const id = formData.get('id') as string;
     const isActive = formData.get('isActive') === 'true';
     await togglePropertyActive(id, !isActive);
-    revalidatePath('/admin/properties');
-  }
-
-  async function handleDelete(formData: FormData) {
-    'use server';
-    const id = formData.get('id') as string;
-    await deleteProperty(id);
     revalidatePath('/admin/properties');
   }
 
@@ -38,51 +31,36 @@ export default async function PropertiesPage() {
         </div>
       ) : (
         <div className={styles.propertiesGrid}>
-          {properties.map((prop) => {
-            // Obsługa kompatybilności wstecznej
-            const maxExtraBeds = prop.maxExtraBeds || 0;
-            const totalCapacity = (prop.baseCapacity || 0) + maxExtraBeds;
-            
-            return (
-              <article key={prop._id} className={styles.propertyCard}>
-                <div className={styles.cardHeader}>
-                  <h3 className={styles.propertyName}>{prop.name}</h3>
-                  <span className={`${styles.badge} ${prop.isActive ? styles.badgeActive : styles.badgeInactive}`}>
-                    {prop.isActive ? 'Aktywny' : 'Nieaktywny'}
-                  </span>
+          {properties.map((prop) => (
+            <article key={prop._id} className={styles.propertyCard}>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.propertyName}>{prop.name}</h3>
+                <span className={`${styles.badge} ${prop.isActive ? styles.badgeActive : styles.badgeInactive}`}>{prop.isActive ? 'Aktywny' : 'Nieaktywny'}</span>
+              </div>
+              {prop.description && (<p className={styles.description}>{prop.description}</p>)}
+              <div className={styles.details}>
+                <div className={styles.detailRow}>
+                  <span className={styles.label}>Pojemność:</span>
+                  <span className={styles.value}>{prop.baseCapacity} + {prop.maxExtraBeds} dostawek</span>
                 </div>
-                {prop.description && (<p className={styles.description}>{prop.description}</p>)}
-                <div className={styles.details}>
+                {prop.slug && (
                   <div className={styles.detailRow}>
-                    <span className={styles.label}>Pojemność:</span>
-                    <span className={styles.value}>
-                      {prop.baseCapacity || 0} + {maxExtraBeds} = {totalCapacity} os.
-                    </span>
+                    <span className={styles.label}>Slug:</span>
+                    <code className={styles.code}>{prop.slug}</code>
                   </div>
-                  {prop.slug && (
-                    <div className={styles.detailRow}>
-                      <span className={styles.label}>Slug:</span>
-                      <code className={styles.code}>{prop.slug}</code>
-                    </div>
-                  )}
-                </div>
-                <div className={styles.cardActions}>
-                  <form action={handleToggleActive}>
-                    <input type="hidden" name="id" value={prop._id} />
-                    <input type="hidden" name="isActive" value={String(prop.isActive)} />
-                    <button type="submit" className={styles.btnToggle}>
-                      {prop.isActive ? '🔘 Dezaktywuj' : '✅ Aktywuj'}
-                    </button>
-                  </form>
-                  <Link href={`/admin/properties/${prop._id}`} className={styles.btnEdit}>✏️ Edytuj</Link>
-                  <form action={handleDelete}>
-                    <input type="hidden" name="id" value={prop._id} />
-                    <DeletePropertyButton />
-                  </form>
-                </div>
-              </article>
-            );
-          })}
+                )}
+              </div>
+              <div className={styles.cardActions}>
+                <form action={handleToggleActive}>
+                  <input type="hidden" name="id" value={prop._id} />
+                  <input type="hidden" name="isActive" value={String(prop.isActive)} />
+                  <button type="submit" className={styles.btnToggle}>{prop.isActive ? '🔘 Dezaktywuj' : '✅ Aktywuj'}</button>
+                </form>
+                <Link href={`/admin/properties/${prop._id}`} className={styles.btnEdit}>✏️ Edytuj</Link>
+                <DeletePropertyButton propertyId={prop._id} />
+              </div>
+            </article>
+          ))}
         </div>
       )}
     </div>
