@@ -1,20 +1,19 @@
 'use client'
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useActionState } from 'react'
 import styles from './page.module.css'
 import { createManualBooking } from '@/actions/adminBookingActions'
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton'
 import CalendarPicker from '@/app/_components/CalendarPicker/CalendarPicker'
+import { useClickOutside } from '@/hooks/useClickOutside'
+
+interface UnavailableDate {
+  date: string
+}
 
 const initialState = {
   message: '',
   success: false,
-}
-
-interface BookingDates {
-  start: string | null
-  end: string | null
-  count: number
 }
 
 export default function AddBookingPage() {
@@ -23,10 +22,18 @@ export default function AddBookingPage() {
   const [extraBeds, setExtraBeds] = useState(0)
   const [paidAmount, setPaidAmount] = useState(0)
   const [totalPrice, setTotalPrice] = useState(0)
-  const [bookingDates, setBookingDates] = useState<BookingDates>({
-    start: null,
-    end: null,
+  
+  const [bookingDates, setBookingDates] = useState({
+    start: null as string | null,
+    end: null as string | null,
     count: 0
+  })
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const calendarRef = useRef<HTMLDivElement>(null)
+  const dateInputRef = useRef<HTMLDivElement>(null)
+  
+  useClickOutside(calendarRef, () => {
+    if (isCalendarOpen) setIsCalendarOpen(false)
   })
 
   useEffect(() => {
@@ -58,6 +65,14 @@ export default function AddBookingPage() {
     setTotalPrice(value)
   }
 
+  const handleDateChange = (dates: { start: string | null; end: string | null; count: number }) => {
+    setBookingDates(dates)
+  }
+
+  const handleConfirmDates = () => {
+    setIsCalendarOpen(false)
+  }
+
   const remainingAmount = Math.max(0, totalPrice - paidAmount)
 
   const getPaymentBadge = () => {
@@ -67,6 +82,13 @@ export default function AddBookingPage() {
   }
 
   const paymentBadge = getPaymentBadge()
+
+  const formatDateDisplay = () => {
+    if (bookingDates.start && bookingDates.end) {
+      return `${bookingDates.start} — ${bookingDates.end}`
+    }
+    return 'Wybierz daty'
+  }
 
   return (
     <div className={styles.container}>
@@ -81,38 +103,19 @@ export default function AddBookingPage() {
       <form ref={formRef} action={formAction} className={styles.formCard}>
         <div className={styles.sectionTitle}>Termin i Obiekt</div>
         <div className={styles.grid}>
-          {/* Hidden inputs for form action */}
-          <input type="hidden" name="startDate" value={bookingDates.start || ''} />
-          <input type="hidden" name="endDate" value={bookingDates.end || ''} />
-
           <div className={styles.inputGroup}>
-            <label htmlFor="propertyId">Obiekt</label>
-            <select id="propertyId" name="propertyId" required>
+            <label>Obiekt</label>
+            <select name="propertyId" required>
               <option value="">Wybierz domek</option>
               <option value="cabin1">Chatka A (Wilcza)</option>
               <option value="cabin2">Chatka B (Leśna)</option>
               <option value="both">Cała posesja</option>
             </select>
           </div>
-
-          <div className={styles.calendarWrapper}>
-            <label className={styles.label}>Wybierz termin</label>
-            <CalendarPicker
-              unavailableDates={[]}
-              onDateChange={setBookingDates}
-            />
-            {bookingDates.start && bookingDates.end && (
-              <small className={styles.hint}>
-                Wybrano: {bookingDates.start} — {bookingDates.end} ({bookingDates.count} nocy)
-              </small>
-            )}
-          </div>
-
           <div className={styles.inputGroup}>
             <label htmlFor="numGuests">Liczba gości</label>
             <input id="numGuests" name="numGuests" type="number" min="1" max="12" defaultValue="2" />
           </div>
-
           <div className={styles.inputGroup}>
             <label htmlFor="extraBeds">Liczba dostawek</label>
             <input 
@@ -127,6 +130,32 @@ export default function AddBookingPage() {
             />
             <small className={styles.hint}>Maksymalnie 4 dostawki (2 na domek przy całej posesji)</small>
           </div>
+        </div>
+        
+        <div className={styles.sectionTitle}>Termin pobytu</div>
+        <div className={styles.dateInputGroup}>
+          <div 
+            ref={dateInputRef}
+            className={styles.dateInputTrigger}
+            onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+          >
+            <span>{formatDateDisplay()}</span>
+            <span className={styles.dateInputArrow}>{isCalendarOpen ? '▲' : '▼'}</span>
+          </div>
+          
+          {isCalendarOpen && (
+            <div ref={calendarRef} className={styles.calendarPopup}>
+              <CalendarPicker
+                unavailableDates={[]}
+                onDateChange={handleDateChange}
+              />
+              <button type="button" className={styles.calendarConfirmBtn} onClick={handleConfirmDates}>
+                Gotowe
+              </button>
+              <input type="hidden" name="startDate" value={bookingDates.start || ''} />
+              <input type="hidden" name="endDate" value={bookingDates.end || ''} />
+            </div>
+          )}
         </div>
         
         <div className={styles.sectionTitle}>Płatność</div>
@@ -152,7 +181,7 @@ export default function AddBookingPage() {
               name="paidAmount" 
               type="number" 
               placeholder="0.00" 
-              step="0.01" 
+              step="0.01"
               min="0"
               max={totalPrice}
               value={paidAmount || ''}
@@ -208,6 +237,7 @@ export default function AddBookingPage() {
             setExtraBeds(0)
             setPaidAmount(0)
             setTotalPrice(0)
+            setBookingDates({ start: null, end: null, count: 0 })
           }}>Anuluj</button>
           <button type="submit" className={styles.btnSubmit} disabled={isPending}>
             {isPending ? 'Zapisuję...' : 'Zapisz Rezerwację'}
