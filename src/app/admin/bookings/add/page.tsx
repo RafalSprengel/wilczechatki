@@ -1,13 +1,20 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useActionState } from 'react'
 import styles from './page.module.css'
 import { createManualBooking } from '@/actions/adminBookingActions'
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton'
+import CalendarPicker from '@/app/_components/CalendarPicker/CalendarPicker'
 
 const initialState = {
   message: '',
   success: false,
+}
+
+interface BookingDates {
+  start: string | null
+  end: string | null
+  count: number
 }
 
 export default function AddBookingPage() {
@@ -16,6 +23,11 @@ export default function AddBookingPage() {
   const [extraBeds, setExtraBeds] = useState(0)
   const [paidAmount, setPaidAmount] = useState(0)
   const [totalPrice, setTotalPrice] = useState(0)
+  const [bookingDates, setBookingDates] = useState<BookingDates>({
+    start: null,
+    end: null,
+    count: 0
+  })
 
   useEffect(() => {
     if (state.success) {
@@ -24,6 +36,7 @@ export default function AddBookingPage() {
       setExtraBeds(0)
       setPaidAmount(0)
       setTotalPrice(0)
+      setBookingDates({ start: null, end: null, count: 0 })
     }
     if (!state.success && state.message) {
       alert(`Błąd: ${state.message}`)
@@ -68,14 +81,10 @@ export default function AddBookingPage() {
       <form ref={formRef} action={formAction} className={styles.formCard}>
         <div className={styles.sectionTitle}>Termin i Obiekt</div>
         <div className={styles.grid}>
-          <div className={styles.inputGroup}>
-            <label htmlFor="startDate">Data przyjazdu</label>
-            <input id="startDate" type="date" required name="startDate" />
-          </div>
-          <div className={styles.inputGroup}>
-            <label htmlFor="endDate">Data wyjazdu</label>
-            <input id="endDate" type="date" required name="endDate" />
-          </div>
+          {/* Hidden inputs for form action */}
+          <input type="hidden" name="startDate" value={bookingDates.start || ''} />
+          <input type="hidden" name="endDate" value={bookingDates.end || ''} />
+
           <div className={styles.inputGroup}>
             <label htmlFor="propertyId">Obiekt</label>
             <select id="propertyId" name="propertyId" required>
@@ -85,10 +94,25 @@ export default function AddBookingPage() {
               <option value="both">Cała posesja</option>
             </select>
           </div>
+
+          <div className={styles.calendarWrapper}>
+            <label className={styles.label}>Wybierz termin</label>
+            <CalendarPicker
+              unavailableDates={[]}
+              onDateChange={setBookingDates}
+            />
+            {bookingDates.start && bookingDates.end && (
+              <small className={styles.hint}>
+                Wybrano: {bookingDates.start} — {bookingDates.end} ({bookingDates.count} nocy)
+              </small>
+            )}
+          </div>
+
           <div className={styles.inputGroup}>
             <label htmlFor="numGuests">Liczba gości</label>
             <input id="numGuests" name="numGuests" type="number" min="1" max="12" defaultValue="2" />
           </div>
+
           <div className={styles.inputGroup}>
             <label htmlFor="extraBeds">Liczba dostawek</label>
             <input 
@@ -128,7 +152,7 @@ export default function AddBookingPage() {
               name="paidAmount" 
               type="number" 
               placeholder="0.00" 
-              step="0.01"
+              step="0.01" 
               min="0"
               max={totalPrice}
               value={paidAmount || ''}

@@ -91,6 +91,21 @@ const Month = ({ currentDate, unavailableDates, selectedStart, selectedEnd, setS
 
     const numberOfDaysCurrentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
 
+    const hasReservedInRange = (dateA: string, dateB: string) => {
+        if (!unavailableDates) return false;
+        let start = new Date(dateA);
+        let end = new Date(dateB);
+        if (start > end) [start, end] = [end, start];
+
+        let tempDate = new Date(start);
+        while (tempDate <= end) {
+            const formatted = formatDate(tempDate);
+            if (unavailableDates.some(el => el.date === formatted)) return true;
+            tempDate.setDate(tempDate.getDate() + 1);
+        }
+        return false;
+    };
+
     for (let i = 1; i <= 42; i++) {
         if (i >= firstDayOfTheMonth && i < numberOfDaysCurrentMonth + firstDayOfTheMonth) {
             currentDay++;
@@ -114,33 +129,43 @@ const Month = ({ currentDate, unavailableDates, selectedStart, selectedEnd, setS
                 isReserved = unavailableDates.some(el => el.date === currentDateFormatted);
             }
 
-            let isHovered = Boolean(selectedStart && !selectedEnd && hoveredDate &&
+            let isHovered = Boolean(
+                selectedStart && 
+                !selectedEnd && 
+                hoveredDate &&
                 new Date(currentDateFormatted) > new Date(selectedStart) &&
                 new Date(currentDateFormatted) < new Date(hoveredDate) &&
-                !isReserved);
+                !isReserved &&
+                !hasReservedInRange(selectedStart, hoveredDate)
+            );
 
             if (selectedStart && selectedEnd) {
                 isSelectedBetween = new Date(currentDateFormatted) > new Date(selectedStart) &&
-                    new Date(currentDateFormatted) < new Date(selectedEnd) &&
-                    !isReserved;
+                    new Date(currentDateFormatted) < new Date(selectedEnd);
             }
 
             const handleClickOnDay = (date: string) => {
                 if (isPast || isReserved) return;
+                
                 if (!selectedStart || (selectedStart && selectedEnd)) {
                     setSelectedStart(date);
                     setSelectedEnd(null);
-                } else if (selectedStart && !selectedEnd) {
-                    if (new Date(currentDateFormatted) < new Date(selectedStart)) {
-                        setSelectedEnd(selectedStart);
+                } else {
+                    if (hasReservedInRange(selectedStart, date)) {
                         setSelectedStart(date);
+                        setSelectedEnd(null);
                     } else {
-                        setSelectedEnd(date);
+                        if (new Date(date) < new Date(selectedStart)) {
+                            setSelectedEnd(selectedStart);
+                            setSelectedStart(date);
+                        } else {
+                            setSelectedEnd(date);
+                        }
                     }
                 }
             };
 
-            const handleMouseHoverDay = (date: string ) => {
+            const handleMouseHoverDay = (date: string) => {
                 if (selectedStart && !selectedEnd) setHoveredDate(date);
             };
 
@@ -171,10 +196,10 @@ const Month = ({ currentDate, unavailableDates, selectedStart, selectedEnd, setS
 };
 
 function formatDate(dateObj: Date): string {
-        let year = dateObj.getFullYear();
-        let month = ((dateObj.getMonth() + 1)).toString().padStart(2, '0');
-        let day = dateObj.getDate().toString().padStart(2, '0');
-        return (year + "-" + month + '-' + day);
+    let year = dateObj.getFullYear();
+    let month = ((dateObj.getMonth() + 1)).toString().padStart(2, '0');
+    let day = dateObj.getDate().toString().padStart(2, '0');
+    return (year + "-" + month + '-' + day);
 }
 
 interface CalendarPickerProps {
@@ -205,14 +230,7 @@ export default function CalendarPicker({ unavailableDates, onDateChange }: Calen
 
         let tempDate = new Date(start);
         while (tempDate <= end) {
-            const dayOfWeek = tempDate.getDay();
-            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-            const formatted = formatDate(tempDate);
-            const isReserved = unavailableDates?.some(el => el.date === formatted);
-
-            if (!isReserved) {
-                count++;
-            }
+            count++;
             tempDate.setDate(tempDate.getDate() + 1);
         }
         return count;
@@ -262,7 +280,6 @@ export default function CalendarPicker({ unavailableDates, onDateChange }: Calen
                 setSelectedStart={setSelectedStart}
                 setSelectedEnd={setSelectedEnd}
             />
-
         </div>
     );
 }
