@@ -10,17 +10,8 @@ const initialState = {
   success: false,
 }
 
-function SubmitButton() {
-  const { pending } = useActionState()
-  return (
-    <button type="submit" className={styles.btnSubmit} disabled={pending}>
-      {pending ? 'Zapisuję...' : 'Zapisz Rezerwację'}
-    </button>
-  )
-}
-
 export default function AddBookingPage() {
-  const [state, formAction] = useActionState(createManualBooking, initialState)
+  const [state, formAction, isPending] = useActionState(createManualBooking, initialState)
   const formRef = useRef<HTMLFormElement>(null)
   const [extraBeds, setExtraBeds] = useState(0)
   const [paidAmount, setPaidAmount] = useState(0)
@@ -194,7 +185,9 @@ export default function AddBookingPage() {
             setPaidAmount(0)
             setTotalPrice(0)
           }}>Anuluj</button>
-          <SubmitButton />
+          <button type="submit" className={styles.btnSubmit} disabled={isPending}>
+            {isPending ? 'Zapisuję...' : 'Zapisz Rezerwację'}
+          </button>
         </div>
       </form>
     </div>
