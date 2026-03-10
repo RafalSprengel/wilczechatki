@@ -1,39 +1,39 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useTransition } from 'react'
 import { useActionState } from 'react'
 import styles from './page.module.css'
-import { createManualBooking } from '@/actions/adminBookingActions'
+import { createManualBooking, calculatePriceAction } from '@/actions/adminBookingActions'
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton'
 import CalendarPicker from '@/app/_components/CalendarPicker/CalendarPicker'
 import { useClickOutside } from '@/hooks/useClickOutside'
-
-interface UnavailableDate {
-  date: string
-}
 
 const initialState = {
   message: '',
   success: false,
 }
 
+interface BookingDates {
+  start: string | null
+  end: string | null
+  count: number
+}
+
 export default function AddBookingPage() {
   const [state, formAction, isPending] = useActionState(createManualBooking, initialState)
   const formRef = useRef<HTMLFormElement>(null)
+
+  const [propertySelection, setPropertySelection] = useState('');
+  const [numGuests, setNumGuests] = useState(2);
   const [extraBeds, setExtraBeds] = useState(0)
   const [paidAmount, setPaidAmount] = useState(0)
   const [totalPrice, setTotalPrice] = useState(0)
-  
-  const [bookingDates, setBookingDates] = useState({
-    start: null as string | null,
-    end: null as string | null,
-    count: 0
-  })
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const [bookingDates, setBookingDates] = useState<BookingDates>({ start: null, end: null, count: 0 })
+  const [isCalendarOpen, setCalendarOpen] = useState(false)
   const calendarRef = useRef<HTMLDivElement>(null)
-  const dateInputRef = useRef<HTMLDivElement>(null)
-  
+  const [isCalculating, startPriceCalculation] = useTransition();
+
   useClickOutside(calendarRef, () => {
-    if (isCalendarOpen) setIsCalendarOpen(false)
+    if (isCalendarOpen) setCalendarOpen(false)
   })
 
   useEffect(() => {
@@ -44,11 +44,29 @@ export default function AddBookingPage() {
       setPaidAmount(0)
       setTotalPrice(0)
       setBookingDates({ start: null, end: null, count: 0 })
+      setNumGuests(2);
+      setPropertySelection('');
     }
     if (!state.success && state.message) {
-      alert(`Błąd: ${state.message}`)
+      // alert(`Błąd: ${JSON.stringify(state.message)}`)
     }
   }, [state])
+
+  useEffect(() => {
+    const { start, end } = bookingDates;
+    if (start && end && numGuests > 0 && propertySelection) {
+      startPriceCalculation(async () => {
+        const { price } = await calculatePriceAction({
+          startDate: start,
+          endDate: end,
+          guests: numGuests,
+          extraBeds,
+          propertySelection
+        });
+        setTotalPrice(price);
+      });
+    }
+  }, [bookingDates, numGuests, extraBeds, propertySelection]);
 
   const handleExtraBedsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value) || 0
@@ -58,19 +76,6 @@ export default function AddBookingPage() {
   const handlePaidAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value) || 0
     setPaidAmount(Math.max(0, value))
-  }
-
-  const handleTotalPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value) || 0
-    setTotalPrice(value)
-  }
-
-  const handleDateChange = (dates: { start: string | null; end: string | null; count: number }) => {
-    setBookingDates(dates)
-  }
-
-  const handleConfirmDates = () => {
-    setIsCalendarOpen(false)
   }
 
   const remainingAmount = Math.max(0, totalPrice - paidAmount)
@@ -83,13 +88,6 @@ export default function AddBookingPage() {
 
   const paymentBadge = getPaymentBadge()
 
-  const formatDateDisplay = () => {
-    if (bookingDates.start && bookingDates.end) {
-      return `${bookingDates.start} — ${bookingDates.end}`
-    }
-    return 'Wybierz daty'
-  }
-
   return (
     <div className={styles.container}>
       <FloatingBackButton />
@@ -97,25 +95,50 @@ export default function AddBookingPage() {
         <h1>Dodaj Nową Rezerwację</h1>
         <p>Ręczne wprowadzenie rezerwacji (np. telefonicznej)</p>
       </header>
-      {state?.message && !state.success && (
-        <div className={styles.errorBox}>{state.message}</div>
-      )}
+     
       <form ref={formRef} action={formAction} className={styles.formCard}>
         <div className={styles.sectionTitle}>Termin i Obiekt</div>
         <div className={styles.grid}>
+          <input type="hidden" name="startDate" value={bookingDates.start || ''} />
+          <input type="hidden" name="endDate" value={bookingDates.end || ''} />
+
           <div className={styles.inputGroup}>
-            <label>Obiekt</label>
-            <select name="propertyId" required>
+            <label htmlFor="propertyId">Obiekt</label>
+            <select id="propertyId" name="propertyId" required onChange={(e) => setPropertySelection(e.target.value)} value={propertySelection}>
               <option value="">Wybierz domek</option>
-              <option value="cabin1">Chatka A (Wilcza)</option>
-              <option value="cabin2">Chatka B (Leśna)</option>
+              <option value="6689871518d963973e488152">Chatka A (Wilcza)</option>
+              <option value="6689871518d963973e488153">Chatka B (Leśna)</option>
               <option value="both">Cała posesja</option>
             </select>
           </div>
+
+          <div className={styles.dateBox}>
+            <label className={styles.label}>Wybierz termin</label>
+            <div className={styles.date} onClick={() => setCalendarOpen(!isCalendarOpen)}>
+                <span>
+                  {bookingDates.start && bookingDates.end
+                    ? `${bookingDates.start} — ${bookingDates.end}`
+                    : 'Wybierz daty'}
+                </span>
+                <span style={{ fontSize: '0.8rem', color: '#aaa' }}>&#9662;</span>
+            </div>
+
+            {isCalendarOpen && (
+              <div ref={calendarRef} className={styles.setDate}>
+                <CalendarPicker
+                  unavailableDates={[]}
+                  onDateChange={setBookingDates}
+                />
+                <button type="button" className={styles.buttOk} onClick={() => setCalendarOpen(false)}>Gotowe</button>
+              </div>
+            )}
+          </div>
+
           <div className={styles.inputGroup}>
             <label htmlFor="numGuests">Liczba gości</label>
-            <input id="numGuests" name="numGuests" type="number" min="1" max="12" defaultValue="2" />
+            <input id="numGuests" name="numGuests" type="number" min="1" max="12" value={numGuests} onChange={e => setNumGuests(Number(e.target.value))} />
           </div>
+
           <div className={styles.inputGroup}>
             <label htmlFor="extraBeds">Liczba dostawek</label>
             <input 
@@ -128,51 +151,27 @@ export default function AddBookingPage() {
               onChange={handleExtraBedsChange}
               placeholder="0-4"
             />
-            <small className={styles.hint}>Maksymalnie 4 dostawki (2 na domek przy całej posesji)</small>
           </div>
-        </div>
-        
-        <div className={styles.sectionTitle}>Termin pobytu</div>
-        <div className={styles.dateInputGroup}>
-          <div 
-            ref={dateInputRef}
-            className={styles.dateInputTrigger}
-            onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-          >
-            <span>{formatDateDisplay()}</span>
-            <span className={styles.dateInputArrow}>{isCalendarOpen ? '▲' : '▼'}</span>
-          </div>
-          
-          {isCalendarOpen && (
-            <div ref={calendarRef} className={styles.calendarPopup}>
-              <CalendarPicker
-                unavailableDates={[]}
-                onDateChange={handleDateChange}
-              />
-              <button type="button" className={styles.calendarConfirmBtn} onClick={handleConfirmDates}>
-                Gotowe
-              </button>
-              <input type="hidden" name="startDate" value={bookingDates.start || ''} />
-              <input type="hidden" name="endDate" value={bookingDates.end || ''} />
-            </div>
-          )}
         </div>
         
         <div className={styles.sectionTitle}>Płatność</div>
         <div className={styles.grid}>
           <div className={styles.inputGroup}>
             <label htmlFor="totalPrice">Cena całkowita (PLN) *</label>
-            <input 
-              id="totalPrice" 
-              name="totalPrice" 
-              type="number" 
-              required 
-              placeholder="0.00" 
-              step="0.01"
-              min="0"
-              value={totalPrice || ''}
-              onChange={handleTotalPriceChange}
-            />
+            <div className={styles.priceInputWrapper}>
+              <input 
+                id="totalPrice" 
+                name="totalPrice" 
+                type="number" 
+                required 
+                placeholder="0.00" 
+                step="0.01"
+                min="0"
+                value={totalPrice || ''}
+                onChange={(e) => setTotalPrice(parseFloat(e.target.value) || 0)}
+              />
+              {isCalculating && <div className={styles.spinner}></div>}
+            </div>
           </div>
           <div className={styles.inputGroup}>
             <label htmlFor="paidAmount">Wpłacono (PLN)</label>
@@ -181,32 +180,22 @@ export default function AddBookingPage() {
               name="paidAmount" 
               type="number" 
               placeholder="0.00" 
-              step="0.01"
+              step="0.01" 
               min="0"
               max={totalPrice}
               value={paidAmount || ''}
               onChange={handlePaidAmountChange}
             />
-            <small className={styles.hint}>Kwota już wpłacona przez gościa</small>
           </div>
           <div className={styles.inputGroup}>
             <label>Do zapłaty</label>
             <div className={styles.remainingAmount}>
               <span className={styles.remainingValue}>{remainingAmount.toFixed(2)} zł</span>
-              {remainingAmount > 0 && (
-                <span className={styles.remainingHint}>Do dopłaty przez gościa</span>
-              )}
-              {remainingAmount === 0 && totalPrice > 0 && (
-                <span className={styles.paidFull}>✓ Opłacone w całości</span>
-              )}
             </div>
           </div>
           <div className={styles.inputGroup}>
             <label>Status płatności</label>
             <span className={`${styles.badge} ${paymentBadge.class}`}>{paymentBadge.text}</span>
-            <small className={styles.hint}>
-              Status wyliczany automatycznie na podstawie kwoty wpłaconej
-            </small>
           </div>
         </div>
 
@@ -232,13 +221,7 @@ export default function AddBookingPage() {
         </div>
         
         <div className={styles.actions}>
-          <button type="button" className={styles.btnCancel} onClick={() => {
-            formRef.current?.reset()
-            setExtraBeds(0)
-            setPaidAmount(0)
-            setTotalPrice(0)
-            setBookingDates({ start: null, end: null, count: 0 })
-          }}>Anuluj</button>
+          <button type="button" className={styles.btnCancel} onClick={() => formRef.current?.reset()}>Anuluj</button>
           <button type="submit" className={styles.btnSubmit} disabled={isPending}>
             {isPending ? 'Zapisuję...' : 'Zapisz Rezerwację'}
           </button>

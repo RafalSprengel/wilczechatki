@@ -24,16 +24,27 @@ interface SearchParams {
   extraBeds?: number;
 }
 
-async function calculateTotalPrice(
-  startDate: string,
-  endDate: string,
-  guests: number,
-  extraBeds: number,
-  propertiesCount: number = 1
+// Wyeksportowana i zrefaktoryzowana funkcja do obliczania ceny
+export async function calculateTotalPrice(
+  { startDate, endDate, guests, extraBeds = 0, propertySelection }: {
+    startDate: string;
+    endDate: string;
+    guests: number;
+    extraBeds?: number;
+    propertySelection: 'both' | string;
+  }
 ): Promise<number> {
+  if (!startDate || !endDate || !guests) return 0;
+  
   await dbConnect();
   const config = await PriceConfig.findById('main');
   if (!config) return 0;
+
+  let propertiesCount = 1;
+  if (propertySelection === 'both') {
+    propertiesCount = await Property.countDocuments({ isActive: true });
+    propertiesCount = propertiesCount > 0 ? propertiesCount : 1;
+  }
 
   const start = new Date(startDate);
   const end = new Date(endDate);
@@ -58,6 +69,8 @@ async function calculateTotalPrice(
       guestsPerCabin >= r.minGuests && guestsPerCabin <= r.maxGuests
     ) || ratesSource[tierKey][ratesSource[tierKey].length - 1];
 
+    if (!tier) continue; 
+
     const nightPrice = tier.price + (extraBedsPerCabin * bedPrice);
     total += nightPrice * propertiesCount;
   }
@@ -77,13 +90,7 @@ export async function searchAction({
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    let sysConfig = await SystemConfig.findById('main');
-    if (!sysConfig) {
-      sysConfig = { autoBlockOtherCabins: true } as any;
-    }
-
     const properties = await Property.find({ isActive: true });
-    
     if (properties.length === 0) return [];
 
     const propertyIds = properties.map(p => p._id.toString());
@@ -104,12 +111,10 @@ export async function searchAction({
 
     // Opcje pojedynczych domków
     for (const prop of availableProperties) {
-      const price = await calculateTotalPrice(startDate, endDate, guests, extraBeds, 1);
+      const price = await calculateTotalPrice({ startDate, endDate, guests, extraBeds, propertySelection: prop._id.toString() });
       
-      // Konwersja na liczby - zabezpieczenie przed stringami
       const baseCapacity = Number(prop.baseCapacity) || 0;
       const maxExtraBedsValue = Number(prop.maxExtraBeds) || 0;
-      
       const maxGuests = baseCapacity + maxExtraBedsValue;
       
       options.push({
@@ -119,26 +124,16 @@ export async function searchAction({
         totalPrice: price,
         maxGuests: maxGuests,
         maxExtraBeds: maxExtraBedsValue,
-        description: "Wynajem pojedynczego domku. Drugi domek zostanie automatycznie zablokowany na ten termin.",
+        description: "Wynajem pojedynczego domku.",
         available: true
       });
     }
 
-    // Opcja całej posesji (jeśli wszystkie domki są wolne)
+    // Opcja całej posesji
     if (availableProperties.length === properties.length && properties.length > 1) {
-      // Suma pojemności ze wszystkich domków
-      const totalMaxGuests = properties.reduce((sum, p) => {
-        const base = Number(p.baseCapacity) || 0;
-        const extra = Number(p.maxExtraBeds) || 0;
-        return sum + base + extra;
-      }, 0);
-      
-      const totalMaxExtraBeds = properties.reduce((sum, p) => {
-        return sum + (Number(p.maxExtraBeds) || 0);
-      }, 0);
-      
-      const price = await calculateTotalPrice(startDate, endDate, guests, extraBeds, properties.length);
-      
+      const totalMaxGuests = properties.reduce((sum, p) => sum + (Number(p.baseCapacity) || 0) + (Number(p.maxExtraBeds) || 0), 0);
+      const totalMaxExtraBeds = properties.reduce((sum, p) => sum + (Number(p.maxExtraBeds) || 0), 0);
+      const price = await calculateTotalPrice({ startDate, endDate, guests, extraBeds, propertySelection: 'both' });
       
       options.push({
         type: 'double',
@@ -147,7 +142,7 @@ export async function searchAction({
         totalPrice: price,
         maxGuests: totalMaxGuests,
         maxExtraBeds: totalMaxExtraBeds,
-        description: "Maksymalna prywatność. Wynajem wszystkich domków z dostępem do całego terenu.",
+        description: "Maksymalna prywatność. Wynajem wszystkich domków.",
         available: true
       });
     }

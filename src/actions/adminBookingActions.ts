@@ -1,343 +1,108 @@
 'use server'
 import dbConnect from '@/db/connection';
 import Booking from '@/db/models/Booking';
-import Property from '@/db/models/Property';
-import SystemConfig from '@/db/models/SystemConfig';
 import { revalidatePath } from 'next/cache';
-import mongoose from 'mongoose';
+import { calculateTotalPrice as calculatePrice } from './searchActions';
 
-export async function createManualBooking(prevState: any, formData: FormData) {
-  try {
-    await dbConnect();
+// Ręczna funkcja walidacji
+function validateBookingData(data: any) {
+  const errors: string[] = [];
 
-    const startDateStr = formData.get('startDate') as string;
-    const endDateStr = formData.get('endDate') as string;
-    const propertyId = formData.get('propertyId') as string;
-    const numGuests = parseInt(formData.get('numGuests') as string) || 1;
-    const extraBeds = parseInt(formData.get('extraBeds') as string) || 0;
-    const guestName = formData.get('guestName') as string;
-    const guestEmail = formData.get('guestEmail') as string;
-    const guestPhone = formData.get('guestPhone') as string;
-    const totalPrice = parseFloat(formData.get('totalPrice') as string) || 0;
-    const paidAmount = parseFloat(formData.get('paidAmount') as string) || 0;
-    const internalNotes = formData.get('internalNotes') as string;
+  if (!data.propertyId) errors.push('Należy wybrać obiekt');
+  if (!data.startDate) errors.push('Należy podać datę rozpoczęcia');
+  if (!data.endDate) errors.push('Należy podać datę zakończenia');
+  if (new Date(data.endDate) <= new Date(data.startDate)) errors.push('Data zakończenia musi być późniejsza niż data rozpoczęcia');
+  
+  const numGuests = Number(data.numGuests);
+  if (isNaN(numGuests) || numGuests <= 0) errors.push('Liczba gości musi być poprawną liczbą większą od 0');
 
-    const startDate = new Date(startDateStr);
-    const endDate = new Date(endDateStr);
+  const extraBeds = Number(data.extraBeds);
+  if (isNaN(extraBeds) || extraBeds < 0) errors.push('Liczba dostawek nie może być ujemna');
 
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      return { success: false, message: 'Nieprawidłowy format daty.' };
-    }
+  const totalPrice = Number(data.totalPrice);
+  if (isNaN(totalPrice) || totalPrice < 0) errors.push('Cena całkowita nie może być ujemna');
 
-    if (startDate >= endDate) {
-      return { success: false, message: 'Data wyjazdu musi być późniejsza niż data przyjazdu.' };
-    }
+  const paidAmount = Number(data.paidAmount);
+  if (isNaN(paidAmount) || paidAmount < 0) errors.push('Wpłacona kwota nie może być ujemna');
 
-    if (!propertyId || !guestName || !guestEmail || !guestPhone) {
-      return { success: false, message: 'Wszystkie pola są wymagane' };
-    }
+  if (!data.guestName) errors.push('Należy podać imię i nazwisko gościa');
+  if (!data.guestEmail || !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(data.guestEmail)) errors.push('Niepoprawny format adresu email');
+  if (!data.guestPhone) errors.push('Należy podać numer telefonu gościa');
 
-    if (extraBeds < 0 || extraBeds > 4) {
-      return { success: false, message: 'Liczba dostawek musi być między 0 a 4' };
-    }
-
-    if (paidAmount < 0 || paidAmount > totalPrice) {
-      return { success: false, message: 'Kwota wpłacona nie może być ujemna ani przekraczać ceny całkowitej' };
-    }
-
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-      const sysConfig = await SystemConfig.findById('main').session(session);
-      const shouldAutoBlock = sysConfig?.autoBlockOtherCabins ?? true;
-
-      if (propertyId === 'both') {
-        const properties = await Property.find({ isActive: true }).session(session);
-
-        if (properties.length === 0) {
-          throw new Error('Brak aktywnych domków.');
-        }
-
-        const mainBooking = await Booking.create([{
-          propertyId: properties[0]._id,
-          guestName,
-          guestEmail,
-          guestPhone,
-          startDate,
-          endDate,
-          numberOfGuests: numGuests,
-          extraBedsCount: extraBeds,
-          totalPrice,
-          paidAmount,
-          status: 'confirmed',
-          bookingType: 'real',
-          notes: internalNotes || '',
-          source: 'admin',
-        }], { session });
-
-        const mainBookingId = mainBooking[0]._id;
-
-        const otherProperties = properties.slice(1);
-        if (otherProperties.length > 0) {
-          const shadowBookingsData = otherProperties.map(otherProp => ({
-            propertyId: otherProp._id,
-            guestName: "SYSTEM BLOCK (Auto)",
-            guestEmail: "system@wilczechatki.pl",
-            guestPhone: "-",
-            startDate,
-            endDate,
-            numberOfGuests: 0,
-            extraBedsCount: 0,
-            totalPrice: 0,
-            paidAmount: 0,
-            status: 'blocked',
-            bookingType: 'shadow',
-            linkedBookingId: mainBookingId,
-            notes: `Blokada automatyczna dla rezerwacji ${mainBookingId}`,
-            source: 'system',
-          }));
-
-          await Booking.create(shadowBookingsData, { session });
-        }
-      } else {
-        const selectedPropId = new mongoose.Types.ObjectId(propertyId);
-        
-        const property = await Property.findById(selectedPropId).session(session);
-        if (!property) {
-          throw new Error('Nie znaleziono domku o podanym ID');
-        }
-
-        const mainBooking = await Booking.create([{
-          propertyId: selectedPropId,
-          guestName,
-          guestEmail,
-          guestPhone,
-          startDate,
-          endDate,
-          numberOfGuests: numGuests,
-          extraBedsCount: extraBeds,
-          totalPrice,
-          paidAmount,
-          status: 'confirmed',
-          bookingType: 'real',
-          notes: internalNotes || '',
-          source: 'admin',
-        }], { session });
-
-        const mainBookingId = mainBooking[0]._id;
-
-        if (shouldAutoBlock) {
-          const otherProperties = await Property.find({
-            isActive: true,
-            _id: { $ne: selectedPropId }
-          }).session(session);
-
-          if (otherProperties.length > 0) {
-            const shadowBookingsData = otherProperties.map(otherProp => ({
-              propertyId: otherProp._id,
-              guestName: "SYSTEM BLOCK (Auto)",
-              guestEmail: "system@wilczechatki.pl",
-              guestPhone: "-",
-              startDate,
-              endDate,
-              numberOfGuests: 0,
-              extraBedsCount: 0,
-              totalPrice: 0,
-              paidAmount: 0,
-              status: 'blocked',
-              bookingType: 'shadow',
-              linkedBookingId: mainBookingId,
-              notes: `Blokada automatyczna dla rezerwacji ${mainBookingId}`,
-              source: 'system',
-            }));
-
-            await Booking.create(shadowBookingsData, { session });
-          }
-        }
-      }
-
-      await session.commitTransaction();
-      session.endSession();
-
-      revalidatePath('/admin/bookings/calendar');
-      revalidatePath('/admin/bookings/list');
-      revalidatePath('/admin/bookings/add');
-
-      return { success: true, message: 'Rezerwacja dodana pomyślnie' };
-
-    } catch (error) {
-      await session.abortTransaction();
-      session.endSession();
-      throw error;
-    }
-
-  } catch (error) {
-    console.error('Błąd podczas tworzenia rezerwacji:', error);
-    return { 
-      success: false, 
-      message: error instanceof Error ? error.message : 'Wystąpił błąd podczas zapisu' 
-    };
-  }
+  return errors;
 }
 
 export async function getAdminBookingsList() {
-  try {
     await dbConnect();
-    
-    const bookings = await Booking.find({
-      bookingType: { $ne: 'shadow' }
-    })
-    .sort({ createdAt: -1 })
-    .lean();
-
-    const bookingsWithDetails = await Promise.all(
-      bookings.map(async (booking: any) => {
-        let propertyName = 'Nieznany obiekt';
-        if (booking.propertyId) {
-          try {
-            const property = await Property.findById(booking.propertyId).lean();
-            if (property) {
-              propertyName = property.name || propertyName;
-            }
-          } catch (err) {
-            console.error(`Błąd pobierania nazwy property dla ${booking._id}`, err);
-          }
-        }
-
-        return {
-          _id: booking._id.toString(),
-          startDate: booking.startDate,
-          endDate: booking.endDate,
-          propertyId: booking.propertyId?.toString() || null,
-          propertyName: propertyName,
-          numberOfGuests: booking.numberOfGuests || 0,
-          extraBedsCount: booking.extraBedsCount || 0,
-          guestName: booking.guestName || '',
-          guestEmail: booking.guestEmail || '',
-          guestPhone: booking.guestPhone || '',
-          totalPrice: booking.totalPrice || 0,
-          paidAmount: booking.paidAmount || 0,
-          status: booking.status || 'pending',
-          bookingType: booking.bookingType || 'real',
-          notes: booking.notes || '',
-          source: booking.source || 'unknown',
-          createdAt: booking.createdAt,
-        };
-      })
-    );
-
-    return bookingsWithDetails;
-  } catch (error) {
-    console.error('Błąd podczas pobierania listy rezerwacji:', error);
-    return [];
-  }
+    const bookings = await Booking.find({}).sort({ startDate: -1 }).lean();
+    return JSON.parse(JSON.stringify(bookings));
 }
 
-export async function getBookingById(bookingId: string) {
-  try {
-    await dbConnect();
-    const booking = await Booking.findById(bookingId).lean();
-    if (!booking) return null;
+export async function createManualBooking(prevState: any, formData: FormData) {
+  await dbConnect();
 
-    let propertyName = 'Nieznany obiekt';
-    if (booking.propertyId) {
-      const property = await Property.findById(booking.propertyId).lean();
-      if (property) {
-        propertyName = property.name || propertyName;
-      }
-    }
+  const rawData = Object.fromEntries(formData.entries());
+  const validationErrors = validateBookingData(rawData);
+
+  if (validationErrors.length > 0) {
+    return {
+      message: validationErrors.join(', '),
+      success: false
+    };
+  }
+
+  try {
+    const newBooking = new Booking({
+      propertyId: rawData.propertyId === 'both' ? null : rawData.propertyId,
+      properties: rawData.propertyId === 'both' ? [] : [rawData.propertyId],
+      startDate: new Date(rawData.startDate as string),
+      endDate: new Date(rawData.endDate as string),
+      numGuests: Number(rawData.numGuests),
+      extraBeds: Number(rawData.extraBeds),
+      totalPrice: Number(rawData.totalPrice),
+      paidAmount: Number(rawData.paidAmount),
+      guestInfo: {
+        name: rawData.guestName,
+        email: rawData.guestEmail,
+        phone: rawData.guestPhone,
+      },
+      status: 'confirmed',
+      paymentStatus: Number(rawData.paidAmount) >= Number(rawData.totalPrice) ? 'paid' : (Number(rawData.paidAmount) > 0 ? 'deposit' : 'unpaid'),
+      bookingSource: 'manual',
+      internalNotes: rawData.internalNotes,
+    });
+
+    await newBooking.save();
+    revalidatePath('/admin/bookings');
 
     return {
-      _id: booking._id.toString(),
-      startDate: booking.startDate,
-      endDate: booking.endDate,
-      propertyId: booking.propertyId?.toString() || null,
-      propertyName,
-      numberOfGuests: booking.numberOfGuests || 0,
-      extraBedsCount: booking.extraBedsCount || 0,
-      guestName: booking.guestName || '',
-      guestEmail: booking.guestEmail || '',
-      guestPhone: booking.guestPhone || '',
-      totalPrice: booking.totalPrice || 0,
-      paidAmount: booking.paidAmount || 0,
-      status: booking.status || 'pending',
-      bookingType: booking.bookingType || 'real',
-      notes: booking.notes || '',
-      createdAt: booking.createdAt,
-    };
-  } catch (error) {
-    console.error('Błąd podczas pobierania rezerwacji:', error);
-    return null;
-  }
-}
-
-export async function updateBooking(bookingId: string, data: any) {
-  try {
-    await dbConnect();
-    
-    const updateData = {
-      guestName: data.guestName,
-      guestEmail: data.guestEmail,
-      guestPhone: data.guestPhone,
-      numberOfGuests: data.numberOfGuests,
-      extraBedsCount: data.extraBedsCount || 0,
-      totalPrice: data.totalPrice,
-      paidAmount: data.paidAmount !== undefined ? data.paidAmount : 0,
-      status: data.status,
-      startDate: data.startDate ? new Date(data.startDate) : undefined,
-      endDate: data.endDate ? new Date(data.endDate) : undefined,
-      notes: data.notes,
+      message: 'Rezerwacja została pomyślnie utworzona!',
+      success: true
     };
 
-    await Booking.findByIdAndUpdate(bookingId, updateData);
-    
-    revalidatePath('/admin/bookings/calendar');
-    revalidatePath('/admin/bookings/list');
-    revalidatePath(`/admin/bookings/list/${bookingId}`);
-    
-    return { success: true, message: 'Rezerwacja zaktualizowana' };
-  } catch (error) {
-    console.error('Błąd aktualizacji rezerwacji:', error);
-    return { success: false, message: 'Nie udało się zaktualizować rezerwacji' };
+  } catch (error: any) {
+    return {
+      message: error.message || 'Wystąpił nieoczekiwany błąd serwera.',
+      success: false
+    };
   }
 }
 
-export async function updateBookingStatus(bookingId: string, status: string) {
-  try {
-    await dbConnect();
-    await Booking.findByIdAndUpdate(bookingId, { status });
-    
-    revalidatePath('/admin/bookings');
-    revalidatePath('/admin/bookings/list');
-    revalidatePath('/admin/bookings/calendar');
-    
-    return { success: true };
-  } catch (error) {
-    console.error('Błąd aktualizacji statusu:', error);
-    return { success: false, error: 'Nie udało się zaktualizować statusu' };
+// Akcja do obliczania ceny
+export async function calculatePriceAction(
+  params: {
+    startDate: string;
+    endDate: string;
+    guests: number;
+    extraBeds: number;
+    propertySelection: string;
   }
-}
-
-export async function deleteBooking(bookingId: string) {
+): Promise<{ price: number }> {
   try {
-    await dbConnect();
-    
-    const booking = await Booking.findById(bookingId);
-
-    if (booking && booking.bookingType === 'real') {
-      await Booking.deleteMany({ linkedBookingId: bookingId });
-    }
-
-    await Booking.findByIdAndDelete(bookingId);
-    
-    revalidatePath('/admin/bookings');
-    revalidatePath('/admin/bookings/list');
-    revalidatePath('/admin/bookings/calendar');
-    
-    return { success: true, message: 'Rezerwacja usunięta' };
+    const price = await calculatePrice(params);
+    return { price };
   } catch (error) {
-    console.error('Błąd usuwania rezerwacji:', error);
-    return { success: false, error: 'Nie udało się usunąć rezerwacji' };
+    console.error('Błąd podczas obliczania ceny:', error);
+    return { price: 0 };
   }
 }
