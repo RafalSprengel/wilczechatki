@@ -8,10 +8,26 @@ import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBac
 const initialState = {
   message: '',
   success: false,
+<<<<<<< HEAD
 }
 
 export default function AddBookingPage() {
   const [state, formAction, isPending] = useActionState(createManualBooking, initialState)
+=======
+}
+
+function SubmitButton() {
+  const { pending } = useActionState()
+  return (
+    <button type="submit" className={styles.btnSubmit} disabled={pending}>
+      {pending ? 'Zapisuję...' : 'Zapisz Rezerwację'}
+    </button>
+  )
+}
+
+export default function AddBookingPage() {
+  const [state, formAction] = useActionState(createManualBooking, initialState)
+>>>>>>> 6729dcd12d46250b12028532d7f72290b3c64dc0
   const formRef = useRef<HTMLFormElement>(null)
   const [extraBeds, setExtraBeds] = useState(0)
   const [paidAmount, setPaidAmount] = useState(0)
