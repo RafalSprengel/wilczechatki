@@ -76,6 +76,8 @@ export default function AddBookingPage() {
     } else {
       setSelectedProperty(null)
     }
+    setBookingDates({ start: null, end: null, count: 0 })
+    setTotalPrice(0)
   }, [propertySelection, properties])
 
   useEffect(() => {
@@ -207,13 +209,20 @@ export default function AddBookingPage() {
             <label className={styles.label}>Wybierz termin</label>
             <div 
               className={styles.date} 
-              onClick={() => setCalendarOpen(!isCalendarOpen)}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
+              onClick={() => propertySelection && setCalendarOpen(!isCalendarOpen)}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between', 
+                width: '100%',
+                cursor: propertySelection ? 'pointer' : 'not-allowed',
+                opacity: propertySelection ? 1 : 0.6
+              }}
             >
               <span>
                 {bookingDates.start && bookingDates.end
                   ? `${bookingDates.start} — ${bookingDates.end}`
-                  : 'Wybierz daty'}
+                  : propertySelection ? 'Wybierz daty' : 'Najpierw wybierz obiekt'}
               </span>
               <span style={{ fontSize: '0.8rem', color: '#aaa' }}>&#9662;</span>
             </div>
@@ -232,7 +241,7 @@ export default function AddBookingPage() {
             )}
           </div>
 
-          <div className={styles.inputGroup}>
+          <div className={styles.inputGroup} style={{ opacity: propertySelection ? 1 : 0.6, pointerEvents: propertySelection ? 'auto' : 'none' }}>
             <label htmlFor="numGuests">Liczba gości</label>
             <QuantityPicker
               value={numGuests}
@@ -244,7 +253,7 @@ export default function AddBookingPage() {
             <small className={styles.hint}>Maksymalnie {maxGuests} osób</small>
           </div>
 
-          <div className={styles.inputGroup}>
+          <div className={styles.inputGroup} style={{ opacity: propertySelection ? 1 : 0.6, pointerEvents: propertySelection ? 'auto' : 'none' }}>
             <label htmlFor="extraBeds">Liczba dostawek</label>
             <QuantityPicker
               value={extraBeds}
