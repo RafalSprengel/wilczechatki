@@ -208,23 +208,15 @@ export default function AddBookingPage() {
           <div className={styles.dateBox}>
             <label className={styles.label}>Wybierz termin</label>
             <div 
-              className={styles.date} 
+              className={`${styles.date} ${!propertySelection ? styles.disabledInput : ''}`}
               onClick={() => propertySelection && setCalendarOpen(!isCalendarOpen)}
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'space-between', 
-                width: '100%',
-                cursor: propertySelection ? 'pointer' : 'not-allowed',
-                opacity: propertySelection ? 1 : 0.6
-              }}
             >
               <span>
                 {bookingDates.start && bookingDates.end
                   ? `${bookingDates.start} — ${bookingDates.end}`
                   : propertySelection ? 'Wybierz daty' : 'Najpierw wybierz obiekt'}
               </span>
-              <span style={{ fontSize: '0.8rem', color: '#aaa' }}>&#9662;</span>
+              <span className={styles.dateArrow}>&#9662;</span>
             </div>
 
             {isCalendarOpen && (
@@ -241,7 +233,7 @@ export default function AddBookingPage() {
             )}
           </div>
 
-          <div className={styles.inputGroup} style={{ opacity: propertySelection ? 1 : 0.6, pointerEvents: propertySelection ? 'auto' : 'none' }}>
+          <div className={`${styles.inputGroup} ${!propertySelection ? styles.disabledInput : ''}`}>
             <label htmlFor="numGuests">Liczba gości</label>
             <QuantityPicker
               value={numGuests}
@@ -253,7 +245,7 @@ export default function AddBookingPage() {
             <small className={styles.hint}>Maksymalnie {maxGuests} osób</small>
           </div>
 
-          <div className={styles.inputGroup} style={{ opacity: propertySelection ? 1 : 0.6, pointerEvents: propertySelection ? 'auto' : 'none' }}>
+          <div className={`${styles.inputGroup} ${!propertySelection ? styles.disabledInput : ''}`}>
             <label htmlFor="extraBeds">Liczba dostawek</label>
             <QuantityPicker
               value={extraBeds}
