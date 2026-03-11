@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { updateBooking } from '@/actions/adminBookingActions';
+import { updateBookingAction } from '@/actions/adminBookingActions';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 
@@ -8,9 +8,9 @@ interface FormData {
   guestName: string;
   guestEmail: string;
   guestPhone: string;
-  numberOfGuests: number;
+  numGuests: number;
   totalPrice: number;
-  paymentStatus: string;
+  paidAmount: number;
   status: string;
   startDate: string;
   endDate: string;
@@ -27,12 +27,12 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
   const formatDate = (date: Date) => new Date(date).toISOString().split('T')[0];
 
   const [form, setForm] = useState<FormData>({
-    guestName: initialData.guestName || '',
-    guestEmail: initialData.guestEmail || '',
-    guestPhone: initialData.guestPhone || '',
-    numberOfGuests: initialData.numberOfGuests || 0,
+    guestName: initialData.guestInfo?.name || '',
+    guestEmail: initialData.guestInfo?.email || '',
+    guestPhone: initialData.guestInfo?.phone || '',
+    numGuests: initialData.numGuests || 0,
     totalPrice: initialData.totalPrice || 0,
-    paymentStatus: initialData.paymentStatus || 'unpaid',
+    paidAmount: initialData.paidAmount || 0,
     status: initialData.status,
     startDate: formatDate(initialData.startDate),
     endDate: formatDate(initialData.endDate),
@@ -51,7 +51,7 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: name === 'numberOfGuests' || name === 'totalPrice' ? Number(value) : value,
+      [name]: name === 'numGuests' || name === 'totalPrice' || name === 'paidAmount' ? Number(value) : value,
     }));
     if (isSaved) setIsSaved(false);
   };
@@ -59,12 +59,12 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
   const handleEditToggle = () => {
     if (isEditing) {
       setForm({
-        guestName: initialData.guestName || '',
-        guestEmail: initialData.guestEmail || '',
-        guestPhone: initialData.guestPhone || '',
-        numberOfGuests: initialData.numberOfGuests || 0,
+        guestName: initialData.guestInfo?.name || '',
+        guestEmail: initialData.guestInfo?.email || '',
+        guestPhone: initialData.guestInfo?.phone || '',
+        numGuests: initialData.numGuests || 0,
         totalPrice: initialData.totalPrice || 0,
-        paymentStatus: initialData.paymentStatus || 'unpaid',
+        paidAmount: initialData.paidAmount || 0,
         status: initialData.status,
         startDate: formatDate(initialData.startDate),
         endDate: formatDate(initialData.endDate),
@@ -79,7 +79,23 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
     setIsSaving(true);
     setMessage(null);
 
-    const result = await updateBooking(initialData._id, form);
+    const formData = new FormData();
+    formData.append('bookingId', initialData._id);
+    formData.append('propertyId', initialData.propertyId);
+    formData.append('extraBeds', String(initialData.extraBeds || 0));
+    formData.append('guestName', form.guestName);
+    formData.append('guestEmail', form.guestEmail);
+    formData.append('guestPhone', form.guestPhone);
+    formData.append('numGuests', String(form.numGuests));
+    formData.append('totalPrice', String(form.totalPrice));
+    formData.append('paidAmount', String(form.paidAmount));
+    formData.append('status', form.status);
+    formData.append('startDate', form.startDate);
+    formData.append('endDate', form.endDate);
+    formData.append('internalNotes', initialData.internalNotes || '');
+
+
+    const result = await updateBookingAction(null, formData);
 
     if (result.success) {
       setMessage({ type: 'success', text: 'Zapisano zmiany pomyślnie!' });
@@ -158,10 +174,10 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
         <div className={styles.inputGroup}>
           <label>Liczba Gości</label>
           <input
-            name="numberOfGuests"
+            name="numGuests"
             type="number"
             min="1"
-            value={form.numberOfGuests}
+            value={form.numGuests}
             onChange={handleChange}
             readOnly={!isEditing}
             className={!isEditing ? styles.readOnly : ''}
@@ -205,18 +221,17 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
           />
         </div>
         <div className={styles.inputGroup}>
-          <label>Status płatności</label>
-          <select
-            name="paymentStatus"
-            value={form.paymentStatus}
+          <label>Wpłacona kwota (PLN)</label>
+          <input
+            name="paidAmount"
+            type="number"
+            step="0.01"
+            value={form.paidAmount}
             onChange={handleChange}
-            disabled={!isEditing}
+            required
+            readOnly={!isEditing}
             className={!isEditing ? styles.readOnly : ''}
-          >
-            <option value="unpaid">Nieopłacone</option>
-            <option value="deposit">Zaliczka</option>
-            <option value="paid">Opłacone</option>
-          </select>
+          />
         </div>
         <div className={styles.inputGroup}>
           <label>Status</label>

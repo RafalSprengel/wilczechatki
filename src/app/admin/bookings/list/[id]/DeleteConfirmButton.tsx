@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { deleteBooking } from '@/actions/adminBookingActions'
+import { deleteBookingAction } from '@/actions/adminBookingActions'
 import styles from './page.module.css'
 
 export default function DeleteConfirmButton({ bookingId }: { bookingId: string }) {
@@ -11,7 +11,7 @@ export default function DeleteConfirmButton({ bookingId }: { bookingId: string }
   const handleDelete = async () => {
     if (!confirm('Czy na pewno usunąć tę rezerwację?')) return
     setIsDeleting(true)
-    const result = await deleteBooking(bookingId)
+    const result = await deleteBookingAction(bookingId)
     if (result.success) {
       router.push('/admin/bookings/list')
       router.refresh()

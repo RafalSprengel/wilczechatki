@@ -1,3 +1,4 @@
+
 .container {
   width: 100%;
   max-width: 100%;
@@ -215,8 +216,8 @@
 }
 
 .resultsGrid {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
 

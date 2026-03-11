@@ -1,5 +1,5 @@
-import { getBookingById, deleteBooking } from '@/actions/adminBookingActions';
-import { notFound, redirect } from 'next/navigation';
+import { getBookingById } from '@/actions/adminBookingActions';
+import { notFound } from 'next/navigation';
 import EditBookingForm from './EditBookingForm';
 import styles from './page.module.css';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
@@ -9,12 +9,6 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
   const { id } = await params;
   const booking = await getBookingById(id);
   if (!booking) { notFound(); }
-
-  async function handleDelete() {
-    'use server';
-    const result = await deleteBooking(booking._id);
-    if (result.success) { redirect('/admin/bookings/list'); }
-  }
 
   return (
     <div className={styles.container}>

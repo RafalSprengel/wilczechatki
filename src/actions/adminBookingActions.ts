@@ -66,6 +66,15 @@ export async function getAdminBookingsList() {
   return JSON.parse(JSON.stringify(bookings));
 }
 
+export async function getBookingById(bookingId: string) {
+  await dbConnect();
+  const booking = await Booking.findById(bookingId).lean();
+  if (!booking) {
+    return null;
+  }
+  return JSON.parse(JSON.stringify(booking));
+}
+
 export async function createManualBooking(prevState: any, formData: FormData) {
   await dbConnect();
   const rawData = Object.fromEntries(formData.entries());
@@ -96,6 +105,64 @@ export async function createManualBooking(prevState: any, formData: FormData) {
     await newBooking.save();
     revalidatePath('/admin/bookings');
     return { message: 'Rezerwacja została pomyślnie utworzona!', success: true };
+  } catch (error: any) {
+    return { message: error.message || 'Wystąpił nieoczekiwany błąd serwera.', success: false };
+  }
+}
+
+export async function updateBookingAction(prevState: any, formData: FormData) {
+  await dbConnect();
+  const rawData = Object.fromEntries(formData.entries());
+  const bookingId = rawData.bookingId as string;
+
+  const validationErrors = validateBookingData(rawData);
+  if (validationErrors.length > 0) {
+    return { message: validationErrors.join(', '), success: false };
+  }
+
+  try {
+    const bookingData = {
+      propertyId: rawData.propertyId === 'both' ? null : rawData.propertyId,
+      properties: rawData.propertyId === 'both' ? [] : [rawData.propertyId],
+      startDate: new Date(rawData.startDate as string),
+      endDate: new Date(rawData.endDate as string),
+      numGuests: Number(rawData.numGuests),
+      extraBeds: Number(rawData.extraBeds),
+      totalPrice: Number(rawData.totalPrice),
+      paidAmount: Number(rawData.paidAmount),
+      guestInfo: {
+        name: rawData.guestName,
+        email: rawData.guestEmail,
+        phone: rawData.guestPhone,
+      },
+      status: 'confirmed',
+      paymentStatus: Number(rawData.paidAmount) >= Number(rawData.totalPrice) ? 'paid' : (Number(rawData.paidAmount) > 0 ? 'deposit' : 'unpaid'),
+      internalNotes: rawData.internalNotes,
+    };
+
+    const updatedBooking = await Booking.findByIdAndUpdate(bookingId, bookingData, { new: true });
+
+    if (!updatedBooking) {
+      return { message: 'Nie znaleziono rezerwacji do zaktualizowania.', success: false };
+    }
+
+    revalidatePath('/admin/bookings');
+    revalidatePath(`/admin/bookings/list/${bookingId}`);
+    return { message: 'Rezerwacja została pomyślnie zaktualizowana!', success: true };
+  } catch (error: any) {
+    return { message: error.message || 'Wystąpił nieoczekiwany błąd serwera.', success: false };
+  }
+}
+
+export async function deleteBookingAction(bookingId: string) {
+  await dbConnect();
+  try {
+    const result = await Booking.findByIdAndDelete(bookingId);
+    if (!result) {
+      return { message: 'Nie znaleziono rezerwacji.', success: false };
+    }
+    revalidatePath('/admin/bookings');
+    return { message: 'Rezerwacja została pomyślnie usunięta!', success: true };
   } catch (error: any) {
     return { message: error.message || 'Wystąpił nieoczekiwany błąd serwera.', success: false };
   }
