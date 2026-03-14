@@ -32,7 +32,12 @@ export async function getAllProperties(filter?: { type?: 'single' | 'whole' | 'a
     .select('-__v')
     .lean();
   
-  return properties;
+  return properties.map((prop: any) => ({
+    ...prop,
+    _id: prop._id.toString(),
+    createdAt: prop.createdAt?.toISOString(),
+    updatedAt: prop.updatedAt?.toISOString(),
+  }));
 }
 
 export async function getSingleProperties() {
@@ -43,93 +48,119 @@ export async function getWholeProperties() {
   return getAllProperties({ type: 'whole' });
 }
 
-export async function getPropertyById(id: string) {
-  await dbConnect()
-  if (!Types.ObjectId.isValid(id)) return null
+export async function getPropertyById(id: string): Promise<PropertyType | null> {
+  await dbConnect();
+  
+  if (!Types.ObjectId.isValid(id)) return null;
+
   const property = await Property.findById(id)
-  return property ? JSON.parse(JSON.stringify(property)) : null
+    .select('-__v')
+    .lean();
+
+  if (!property) return null;
+
+  return {
+    ...property,
+    _id: (property._id as any).toString(),
+    createdAt: (property as any).createdAt?.toISOString(),
+    updatedAt: (property as any).updatedAt?.toISOString(),
+  } as PropertyType;
 }
 
 export async function createProperty(formData: FormData) {
-  await dbConnect()
+  await dbConnect();
   
   try {
-    const name = formData.get('name') as string
-    const slug = formData.get('slug') as string
-    const description = formData.get('description') as string
-    const baseCapacity = parseInt(formData.get('baseCapacity') as string) || 6
-    const maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string) || 2
-    const imagesString = formData.get('images') as string
-    const images = imagesString ? imagesString.split(',').map(s => s.trim()).filter(Boolean) : []
+    const name = formData.get('name') as string;
+    const type = formData.get('type') as string;
+    const slug = formData.get('slug') as string;
+    const description = formData.get('description') as string;
+    const baseCapacity = parseInt(formData.get('baseCapacity') as string) || 6;
+    const maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string) || 2;
+    const imagesString = formData.get('images') as string;
+    const images = imagesString ? imagesString.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+    if (type !== 'single' && type !== 'whole') {
+      return { success: false, message: 'Nieprawidłowy typ obiektu.' };
+    }
 
     const property = await Property.create({
       name,
+      type,
       slug: slug || undefined,
       description,
       baseCapacity,
       maxExtraBeds,
       images,
       isActive: true
-    })
+    });
 
-    revalidatePath('/admin/properties')
-    return { success: true, message: 'Domek dodany pomyślnie', propertyId: property._id.toString() }
+    revalidatePath('/admin/properties');
+    return { success: true, message: 'Domek dodany pomyślnie', propertyId: property._id.toString() };
   } catch (error) {
-    console.error(error)
-    return { success: false, message: 'Nie udało się dodać domku' }
+    console.error(error);
+    return { success: false, message: 'Nie udało się dodać domku' };
   }
 }
 
 export async function updateProperty(id: string, formData: FormData) {
-  await dbConnect()
+  await dbConnect();
   
   try {
-    const name = formData.get('name') as string
-    const slug = formData.get('slug') as string
-    const description = formData.get('description') as string
-    const baseCapacity = parseInt(formData.get('baseCapacity') as string) || 6
-    const maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string) || 2
-    const imagesString = formData.get('images') as string
-    const images = imagesString ? imagesString.split(',').map(s => s.trim()).filter(Boolean) : []
-    const isActive = formData.get('isActive') === 'true'
+    const name = formData.get('name') as string;
+    const type = formData.get('type') as string;
+    const slug = formData.get('slug') as string;
+    const description = formData.get('description') as string;
+    const baseCapacity = parseInt(formData.get('baseCapacity') as string) || 6;
+    const maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string) || 2;
+    const imagesString = formData.get('images') as string;
+    const images = imagesString ? imagesString.split(',').map(s => s.trim()).filter(Boolean) : [];
+    const isActive = formData.get('isActive') === 'true';
+
+    if (type && type !== 'single' && type !== 'whole') {
+      return { success: false, message: 'Nieprawidłowy typ obiektu.' };
+    }
 
     await Property.findByIdAndUpdate(id, {
       name,
+      type,
       slug: slug || undefined,
       description,
       baseCapacity,
       maxExtraBeds,
       images,
       isActive
-    })
+    });
 
-    revalidatePath('/admin/properties')
-    revalidatePath(`/admin/properties/${id}`)
-    return { success: true, message: 'Zmiany zapisane' }
+    revalidatePath('/admin/properties');
+    revalidatePath(`/admin/properties/${id}`);
+    return { success: true, message: 'Zmiany zapisane' };
   } catch (error) {
-    console.error(error)
-    return { success: false, message: 'Nie udało się zaktualizować domku' }
+    console.error(error);
+    return { success: false, message: 'Nie udało się zaktualizować domku' };
   }
 }
 
 export async function togglePropertyActive(id: string, isActive: boolean) {
-  await dbConnect()
-  await Property.findByIdAndUpdate(id, { isActive })
-  revalidatePath('/admin/properties')
-  return { success: true }
+  await dbConnect();
+  await Property.findByIdAndUpdate(id, { isActive });
+  revalidatePath('/admin/properties');
+  return { success: true };
 }
 
 export async function deleteProperty(id: string) {
-  await dbConnect()
+  await dbConnect();
   
-  const Booking = (await import('@/db/models/Booking')).default
-  const existingBookings = await Booking.findOne({ propertyId: id })
+  const BookingModule = await import('@/db/models/Booking');
+  const Booking = BookingModule.default;
+  
+  const existingBookings = await Booking.findOne({ propertyId: id });
   
   if (existingBookings) {
-    return { success: false, message: 'Nie można usunąć domku z istniejącymi rezerwacjami' }
+    return { success: false, message: 'Nie można usunąć domku z istniejącymi rezerwacjami' };
   }
 
-  await Property.findByIdAndDelete(id)
-  revalidatePath('/admin/properties')
-  return { success: true, message: 'Domek usunięty' }
+  await Property.findByIdAndDelete(id);
+  revalidatePath('/admin/properties');
+  return { success: true, message: 'Domek usunięty' };
 }

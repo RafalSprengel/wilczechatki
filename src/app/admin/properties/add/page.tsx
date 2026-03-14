@@ -44,6 +44,13 @@ export default function AddPropertyPage() {
               <input id="name" name="name" type="text" required placeholder="np. Chatka A (Wilcza)" />
             </div>
             <div className={styles.inputGroup}>
+              <label htmlFor="type">Typ obiektu *</label>
+              <select id="type" name="type" required defaultValue="single">
+                <option value="single">Pojedynczy domek</option>
+                <option value="whole">Cała posesja</option>
+              </select>
+            </div>
+            <div className={styles.inputGroup}>
               <label htmlFor="slug">Slug (URL)</label>
               <input id="slug" name="slug" type="text" placeholder="chatka-a" pattern="[a-z0-9\-]+" title="Tylko małe litery, cyfry i myślniki" />
               <small className={styles.hint}>Opcjonalne. Np. chatka-a</small>

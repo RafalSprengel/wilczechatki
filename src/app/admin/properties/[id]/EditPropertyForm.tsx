@@ -10,6 +10,7 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
   const [isPending, startTransition] = useTransition()
   const [isDeleting, setIsDeleting] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [isActive, setIsActive] = useState(property.isActive)
 
   const handleUpdate = async (formData: FormData) => {
     startTransition(async () => {
@@ -36,6 +37,10 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
     }
   }
 
+  const handleStatusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsActive(e.target.checked)
+  }
+
   return (
     <>
       {message && (
@@ -58,6 +63,18 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
                 defaultValue={property.name}
                 placeholder="np. Chatka A (Wilcza)"
               />
+            </div>
+            <div className={styles.inputGroup}>
+              <label htmlFor="type">Typ obiektu *</label>
+              <select
+                id="type"
+                name="type"
+                required
+                defaultValue={property.type || 'single'}
+              >
+                <option value="single">Pojedynczy domek</option>
+                <option value="whole">Cała posesja</option>
+              </select>
             </div>
             <div className={styles.inputGroup}>
               <label htmlFor="slug">Slug (URL)</label>
@@ -140,10 +157,11 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
                 type="checkbox"
                 name="isActive"
                 value="true"
-                defaultChecked={property.isActive}
+                checked={isActive}
+                onChange={handleStatusChange}
               />
-              <span className={styles.toggleText}>
-                {property.isActive ? '✅ Aktywny – widoczny w wyszukiwarce' : '⏸️ Nieaktywny – ukryty przed gośćmi'}
+              <span className={`${styles.toggleText} ${isActive ? styles.active : styles.inactive}`}>
+                {isActive ? 'Aktywny – widoczny w wyszukiwarce' : 'Nieaktywny – ukryty przed gośćmi'}
               </span>
             </label>
           </div>
