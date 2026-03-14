@@ -5,10 +5,42 @@ import Property from '@/db/models/Property'
 import { revalidatePath } from 'next/cache'
 import { Types } from 'mongoose'
 
-export async function getAllProperties() {
-  await dbConnect()
-  const properties = await Property.find({}).sort({ name: 1 })
-  return JSON.parse(JSON.stringify(properties))
+export interface PropertyType {
+  _id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  images: string[];
+  baseCapacity: number;
+  maxExtraBeds: number;
+  isActive: boolean;
+  type: 'single' | 'whole';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function getAllProperties(filter?: { type?: 'single' | 'whole' | 'all' }): Promise<PropertyType[]> {
+  await dbConnect();
+  
+  const query: any = {};
+  if (filter?.type && filter.type !== 'all') {
+    query.type = filter.type;
+  }
+  
+  const properties = await Property.find(query)
+    .sort({ type: -1, name: 1 })
+    .select('-__v')
+    .lean();
+  
+  return properties;
+}
+
+export async function getSingleProperties() {
+  return getAllProperties({ type: 'single' });
+}
+
+export async function getWholeProperties() {
+  return getAllProperties({ type: 'whole' });
 }
 
 export async function getPropertyById(id: string) {

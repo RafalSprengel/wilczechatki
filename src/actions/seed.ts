@@ -36,7 +36,8 @@ export async function seedProperties() {
         baseCapacity: 6,
         maxExtraBeds: 2,
         images: ['/images/chatka-a-1.jpg'],
-        isActive: true
+        isActive: true,
+        type: 'single'
       },
       {
         name: 'Chatka B (Leśna)',
@@ -45,7 +46,18 @@ export async function seedProperties() {
         baseCapacity: 6,
         maxExtraBeds: 2,
         images: ['/images/chatka-b-1.jpg'],
-        isActive: true
+        isActive: true,
+        type: 'single'
+      },
+         {
+        name: 'Cała posesja',
+        slug: 'cala-posesja',
+        description: 'Cała posesja do dyspozycji',
+        baseCapacity: 12,
+        maxExtraBeds: 4,
+        images: ['/images/cala-posesja.jpg'],
+        isActive: true,
+        type: 'whole'
       }
     ];
     

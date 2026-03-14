@@ -8,7 +8,7 @@ export interface IProperty extends Document {
   maxExtraBeds: number;
   images?: string[];
   isActive: boolean;
-  isComposite?: boolean;
+  type: 'single' | 'whole';
   componentPropertyIds?: mongoose.Types.ObjectId[];
 }
 
@@ -45,9 +45,10 @@ const PropertySchema = new Schema<IProperty>({
     type: Boolean,
     default: true
   },
-  isComposite: {
-    type: Boolean,
-    default: false
+  type: {
+    type: String,
+    enum: ['single', 'whole'],
+    default: 'single'
   },
   componentPropertyIds: {
     type: [Schema.Types.ObjectId],
@@ -57,6 +58,6 @@ const PropertySchema = new Schema<IProperty>({
   timestamps: true,
 });
 
-PropertySchema.index({ slug: 1 }, { unique: true, sparse: true });
+// PropertySchema.index({ slug: 1 }, { unique: true, sparse: true });
 
 export default mongoose.models.Property || mongoose.model<IProperty>('Property', PropertySchema);
