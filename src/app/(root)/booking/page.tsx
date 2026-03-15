@@ -266,86 +266,92 @@ export default function BookingPage() {
           </div>
         )}
         
-        {!isLoading && searchResults !== null && searchResults.length === 0 && (
-          <div className={styles.emptyState}>
-            <FontAwesomeIcon icon={faExclamationCircle} className={styles.emptyIcon} />
-            <h3>Brak wolnych terminów</h3>
-            <p>Niestety dla wybranej liczby gości i dat nie mamy dostępnych domków.</p>
-            <p>Spróbuj zmienić daty lub zmniejszyć liczbę osób.</p>
-          </div>
-        )}
-        
-        {!isLoading && searchResults !== null && searchResults.length > 0 && (
-          <div className={styles.resultsGrid}>
-            <h3 className={styles.resultsTitle}>
-              Dostępne opcje ({searchResults.length})
-            </h3>
-            
-            {searchResults.map((option) => {
-              const extraBeds = extraBedsMap[option.displayName] || 0
-              const totalPriceWithExtraBeds = getTotalPriceWithExtraBeds(option)
-              
+        {!isLoading && searchResults !== null && (
+          <>
+            {(() => {
+              const availableOptions = searchResults.filter(opt => opt.available);
+              if (availableOptions.length === 0) {
+                return (
+                  <div className={styles.emptyState}>
+                    <FontAwesomeIcon icon={faExclamationCircle} className={styles.emptyIcon} />
+                    <h3>Brak wolnych terminów</h3>
+                    <p>Niestety dla wybranej liczby gości i dat nie mamy dostępnych domków.</p>
+                    <p>Spróbuj zmienić daty lub zmniejszyć liczbę osób.</p>
+                  </div>
+                );
+              }
               return (
-                <div key={option.displayName} className={styles.resultCard}>
-                  <div className={styles.cardHeader}>
-                    <span className={`${styles.cardBadge} ${option.type === 'whole' ? styles.badgeDouble : styles.badgeSingle}`}>
-                      {option.type === 'whole' ? 'CAŁA POSESJA' : 'POJEDYNCZY DOMEK'}
-                    </span>
-                    {option.type === 'whole' && (
-                      <span className={styles.privacyBadge}>Prywatny teren</span>
-                    )}
-                  </div>
-                  
-                  <h4 className={styles.cardTitle}>
-                    {option.type === 'whole' ? (
-                      <>
-                        <FontAwesomeIcon icon={faHouse} className={styles.doubleIcon} />
-                        &nbsp;{option.displayName}
-                      </>
-                    ) : option.displayName}
-                  </h4>
-                  
-                  <p className={styles.cardDesc}>{option.description}</p>
-                  
-                  <div className={styles.cardDetails}>
-                    <span>Pojemność: {option.maxGuests} osób</span>
-                    <span className={styles.separator}> • </span>
-                    <span>Max dostawek: {option.maxExtraBeds}</span>
-                  </div>
-                  
-                  {option.maxExtraBeds > 0 && (
-                    <div className={styles.extraBedsSection}>
-                      <div className={styles.extraBedsHeader}>
-                        <FontAwesomeIcon icon={faBed} className={styles.bedIcon} />
-                        <span className={styles.extraBedsLabel}>Dodatkowe miejsca:</span>
+                <div className={styles.resultsGrid}>
+                  <h3 className={styles.resultsTitle}>
+                    Dostępne opcje ({availableOptions.length})
+                  </h3>
+                  {availableOptions.map((option) => {
+                    const extraBeds = extraBedsMap[option.displayName] || 0
+                    const totalPriceWithExtraBeds = getTotalPriceWithExtraBeds(option)
+                    
+                    return (
+                      <div key={option.displayName} className={styles.resultCard}>
+                        <div className={styles.cardHeader}>
+                          <span className={`${styles.cardBadge} ${option.type === 'whole' ? styles.badgeDouble : styles.badgeSingle}`}>
+                            {option.type === 'whole' ? 'CAŁA POSESJA' : 'POJEDYNCZY DOMEK'}
+                          </span>
+                          {option.type === 'whole' && (
+                            <span className={styles.privacyBadge}>Prywatny teren</span>
+                          )}
+                        </div>
+                        
+                        <h4 className={styles.cardTitle}>
+                          {option.type === 'whole' ? (
+                            <>
+                              <FontAwesomeIcon icon={faHouse} className={styles.doubleIcon} />
+                              &nbsp;{option.displayName}
+                            </>
+                          ) : option.displayName}
+                        </h4>
+                        
+                        <p className={styles.cardDesc}>{option.description}</p>
+                        
+                        <div className={styles.cardDetails}>
+                          <span>Pojemność: {option.maxGuests} osób</span>
+                          <span className={styles.separator}> • </span>
+                          <span>Max dostawek: {option.maxExtraBeds}</span>
+                        </div>
+                        
+                        {option.maxExtraBeds > 0 && (
+                          <div className={styles.extraBedsSection}>
+                            <div className={styles.extraBedsHeader}>
+                              <FontAwesomeIcon icon={faBed} className={styles.bedIcon} />
+                              <span className={styles.extraBedsLabel}>Dodatkowe miejsca:</span>
+                            </div>
+                            <QuantityPicker
+                              value={extraBeds}
+                              onIncrement={() => handleExtraBedsChange(option.displayName, extraBeds + 1)}
+                              onDecrement={() => handleExtraBedsChange(option.displayName, extraBeds - 1)}
+                              min={0}
+                              max={option.maxExtraBeds}
+                            />
+                            <span className={styles.extraBedsPrice}>+{extraBeds * EXTRA_BED_PRICE} zł</span>
+                          </div>
+                        )}
+                        
+                        <div className={styles.cardPrice}>
+                          <span className={styles.priceLabel}>Cena całkowita:</span>
+                          <span className={styles.priceValue}>{totalPriceWithExtraBeds} zł</span>
+                        </div>
+                        
+                        <button
+                          className={styles.btnSelect}
+                          onClick={() => handleSelectOption(option)}
+                        >
+                          Wybieram tę opcję
+                        </button>
                       </div>
-                      <QuantityPicker
-                        value={extraBeds}
-                        onIncrement={() => handleExtraBedsChange(option.displayName, extraBeds + 1)}
-                        onDecrement={() => handleExtraBedsChange(option.displayName, extraBeds - 1)}
-                        min={0}
-                        max={option.maxExtraBeds}
-                      />
-                      <span className={styles.extraBedsPrice}>+{extraBeds * EXTRA_BED_PRICE} zł</span>
-                    </div>
-                  )}
-                  
-                  <div className={styles.cardPrice}>
-                    <span className={styles.priceLabel}>Cena całkowita:</span>
-                    <span className={styles.priceValue}>{totalPriceWithExtraBeds} zł</span>
-                  </div>
-                  
-                  <button
-                    className={styles.btnSelect}
-                    onClick={() => handleSelectOption(option)}
-                    disabled={!option.available}
-                  >
-                    {option.available ? 'Wybieram tę opcję' : 'Niedostępne'}
-                  </button>
+                    )
+                  })}
                 </div>
-              )
-            })}
-          </div>
+              );
+            })()}
+          </>
         )}
       </div>
     </div>

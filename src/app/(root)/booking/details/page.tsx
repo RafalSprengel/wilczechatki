@@ -209,13 +209,45 @@ export default function BookingDetailsPage() {
     );
   }
 
+  const { startDate, endDate, adults, children, extraBeds, selectedOption } = bookingSummary;
+  const nights = Math.ceil(
+    (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
+  );
+
   return (
     <div className={styles.container}>
       <FloatingBackButton />
       <header className={styles.header}>
-        <h1>Dane Gościa</h1>
+        <h1>Dane Gości</h1>
         <p>Wypełnij formularz, aby kontynuować rezerwację</p>
       </header>
+
+      <div className={styles.summaryCard}>
+        <h2 className={styles.summaryTitle}>Dane rezerwacji</h2>
+        <div className={styles.summaryGrid}>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Obiekt:</span>
+            <span className={styles.summaryValue}>{selectedOption?.displayName}</span>
+          </div>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Termin:</span>
+            <span className={styles.summaryValue}>
+              {startDate} — {endDate} ({nights} nocy)
+            </span>
+          </div>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Goście:</span>
+            <span className={styles.summaryValue}>
+              {adults} dorosłych, {children} dzieci
+              {extraBeds > 0 && ` + ${extraBeds} dostawka${extraBeds > 1 ? 'i' : ''}`}
+            </span>
+          </div>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Cena całkowita:</span>
+            <span className={styles.summaryPrice}>{selectedOption?.totalPrice} zł</span>
+          </div>
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} className={styles.formCard}>
         <div className={styles.formSection}>
