@@ -3,8 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { searchAction, SearchOption } from '@/actions/searchActions'
-import { getMaxTotalGuests } from '@/actions/configActions'
+import { searchAction, SearchOption, getMaxTotalGuests } from '@/actions/searchActions'
 import QuantityPicker from '../../_components/QuantityPicker/QuantityPicker'
 import CalendarPicker from '../../_components/CalendarPicker/CalendarPicker'
 import { useClickOutside } from '@/hooks/useClickOutside'
@@ -120,13 +119,18 @@ export default function BookingPage() {
     }))
   }
   
-  const getTotalPrice = (option: SearchOption) => {
+  const getBasePrice = (option: SearchOption) => {
+    return option.totalPrice
+  }
+  
+  const getTotalPriceWithExtraBeds = (option: SearchOption) => {
     const extraBeds = extraBedsMap[option.displayName] || 0
     return option.totalPrice + (extraBeds * EXTRA_BED_PRICE)
   }
   
   const handleSelectOption = (option: SearchOption) => {
     const extraBeds = extraBedsMap[option.displayName] || 0
+    const totalPriceWithExtraBeds = getTotalPriceWithExtraBeds(option)
     
     const draft: BookingDraft = {
       startDate: bookingDates.start!,
@@ -136,7 +140,7 @@ export default function BookingPage() {
       extraBeds,
       selectedOption: {
         ...option,
-        totalPrice: getTotalPrice(option)
+        totalPrice: totalPriceWithExtraBeds
       }
     }
     
@@ -267,7 +271,7 @@ export default function BookingPage() {
             
             {searchResults.map((option) => {
               const extraBeds = extraBedsMap[option.displayName] || 0
-              const totalPrice = getTotalPrice(option)
+              const totalPriceWithExtraBeds = getTotalPriceWithExtraBeds(option)
               
               return (
                 <div key={option.displayName} className={styles.resultCard}>
@@ -316,7 +320,7 @@ export default function BookingPage() {
                   
                   <div className={styles.cardPrice}>
                     <span className={styles.priceLabel}>Cena całkowita:</span>
-                    <span className={styles.priceValue}>{totalPrice} zł</span>
+                    <span className={styles.priceValue}>{totalPriceWithExtraBeds} zł</span>
                   </div>
                   
                   <button

@@ -25,7 +25,6 @@ interface SelectedOption {
   type: 'single' | 'whole';
   displayName: string;
   totalPrice: number;
-  maxGuests: number;
 }
 
 interface BookingDraftData {

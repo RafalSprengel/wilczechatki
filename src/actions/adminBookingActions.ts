@@ -3,7 +3,7 @@ import dbConnect from '@/db/connection'
 import Booking from '@/db/models/Booking'
 import SystemConfig from '@/db/models/SystemConfig'
 import { revalidatePath } from 'next/cache'
-import { calculateTotalPrice as calculatePrice } from './searchActions'
+import { calculateTotalPrice, calculateTotalPriceForWhole } from './searchActions'
 import { Types } from 'mongoose'
 
 interface UnavailableDate {
@@ -17,7 +17,7 @@ export async function getUnavailableDatesForProperty(propertyId: string): Promis
   const query: any = {
     status: { $in: ['confirmed', 'blocked'] }
   }
-  if (!autoBlockOtherCabins && propertyId !== 'allProperties') {
+  if (!autoBlockOtherCabins) {
     query.propertyId = new Types.ObjectId(propertyId)
   }
   const bookings = await Booking.find(query)
@@ -189,7 +189,13 @@ export async function calculatePriceAction(
   }
 ): Promise<{ price: number }> {
   try {
-    const price = await calculatePrice(params)
+    const price = await calculateTotalPrice({
+      startDate: params.startDate,
+      endDate: params.endDate,
+      guests: params.guests,
+      extraBeds: params.extraBeds,
+      propertySelection: params.propertySelection
+    });
     return { price }
   } catch (error) {
     console.error('Błąd podczas obliczania ceny:', error)
