@@ -57,7 +57,7 @@ export default async function PropertiesPage() {
                   <button type="submit" className={styles.btnToggle}>{prop.isActive ? '🔘 Dezaktywuj' : '✅ Aktywuj'}</button>
                 </form>
                 <Link href={`/admin/properties/${prop._id}`} className={styles.btnEdit}>✏️ Edytuj</Link>
-                <DeletePropertyButton propertyId={prop._id} />
+                <DeletePropertyButton propertyId={prop._id} propertyName={prop.name} />
               </div>
             </article>
           ))}

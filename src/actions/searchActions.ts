@@ -6,7 +6,7 @@ import PriceConfig, { ISeason } from '@/db/models/PriceConfig';
 import SystemConfig from '@/db/models/SystemConfig';
 import { Types } from 'mongoose';
 export interface SearchOption {
-  type: 'single' | 'composite';
+  type: 'single' | 'whole';
   propertyIds: string[];
   displayName: string;
   totalPrice: number;
