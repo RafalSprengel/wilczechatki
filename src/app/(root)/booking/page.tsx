@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { searchAction, SearchOption } from '@/actions/searchActions'
+import { getMaxTotalGuests } from '@/actions/configActions'
 import QuantityPicker from '../../_components/QuantityPicker/QuantityPicker'
 import CalendarPicker from '../../_components/CalendarPicker/CalendarPicker'
 import { useClickOutside } from '@/hooks/useClickOutside'
@@ -26,11 +27,6 @@ interface BookingDraft {
   selectedOption: SearchOption | null
 }
 
-interface SearchResult extends SearchOption {
-  basePrice: number
-  extraBedsPrice: number
-}
-
 const STORAGE_KEY = 'wilczechatki_booking_draft'
 const EXTRA_BED_PRICE = 50
 
@@ -39,18 +35,27 @@ export default function BookingPage() {
   const [activeBox, setActiveBox] = useState<string | null>(null)
   const [adults, setAdults] = useState(2)
   const [children, setChildren] = useState(0)
+  const [maxTotalGuests, setMaxTotalGuests] = useState(12)
   const [bookingDates, setBookingDates] = useState<BookingDates>({
     start: null,
     end: null,
     count: 0
   })
   const [isLoading, setIsLoading] = useState(false)
-  const [searchResults, setSearchResults] = useState<SearchResult[] | null>(null)
+  const [searchResults, setSearchResults] = useState<SearchOption[] | null>(null)
   const [extraBedsMap, setExtraBedsMap] = useState<Record<string, number>>({})
   const [hasDraft, setHasDraft] = useState(false)
   
   const guestsRef = useRef<HTMLDivElement>(null)
   const datesRef = useRef<HTMLDivElement>(null)
+  
+  useEffect(() => {
+    const loadMaxGuests = async () => {
+      const max = await getMaxTotalGuests();
+      setMaxTotalGuests(max);
+    };
+    loadMaxGuests();
+  }, []);
   
   useEffect(() => {
     const draft = localStorage.getItem(STORAGE_KEY)
@@ -75,6 +80,7 @@ export default function BookingPage() {
   })
   
   const totalGuests = adults + children
+  const atMaxGuests = totalGuests >= maxTotalGuests
   
   const toggleBox = (boxName: string) => {
     setActiveBox(activeBox === boxName ? null : boxName)
@@ -97,13 +103,7 @@ export default function BookingPage() {
         extraBeds: 0
       })
       
-      const resultsWithBasePrice = results.map(r => ({
-        ...r,
-        basePrice: r.totalPrice,
-        extraBedsPrice: 0
-      }))
-      
-      setSearchResults(resultsWithBasePrice)
+      setSearchResults(results)
     } catch (error) {
       console.error('Search error:', error)
       alert('Wystąpił błąd podczas sprawdzania dostępności.')
@@ -113,25 +113,19 @@ export default function BookingPage() {
     }
   }
   
-  const handleExtraBedsChange = (optionId: string, value: number) => {
+  const handleExtraBedsChange = (optionDisplayName: string, value: number) => {
     setExtraBedsMap(prev => ({
       ...prev,
-      [optionId]: value
+      [optionDisplayName]: value
     }))
   }
   
-  const getTotalPrice = (option: SearchResult) => {
+  const getTotalPrice = (option: SearchOption) => {
     const extraBeds = extraBedsMap[option.displayName] || 0
-    return option.basePrice + (extraBeds * EXTRA_BED_PRICE)
+    return option.totalPrice + (extraBeds * EXTRA_BED_PRICE)
   }
   
-  const getMaxExtraBeds = (option: SearchResult) => {
-    const currentGuests = adults + children
-    const availableSpots = option.maxGuests - currentGuests
-    return Math.min(option.maxExtraBeds, Math.max(0, availableSpots))
-  }
-  
-  const handleSelectOption = (option: SearchResult) => {
+  const handleSelectOption = (option: SearchOption) => {
     const extraBeds = extraBedsMap[option.displayName] || 0
     
     const draft: BookingDraft = {
@@ -195,7 +189,8 @@ export default function BookingPage() {
                 onDecrement={() => setAdults(adults > 0 ? adults - 1 : 0)}
                 value={adults}
                 min={0}
-                max={12}
+                max={maxTotalGuests}
+                disableIncrement={atMaxGuests}
               />
             </div>
             <div className={styles.pickerWrap}>
@@ -205,7 +200,8 @@ export default function BookingPage() {
                 onDecrement={() => setChildren(children > 0 ? children - 1 : 0)}
                 value={children}
                 min={0}
-                max={12}
+                max={maxTotalGuests}
+                disableIncrement={atMaxGuests}
               />
             </div>
             <span className={styles.info}>* Dzieci do lat 13 bezpłatnie</span>
@@ -271,22 +267,21 @@ export default function BookingPage() {
             
             {searchResults.map((option) => {
               const extraBeds = extraBedsMap[option.displayName] || 0
-              const maxExtraBeds = getMaxExtraBeds(option)
               const totalPrice = getTotalPrice(option)
               
               return (
                 <div key={option.displayName} className={styles.resultCard}>
                   <div className={styles.cardHeader}>
-                    <span className={`${styles.cardBadge} ${option.type === 'composite' ? styles.badgeDouble : styles.badgeSingle}`}>
-                      {option.type === 'composite' ? 'CAŁA POSESJA' : 'POJEDYNCZY DOMEK'}
+                    <span className={`${styles.cardBadge} ${option.type === 'whole' ? styles.badgeDouble : styles.badgeSingle}`}>
+                      {option.type === 'whole' ? 'CAŁA POSESJA' : 'POJEDYNCZY DOMEK'}
                     </span>
-                    {option.type === 'composite' && (
+                    {option.type === 'whole' && (
                       <span className={styles.privacyBadge}>Prywatny teren</span>
                     )}
                   </div>
                   
                   <h4 className={styles.cardTitle}>
-                    {option.type === 'composite' ? (
+                    {option.type === 'whole' ? (
                       <>
                         <FontAwesomeIcon icon={faHouse} className={styles.doubleIcon} />
                         &nbsp;{option.displayName}
@@ -302,7 +297,7 @@ export default function BookingPage() {
                     <span>Max dostawek: {option.maxExtraBeds}</span>
                   </div>
                   
-                  {maxExtraBeds > 0 && (
+                  {option.maxExtraBeds > 0 && (
                     <div className={styles.extraBedsSection}>
                       <div className={styles.extraBedsHeader}>
                         <FontAwesomeIcon icon={faBed} className={styles.bedIcon} />
@@ -313,15 +308,9 @@ export default function BookingPage() {
                         onIncrement={() => handleExtraBedsChange(option.displayName, extraBeds + 1)}
                         onDecrement={() => handleExtraBedsChange(option.displayName, extraBeds - 1)}
                         min={0}
-                        max={maxExtraBeds}
+                        max={option.maxExtraBeds}
                       />
                       <span className={styles.extraBedsPrice}>+{extraBeds * EXTRA_BED_PRICE} zł</span>
-                    </div>
-                  )}
-                  
-                  {maxExtraBeds === 0 && totalGuests < option.maxGuests && (
-                    <div className={styles.extraBedsNote}>
-                      Możesz dodać max. {option.maxExtraBeds} dostawek, ale brakuje miejsc dla {totalGuests} osób
                     </div>
                   )}
                   

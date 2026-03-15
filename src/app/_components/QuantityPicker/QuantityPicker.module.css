@@ -40,6 +40,16 @@
   cursor: not-allowed;
 }
 
+.button.disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.button.maxReached {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
 .value {
   font-weight: 600;
   color: #333;

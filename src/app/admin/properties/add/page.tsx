@@ -10,6 +10,7 @@ export default function AddPropertyPage() {
   const formRef = useRef<HTMLFormElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [propertyType, setPropertyType] = useState('single');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -20,6 +21,7 @@ export default function AddPropertyPage() {
     if (result.success) {
       setMessage({ type: 'success', text: result.message });
       formRef.current?.reset();
+      setPropertyType('single');
       setTimeout(() => { router.push('/admin/properties'); router.refresh(); }, 1500);
     } else {
       setMessage({ type: 'error', text: result.message });
@@ -45,7 +47,13 @@ export default function AddPropertyPage() {
             </div>
             <div className={styles.inputGroup}>
               <label htmlFor="type">Typ obiektu *</label>
-              <select id="type" name="type" required defaultValue="single">
+              <select 
+                id="type" 
+                name="type" 
+                required 
+                value={propertyType}
+                onChange={(e) => setPropertyType(e.target.value)}
+              >
                 <option value="single">Pojedynczy domek</option>
                 <option value="whole">Cała posesja</option>
               </select>
@@ -61,37 +69,41 @@ export default function AddPropertyPage() {
             <textarea id="description" name="description" rows={4} placeholder="Krótki opis domku dla gości..." />
           </div>
         </div>
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Pojemność</h2>
-          <div className={styles.grid}>
-            <div className={styles.inputGroup}>
-              <label htmlFor="baseCapacity">Bazowa pojemność *</label>
-              <input
-                id="baseCapacity"
-                name="baseCapacity"
-                type="number"
-                min="1"
-                max="20"
-                defaultValue={6}
-                required
-              />
-              <small className={styles.hint}>Maksymalna liczba osób na podstawowych łóżkach</small>
-            </div>
-            <div className={styles.inputGroup}>
-              <label htmlFor="maxExtraBeds">Maksymalna liczba dostawek *</label>
-              <input
-                id="maxExtraBeds"
-                name="maxExtraBeds"
-                type="number"
-                min="0"
-                max="10"
-                defaultValue={2}
-                required
-              />
-              <small className={styles.hint}>Ile dodatkowych łóżek można dostawić</small>
+
+        {propertyType === 'single' && (
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Pojemność</h2>
+            <div className={styles.grid}>
+              <div className={styles.inputGroup}>
+                <label htmlFor="baseCapacity">Bazowa pojemność *</label>
+                <input
+                  id="baseCapacity"
+                  name="baseCapacity"
+                  type="number"
+                  min="1"
+                  max="20"
+                  defaultValue={6}
+                  required
+                />
+                <small className={styles.hint}>Maksymalna liczba osób na podstawowych łóżkach</small>
+              </div>
+              <div className={styles.inputGroup}>
+                <label htmlFor="maxExtraBeds">Maksymalna liczba dostawek *</label>
+                <input
+                  id="maxExtraBeds"
+                  name="maxExtraBeds"
+                  type="number"
+                  min="0"
+                  max="10"
+                  defaultValue={2}
+                  required
+                />
+                <small className={styles.hint}>Ile dodatkowych łóżek można dostawić</small>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Zdjęcia</h2>
           <div className={styles.inputGroup}>
@@ -100,6 +112,7 @@ export default function AddPropertyPage() {
             <small className={styles.hint}>Wklej ścieżki do zdjęć, oddzielając je przecinkami</small>
           </div>
         </div>
+
         <div className={styles.actions}>
           <button type="button" className={styles.btnCancel} onClick={() => router.back()}>Anuluj</button>
           <button type="submit" className={styles.btnSubmit} disabled={isSubmitting}>{isSubmitting ? 'Zapisuję...' : '💾 Zapisz domek'}</button>

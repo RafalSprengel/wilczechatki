@@ -19,11 +19,11 @@ export interface PropertyType {
   updatedAt: string;
 }
 
-export async function getAllProperties(filter?: { type?: 'single' | 'whole' | 'all' }): Promise<PropertyType[]> {
+export async function getAllProperties(filter?: { type?: 'single' | 'whole' }): Promise<PropertyType[]> {
   await dbConnect();
   
   const query: any = {};
-  if (filter?.type && filter.type !== 'all') {
+  if (filter?.type) {
     query.type = filter.type;
   }
   
@@ -75,13 +75,19 @@ export async function createProperty(formData: FormData) {
     const type = formData.get('type') as string;
     const slug = formData.get('slug') as string;
     const description = formData.get('description') as string;
-    const baseCapacity = parseInt(formData.get('baseCapacity') as string) || 6;
-    const maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string) || 2;
     const imagesString = formData.get('images') as string;
     const images = imagesString ? imagesString.split(',').map(s => s.trim()).filter(Boolean) : [];
 
     if (type !== 'single' && type !== 'whole') {
       return { success: false, message: 'Nieprawidłowy typ obiektu.' };
+    }
+
+    let baseCapacity = 0;
+    let maxExtraBeds = 0;
+
+    if (type === 'single') {
+      baseCapacity = parseInt(formData.get('baseCapacity') as string) || 6;
+      maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string) || 2;
     }
 
     const property = await Property.create({
@@ -111,14 +117,20 @@ export async function updateProperty(id: string, formData: FormData) {
     const type = formData.get('type') as string;
     const slug = formData.get('slug') as string;
     const description = formData.get('description') as string;
-    const baseCapacity = parseInt(formData.get('baseCapacity') as string) || 6;
-    const maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string) || 2;
     const imagesString = formData.get('images') as string;
     const images = imagesString ? imagesString.split(',').map(s => s.trim()).filter(Boolean) : [];
     const isActive = formData.get('isActive') === 'true';
 
     if (type && type !== 'single' && type !== 'whole') {
       return { success: false, message: 'Nieprawidłowy typ obiektu.' };
+    }
+
+    let baseCapacity = 0;
+    let maxExtraBeds = 0;
+
+    if (type === 'single') {
+      baseCapacity = parseInt(formData.get('baseCapacity') as string) || 6;
+      maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string) || 2;
     }
 
     await Property.findByIdAndUpdate(id, {

@@ -58,6 +58,4 @@ const PropertySchema = new Schema<IProperty>({
   timestamps: true,
 });
 
-// PropertySchema.index({ slug: 1 }, { unique: true, sparse: true });
-
 export default mongoose.models.Property || mongoose.model<IProperty>('Property', PropertySchema);

@@ -8,6 +8,7 @@ interface QuantityPickerProps {
     onDecrement: () => void;
     min?: number;
     max?: number;
+    disableIncrement?: boolean;
 }
 
 export default function QuantityPicker({
@@ -15,14 +16,17 @@ export default function QuantityPicker({
     onIncrement,
     onDecrement,
     min = 0,
-    max = 10
+    max = 10,
+    disableIncrement = false
 }: QuantityPickerProps) {
+    const isMaxReached = value >= max || disableIncrement;
+    
     return (
         <div className={styles.container}>
             <div className={styles.controls}>
                 <button
                     type="button"
-                    className={styles.button}
+                    className={`${styles.button} ${value <= min ? styles.disabled : ''}`}
                     onClick={onDecrement}
                     disabled={value <= min}
                 >
@@ -31,9 +35,9 @@ export default function QuantityPicker({
                 <span className={styles.value}>{value}</span>
                 <button
                     type="button"
-                    className={styles.button}
+                    className={`${styles.button} ${isMaxReached ? styles.maxReached : ''}`}
                     onClick={onIncrement}
-                    disabled={value >= max}
+                    disabled={isMaxReached}
                 >
                     +
                 </button>

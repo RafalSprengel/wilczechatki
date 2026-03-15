@@ -11,6 +11,7 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
   const [isDeleting, setIsDeleting] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [isActive, setIsActive] = useState(property.isActive)
+  const [propertyType, setPropertyType] = useState(property.type || 'single')
 
   const handleUpdate = async (formData: FormData) => {
     startTransition(async () => {
@@ -70,7 +71,8 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
                 id="type"
                 name="type"
                 required
-                defaultValue={property.type || 'single'}
+                value={propertyType}
+                onChange={(e) => setPropertyType(e.target.value)}
               >
                 <option value="single">Pojedynczy domek</option>
                 <option value="whole">Cała posesja</option>
@@ -102,37 +104,39 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
           </div>
         </div>
 
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Pojemność</h2>
-          <div className={styles.grid}>
-            <div className={styles.inputGroup}>
-              <label htmlFor="baseCapacity">Bazowa pojemność *</label>
-              <input
-                id="baseCapacity"
-                name="baseCapacity"
-                type="number"
-                min="1"
-                max="20"
-                required
-                defaultValue={property.baseCapacity}
-              />
-              <small className={styles.hint}>Maksymalna liczba osób na podstawowych łóżkach</small>
-            </div>
-            <div className={styles.inputGroup}>
-              <label htmlFor="maxExtraBeds">Maksymalna liczba dostawek *</label>
-              <input
-                id="maxExtraBeds"
-                name="maxExtraBeds"
-                type="number"
-                min="0"
-                max="10"
-                required
-                defaultValue={property.maxExtraBeds}
-              />
-              <small className={styles.hint}>Ile dodatkowych łóżek można dostawić</small>
+        {propertyType === 'single' && (
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Pojemność</h2>
+            <div className={styles.grid}>
+              <div className={styles.inputGroup}>
+                <label htmlFor="baseCapacity">Bazowa pojemność *</label>
+                <input
+                  id="baseCapacity"
+                  name="baseCapacity"
+                  type="number"
+                  min="1"
+                  max="20"
+                  required
+                  defaultValue={property.baseCapacity}
+                />
+                <small className={styles.hint}>Maksymalna liczba osób na podstawowych łóżkach</small>
+              </div>
+              <div className={styles.inputGroup}>
+                <label htmlFor="maxExtraBeds">Maksymalna liczba dostawek *</label>
+                <input
+                  id="maxExtraBeds"
+                  name="maxExtraBeds"
+                  type="number"
+                  min="0"
+                  max="10"
+                  required
+                  defaultValue={property.maxExtraBeds}
+                />
+                <small className={styles.hint}>Ile dodatkowych łóżek można dostawić</small>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Zdjęcia</h2>

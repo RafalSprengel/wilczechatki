@@ -22,11 +22,10 @@ interface GuestData {
 }
 
 interface SelectedOption {
-  type: 'single' | 'double';
+  type: 'single' | 'whole';
   displayName: string;
   totalPrice: number;
   maxGuests: number;
-  propertyIds?: string[];
 }
 
 interface BookingDraftData {
@@ -56,60 +55,59 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
     }
     
     const numberOfGuests = adults + children;
-    
     const bookings = [];
-    
-    let propertyIds = selectedOption.propertyIds || [];
-    
-    if (propertyIds.length === 0) {
-      if (selectedOption.type === 'double') {
-        const properties = await Property.find({ isActive: true }).select('_id');
-        propertyIds = properties.map(p => p._id.toString());
-      } else {
-        const property = await Property.findOne({ name: selectedOption.displayName }).select('_id');
-        if (property) {
-          propertyIds = [property._id.toString()];
-        }
-      }
-    }
-    
-    if (propertyIds.length === 0) {
-      console.error('Nie znaleziono domków w bazie');
-      return { success: false, error: 'Nie można znaleźć domku w bazie' };
-    }
-    
-    if (selectedOption.type === 'double') {
-      const baseExtraBedsPerCabin = Math.floor(extraBeds / propertyIds.length);
-      const remainingExtraBeds = extraBeds % propertyIds.length;
+
+    if (selectedOption.type === 'whole') {
+      const properties = await Property.find({ isActive: true, type: 'single' }).sort({ name: 1 });
       
-      for (let i = 0; i < propertyIds.length; i++) {
-        const extraBedsForThisCabin = baseExtraBedsPerCabin + (i < remainingExtraBeds ? 1 : 0);
-        const guestsPerCabin = Math.ceil(numberOfGuests / propertyIds.length);
-        
+      if (properties.length === 0) {
+        console.error('Brak aktywnych domków w bazie');
+        return { success: false, error: 'Brak dostępnych domków' };
+      }
+
+      let remainingGuests = numberOfGuests;
+      let remainingExtraBeds = extraBeds;
+      const totalPricePerBooking = Number((selectedOption.totalPrice / properties.length).toFixed(2));
+
+      for (let i = 0; i < properties.length; i++) {
+        const property = properties[i];
+        const guestsForThisCabin = Math.min(remainingGuests, property.baseCapacity);
+        const extraBedsForThisCabin = Math.min(remainingExtraBeds, property.maxExtraBeds);
+
         bookings.push({
-          propertyId: new Types.ObjectId(propertyIds[i]),
+          propertyId: new Types.ObjectId(property._id.toString()),
           startDate: new Date(startDate),
           endDate: new Date(endDate),
           guestName: `${guestData.firstName} ${guestData.lastName}`,
           guestEmail: guestData.email,
           guestPhone: guestData.phone,
           guestAddress: guestData.address,
-          numberOfGuests: guestsPerCabin,
+          numberOfGuests: guestsForThisCabin,
           extraBedsCount: extraBedsForThisCabin,
-          totalPrice: Number((selectedOption.totalPrice / propertyIds.length).toFixed(2)),
+          totalPrice: totalPricePerBooking,
           status: 'confirmed',
           bookingType: 'real',
           invoice: guestData.invoice,
           invoiceData: guestData.invoiceData,
-          customerNotes: `Rezerwacja całej posesji. Dzieci: ${children}`,
+          customerNotes: `Rezerwacja całej posesji`,
           source: 'customer',
           createdAt: new Date(),
           updatedAt: new Date()
         });
+
+        remainingGuests -= guestsForThisCabin;
+        remainingExtraBeds -= extraBedsForThisCabin;
       }
     } else {
+      const property = await Property.findOne({ name: selectedOption.displayName, isActive: true }).select('_id');
+      
+      if (!property) {
+        console.error('Nie znaleziono domku w bazie');
+        return { success: false, error: 'Nie można znaleźć domku w bazie' };
+      }
+
       bookings.push({
-        propertyId: new Types.ObjectId(propertyIds[0]),
+        propertyId: new Types.ObjectId(property._id.toString()),
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         guestName: `${guestData.firstName} ${guestData.lastName}`,
@@ -123,7 +121,7 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
         bookingType: 'real',
         invoice: guestData.invoice,
         invoiceData: guestData.invoiceData,
-        customerNotes: `Dzieci: ${children}`,
+        customerNotes: '',
         source: 'customer',
         createdAt: new Date(),
         updatedAt: new Date()
