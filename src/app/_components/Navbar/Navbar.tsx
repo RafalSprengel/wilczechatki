@@ -67,6 +67,7 @@ export default function Navbar({isSmaller}: {isSmaller: boolean}) {
                             <li onClick={closeMobileMenu}><Link href="/#attractions">KASZUBY</Link></li>
                             <li onClick={closeMobileMenu}><Link href="/#contact">KONTAKT</Link></li>
                             <li onClick={closeMobileMenu}><Link href="/booking">REZERWACJE</Link></li>
+                            <li onClick={closeMobileMenu}><Link href="/admin">(ADMIN PANEL)</Link></li>
                         </ul>
                     </div>
                 </div>
