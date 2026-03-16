@@ -4,26 +4,59 @@ import dbConnect from '@/db/connection';
 import BookingConfig from '@/db/models/BookingConfig';
 import { revalidatePath } from 'next/cache';
 
+export interface BookingConfig {
+  minBookingDays: number;
+  maxBookingDays: number;
+  highSeasonStart: string | null;
+  highSeasonEnd: string | null;
+  childrenFreeAgeLimit: number;
+  allowCheckinOnDepartureDay: boolean;
+  checkInHour: number;
+  checkOutHour: number;
+}
+
 async function ensureBookingConfigExists() {
   await dbConnect();
   const exists = await BookingConfig.findById('main');
   if (!exists) {
-    await BookingConfig.create({ 
+    await BookingConfig.create({
       _id: 'main',
-      allowCheckinOnDepartureDay: true 
+      allowCheckinOnDepartureDay: true,
+      checkInHour: 15,
+      checkOutHour: 12
     });
   }
 }
 
-export async function getBookingConfig() {
+export async function getBookingConfig() : Promise<BookingConfig>{
   await ensureBookingConfigExists();
   const config = await BookingConfig.findById('main').lean();
   return {
     minBookingDays: config?.minBookingDays ?? 1,
     maxBookingDays: config?.maxBookingDays ?? 30,
+    highSeasonEnd: config?.highSeasonEnd ?? null,
+    highSeasonStart: config?.highSeasonStart ?? null,
     childrenFreeAgeLimit: config?.childrenFreeAgeLimit ?? 13,
-    allowCheckinOnDepartureDay: config?.allowCheckinOnDepartureDay ?? true
+    allowCheckinOnDepartureDay: config?.allowCheckinOnDepartureDay ?? true,
+    checkInHour: config?.checkInHour ?? 15,
+    checkOutHour: config?.checkOutHour ?? 12
   };
+}
+
+export async function updateAllowCheckinOnDepartureDay(allow: boolean) {
+  try {
+    await dbConnect();
+    await BookingConfig.findByIdAndUpdate(
+      'main',
+      { allowCheckinOnDepartureDay: allow },
+      { upsert: true }
+    );
+    revalidatePath('/admin/settings/booking');
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: 'Błąd zapisu' };
+  }
 }
 
 export async function updateBookingConfig(prevState: any, formData: FormData) {
@@ -33,6 +66,12 @@ export async function updateBookingConfig(prevState: any, formData: FormData) {
     const maxBookingDays = parseInt(formData.get('maxBookingDays') as string) || 30;
     const childrenFreeAgeLimit = parseInt(formData.get('childrenFreeAgeLimit') as string) || 13;
     const allowCheckinOnDepartureDay = formData.get('allowCheckinOnDepartureDay') === 'on';
+    const checkInHour = parseInt(formData.get('checkInHour') as string) || 15;
+    const checkOutHour = parseInt(formData.get('checkOutHour') as string) || 12;
+
+    if (checkInHour < 0 || checkInHour > 23 || checkOutHour < 0 || checkOutHour > 23) {
+      return { success: false, message: 'Godziny muszą być w zakresie 0-23.' };
+    }
 
     await BookingConfig.findByIdAndUpdate(
       'main',
@@ -40,7 +79,9 @@ export async function updateBookingConfig(prevState: any, formData: FormData) {
         minBookingDays,
         maxBookingDays,
         childrenFreeAgeLimit,
-        allowCheckinOnDepartureDay
+        allowCheckinOnDepartureDay,
+        checkInHour,
+        checkOutHour
       },
       { upsert: true, new: true }
     );

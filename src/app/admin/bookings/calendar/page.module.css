@@ -23,7 +23,7 @@
     padding: 1rem;
     max-width: 100%;
     margin: 0 auto;
-    font-family: var(--font-body), sans-serif;
+    font-family: inherit;
     min-height: 85vh;
 }
 
@@ -52,20 +52,13 @@
     border-color: var(--cal-color-primary);
 }
 
-.monthTitle {
-    font-size: 1.5rem;
-    margin: 0;
-    color: var(--cal-color-text-dark);
-    min-width: 200px;
-    text-align: center;
-}
-
 .tableWrapper {
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border: 1px solid var(--cal-color-border);
     position: relative;
     background: white;
+    overflow-x: auto;
 }
 
 .calendarTable {
@@ -74,173 +67,99 @@
     border-spacing: 0;
     table-layout: fixed;
     font-size: 0.75rem;
-    background: white;
 }
 
 .calendarTable th,
 .calendarTable td {
-    padding: 6px 4px;
+    padding: 10px 6px;
     text-align: center;
     border-bottom: 1px solid #eee;
     border-right: 1px solid #f5f5f5;
     vertical-align: middle;
-    white-space: nowrap;
-}
-
-.calendarTable th:last-child,
-.calendarTable td:last-child {
-    border-right: none;
+    position: relative;
 }
 
 .calendarTable th {
     background-color: var(--cal-color-header-bg);
     color: #444;
     font-weight: 700;
-    font-size: 0.7rem;
     text-transform: uppercase;
-    height: 40px;
-    width: 100px;
-}
-
-.calendarTable th:first-child,
-.calendarTable td:first-child {
-    width: 100px;
-    min-width: 100px;
-}
-
-.calendarTable th:not(:first-child),
-.calendarTable td:not(:first-child) {
-    width: 80px;
-    min-width: 80px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: 2px solid #ccc;
+    height: 45px;
 }
 
 .stickyCol {
     position: sticky;
     left: 0;
-    z-index: 10;
+    z-index: 25;
     background-color: #fafafa;
-    border-right: 2px solid #ccc;
+    border-right: 2px solid #ccc !important;
+    width: 110px;
+    min-width: 110px;
 }
 
 .calendarTable thead th.stickyCol {
-    top: 0;
-    left: 0;
     z-index: 30;
-    background-color: var(--cal-color-header-bg);
-}
-
-.calendarTable thead th {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    background-color: var(--cal-color-header-bg);
-    border-bottom: 2px solid #ccc;
 }
 
 .dateCell {
     font-weight: 700;
-    color: var(--cal-color-text-dark);
-    background-color: #fafafa;
-    padding: 4px 2px;
 }
 
 .weekendCell {
     background-color: var(--cal-color-weekend-bg);
-    color: var(--cal-color-text-dark);
 }
 
 .dateContent {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    line-height: 1.2;
 }
 
-.dateDay {
-    font-size: 0.8rem;
-}
+.dateDay { font-size: 0.8rem; }
+.dateWeekday { font-size: 0.65rem; color: var(--cal-color-text-light); }
 
-.dateWeekday {
-    font-size: 0.65rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--cal-color-text-light);
-}
+.cell { transition: background-color 0.2s; }
 
-.cell {
-    transition: background-color 0.2s;
-}
+.free { color: var(--cal-color-primary); font-weight: 600; }
+.booked { background-color: var(--cal-color-booked-bg); color: var(--cal-color-booked); font-weight: 700; }
+.blockedSys { background-color: var(--cal-color-blocked-bg); color: var(--cal-color-blocked); }
 
-.free {
-    background-color: var(--cal-color-primary-bg);
-    color: var(--cal-color-primary);
-    font-weight: 600;
-    cursor: pointer;
-}
+.statusText { display: block; line-height: 1.2; }
 
-.booked {
-    background-color: var(--cal-color-booked-bg);
-    color: var(--cal-color-booked);
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.blockedSys {
-    background-color: var(--cal-color-blocked-bg);
-    color: var(--cal-color-blocked);
-    font-size: 0.7rem;
-}
-
-.statusText {
-    line-height: 1.2;
-    display: block;
-}
-
+/* TOOLTIP STYLES */
 .tooltipContainer {
     position: absolute;
-    bottom: 100%;
+    bottom: 90%;
     left: 50%;
-    transform: translateX(-50%) translateY(-5px);
-    width: 240px;
-    max-width: 90vw;
-    z-index: 200;
+    transform: translateX(-50%) translateY(10px);
+    width: 260px;
+    z-index: 300;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease;
     pointer-events: none;
 }
 
-td:hover .tooltipContainer,
-td:focus-within .tooltipContainer {
+td:hover .tooltipContainer {
     opacity: 1;
     visibility: visible;
-    transform: translateX(-50%) translateY(-2px);
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
 }
 
 .tooltip {
     background: white;
-    border-radius: 6px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-    border: 1px solid #eaeaea;
-    padding: 10px;
-    font-size: 0.75rem;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border: 1px solid #ddd;
+    padding: 12px;
     color: #333;
-    line-height: 1.4;
-    position: relative;
-    overflow: hidden;
     text-align: left;
-    pointer-events: auto;
-}
-
-.tooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: white transparent transparent transparent;
+    line-height: 1.4;
 }
 
 .tooltipHeader {
@@ -248,85 +167,36 @@ td:focus-within .tooltipContainer {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
-    padding-bottom: 6px;
     border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 6px;
 }
 
 .guestNameText {
     margin: 0;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #111;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 60%;
+    font-size: 0.95rem;
+    font-weight: 800;
+    font-style: italic;
 }
 
 .badge {
     background: #e8f5e9;
     color: #2e7d32;
-    padding: 2px 6px;
-    border-radius: 10px;
+    padding: 2px 8px;
+    border-radius: 12px;
     font-size: 0.6rem;
     font-weight: 700;
-    text-transform: uppercase;
-    flex-shrink: 0;
 }
 
 .tooltipRow {
     display: flex;
     justify-content: space-between;
     margin-bottom: 4px;
-    gap: 8px;
-    align-items: flex-start;
-}
-
-.label {
-    color: var(--cal-color-text-light);
-    font-weight: 600;
-    white-space: nowrap;
-    flex-shrink: 0;
-    font-size: 0.65rem;
-}
-
-.valueText {
-    text-align: right;
-    word-break: break-word;
-    font-size: 0.7rem;
-    color: #222;
-    font-weight: 500;
-    overflow-wrap: anywhere;
-    line-height: 1.3;
-}
-
-.clickableLink {
-    color: var(--cal-link-color);
-    text-decoration: none;
-    border-bottom: 1px dotted var(--cal-link-color);
-    transition: color 0.2s;
-    cursor: pointer;
-}
-
-.clickableLink:hover {
-    color: var(--cal-link-hover);
-    border-bottom-style: solid;
-    text-decoration: none;
-}
-
-.priceValue {
-    font-weight: 700;
-    color: var(--cal-color-primary);
     font-size: 0.75rem;
-    white-space: nowrap;
+    gap: 10px;
 }
 
-.contactValue {
-    font-size: 0.65rem;
-    color: #444;
-    max-width: 130px;
-    display: inline-block;
-}
+.label { color: var(--cal-color-text-light); font-weight: 600; }
+.valueText { font-weight: 600; text-align: right; }
 
 .tooltipSection {
     margin-top: 8px;
@@ -334,187 +204,39 @@ td:focus-within .tooltipContainer {
     border-top: 1px dashed #eee;
 }
 
-.legend {
-    display: flex;
-    gap: 0.8rem;
-    justify-content: center;
-    flex-wrap: wrap;
-    font-size: 0.7rem;
-    color: #555;
-    padding: 0.8rem 0 0 0;
+.clickableLink {
+    color: var(--cal-link-color);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--cal-link-color);
 }
 
-.legend span {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-}
+.priceValue { color: var(--cal-color-primary); font-weight: 700; }
 
-.dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    display: inline-block;
-    flex-shrink: 0;
-}
+.paymentPaid { color: #16a34a; }
+.paymentDeposit { color: #ca8a04; }
+.paymentUnpaid { color: #dc2626; }
 
-.bookedDot {
-    background-color: var(--cal-color-booked);
-}
-
-.cleaningDot {
-    background-color: var(--cal-color-cleaning);
-}
-
-.blockedSysDot {
-    background-color: var(--cal-color-blocked);
-}
-
-.freeDot {
-    background-color: var(--cal-color-primary);
-}
+/* LEGEND & NAV */
+.legend { display: flex; gap: 1rem; justify-content: center; margin-top: 1rem; font-size: 0.75rem; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.bookedDot { background-color: var(--cal-color-booked); }
+.blockedSysDot { background-color: var(--cal-color-blocked); }
+.freeDot { background-color: var(--cal-color-primary); }
 
 .navButton {
     background: white;
     border: 1px solid var(--cal-color-border);
     border-radius: 6px;
-    width: 40px;
+    width: 42px;
     height: 42px;
-    font-size: 1.5rem;
-    line-height: 1;
     cursor: pointer;
+    font-size: 1.4rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--cal-color-text-dark);
-    transition: all 0.2s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    padding: 0;
 }
 
-.navButton:hover {
-    background-color: var(--cal-color-header-bg);
-    color: var(--cal-color-primary);
-    border-color: var(--cal-color-primary);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+.loadingOverlay { padding: 3rem; text-align: center; color: var(--cal-color-primary); font-weight: bold; }
 
-.navButton:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.pastRow {
-    opacity: 0.6;
-}
-
-.pastDate {
-    color: var(--cal-past-text) !important;
-    background-color: var(--cal-past-bg) !important;
-}
-
-.pastFree {
-    background-color: var(--cal-past-bg) !important;
-    color: var(--cal-past-text) !important;
-}
-
-.pastBooked {
-    background-color: var(--cal-past-bg) !important;
-    color: var(--cal-past-text) !important;
-}
-
-.pastBlocked {
-    background-color: var(--cal-past-bg) !important;
-    color: var(--cal-past-text) !important;
-}
-
-.pastRow td:hover .tooltipContainer {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(-2px);
-}
-
-.pastRow .tooltip {
-    opacity: 1;
-    visibility: visible;
-}
-
-.pastRow .statusText {
-    color: var(--cal-past-text) !important;
-}
-
-.pastRow .badge {
-    opacity: 0.6;
-}
-
-.paymentPaid {
-    color: #16a34a;
-    font-weight: 600;
-}
-
-.paymentDeposit {
-    color: #ca8a04;
-    font-weight: 600;
-}
-
-.paymentUnpaid {
-    color: #dc2626;
-    font-weight: 600;
-}
-
-@media (max-width: 480px) {
-    .headerControls {
-        gap: 0.7rem;
-    }
-
-    .selectInput {
-        min-width: 80px;
-        font-size: 0.9rem;
-        padding: 0.4rem;
-    }
-
-    .calendarTable {
-        font-size: 0.65rem;
-    }
-
-    .calendarTable th:first-child,
-    .calendarTable td:first-child {
-        width: 80px;
-        min-width: 80px;
-    }
-
-    .calendarTable th:not(:first-child),
-    .calendarTable td:not(:first-child) {
-        width: 70px;
-        min-width: 70px;
-    }
-
-    .dateDay {
-        font-size: 0.75rem;
-    }
-
-    .dateWeekday {
-        font-size: 0.6rem;
-    }
-
-    .guestNameText {
-        font-size: 0.8rem;
-    }
-
-    .legend {
-        font-size: 0.65rem;
-        gap: 0.5rem;
-    }
-
-    .dot {
-        width: 8px;
-        height: 8px;
-    }
-
-    .navButton {
-        width: 36px;
-        height: 38px;
-        font-size: 1.2rem;
-    }
-}
+.pastRow { opacity: 0.6; }
+.pastFree, .pastBooked, .pastBlocked { background-color: var(--cal-past-bg) !important; color: var(--cal-past-text) !important; }

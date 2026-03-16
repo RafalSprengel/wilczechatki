@@ -3,7 +3,7 @@ import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBac
 import BookingSettingsForm from './BookingSettingsForm';
 
 export default async function BookingSettingsPage() {
-  const config = await getBookingConfig();
+  const config  = await getBookingConfig();
 
   return (
     <div className="admin-settings-container">

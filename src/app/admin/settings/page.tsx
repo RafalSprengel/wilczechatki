@@ -27,18 +27,6 @@ export default async function SettingsPage() {
           </div>
         </div>
       </section>
-      <section className="settings-card">
-        <div className="card-header">
-          <h2 className="card-title">Limity i Zasady</h2>
-        </div>
-        <div className="setting-row">
-          <div className="setting-content">
-            <p className="setting-info-text">Maksymalna liczba gości na domek: <strong>{config.maxGuestsPerCabin}</strong> osób</p>
-            <p className="setting-info-text">Dzieci bezpłatne do lat: <strong>{config.childrenFreeAgeLimit}</strong></p>
-            <button className="btn-secondary" disabled>Edytuj limity (wkrótce)</button>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

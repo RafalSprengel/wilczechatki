@@ -1,14 +1,10 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
+import { getBookingConfig } from '@/actions/bookingConfigActions';
+import BackButton from './BackButton';
 import styles from './page.module.css';
 
-export default function TermsAndConditionsPage() {
-  const router = useRouter();
-
-  const handleBack = () => {
-    router.back();
-  };
+export default async function TermsAndConditionsPage() {
+  const config = await getBookingConfig();
+  const { checkInHour, checkOutHour } = config;
 
   return (
     <div className={styles.wrapper}>
@@ -23,12 +19,8 @@ export default function TermsAndConditionsPage() {
 
         <ul className={styles.list}>
           <li>
-            <strong>Doba trwa</strong> od <span className={styles.highlight}>15:00</span> w dniu przyjazdu do{' '}
-            <span className={styles.highlight}>12:00</span> w dniu wyjazdu.
-          </li>
-          <li>
-            W domkach <strong>nie palimy</strong> (papierosów ani e‑papierosów). Na zewnątrz – jak najbardziej{' '}
-            <span className={styles.emoji}>👍</span>
+            <strong>Doba trwa</strong> od <span className={styles.highlight}>{checkInHour}:00</span> w dniu przyjazdu do{' '}
+            <span className={styles.highlight}>{checkOutHour}:00</span> w dniu wyjazdu.
           </li>
           <li>
             W godzinach <span className={styles.highlight}>22:00 – 6:00</span> obowiązuje cisza nocna – las też chce spać{' '}
@@ -60,9 +52,7 @@ export default function TermsAndConditionsPage() {
           </p>
         </div>
 
-        <button onClick={handleBack} className={styles.backButton}>
-          ← Powrót
-        </button>
+        <BackButton />
       </div>
     </div>
   );

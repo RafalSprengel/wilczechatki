@@ -1,7 +1,7 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
-import { updateBookingConfig } from '@/actions/bookingConfigActions';
+import { useActionState, useEffect, useState, useTransition } from 'react';
+import { updateBookingConfig, updateAllowCheckinOnDepartureDay } from '@/actions/bookingConfigActions';
 import '../settings.css';
 
 interface BookingConfig {
@@ -10,7 +10,9 @@ interface BookingConfig {
   highSeasonStart: string | null;
   highSeasonEnd: string | null;
   childrenFreeAgeLimit: number;
-  allowCheckinOnDepartureDay: boolean; // NOWE
+  allowCheckinOnDepartureDay: boolean;
+  checkInHour: number;
+  checkOutHour: number;
 }
 
 interface Props {
@@ -26,6 +28,24 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
   const [showMessage, setShowMessage] = useState(false);
   const [message, setMessage] = useState({ text: '', success: false });
 
+  // Stany lokalne dla pól, które wymagają zatwierdzenia formularzem
+  const [localMinDays, setLocalMinDays] = useState(initialConfig.minBookingDays);
+  const [localMaxDays, setLocalMaxDays] = useState(initialConfig.maxBookingDays);
+  const [localHighSeasonStart, setLocalHighSeasonStart] = useState(initialConfig.highSeasonStart);
+  const [localHighSeasonEnd, setLocalHighSeasonEnd] = useState(initialConfig.highSeasonEnd);
+  const [localChildrenFreeAge, setLocalChildrenFreeAge] = useState(initialConfig.childrenFreeAgeLimit);
+  const [localCheckInHour, setLocalCheckInHour] = useState(initialConfig.checkInHour);
+  const [localCheckOutHour, setLocalCheckOutHour] = useState(initialConfig.checkOutHour);
+
+  // Stany dla przełącznika (działa natychmiast)
+  const [allowCheckin, setAllowCheckin] = useState(initialConfig.allowCheckinOnDepartureDay);
+  const [togglePending, startToggleTransition] = useTransition();
+
+  // Efekt do aktualizacji stanu po zmianie initialConfig (np. po odświeżeniu)
+  useEffect(() => {
+    setAllowCheckin(initialConfig.allowCheckinOnDepartureDay);
+  }, [initialConfig.allowCheckinOnDepartureDay]);
+
   useEffect(() => {
     if (state.message) {
       setMessage({ text: state.message, success: state.success });
@@ -37,8 +57,30 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
     }
   }, [state]);
 
+  const handleToggle = () => {
+    const newValue = !allowCheckin;
+    startToggleTransition(async () => {
+      const result = await updateAllowCheckinOnDepartureDay(newValue);
+      if (result.success) {
+        setAllowCheckin(newValue); // aktualizujemy stan lokalny
+      } else {
+        // opcjonalnie pokaż błąd
+        alert(result.message || 'Błąd zapisu');
+      }
+    });
+  };
+
   return (
     <form action={formAction} className="settings-card">
+      {/* Ukryte pola formularza – ich wartości pochodzą ze stanów lokalnych */}
+      <input type="hidden" name="minBookingDays" value={localMinDays} />
+      <input type="hidden" name="maxBookingDays" value={localMaxDays} />
+      <input type="hidden" name="highSeasonStart" value={localHighSeasonStart || ''} />
+      <input type="hidden" name="highSeasonEnd" value={localHighSeasonEnd || ''} />
+      <input type="hidden" name="childrenFreeAgeLimit" value={localChildrenFreeAge} />
+      <input type="hidden" name="checkInHour" value={localCheckInHour} />
+      <input type="hidden" name="checkOutHour" value={localCheckOutHour} />
+
       <div className="card-header">
         <h2 className="card-title">Długość pobytu</h2>
       </div>
@@ -51,10 +93,10 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
           <input
             type="number"
             id="minBookingDays"
-            name="minBookingDays"
             min="1"
             max="30"
-            defaultValue={initialConfig.minBookingDays}
+            value={localMinDays}
+            onChange={(e) => setLocalMinDays(parseInt(e.target.value) || 1)}
             className="number-input"
           />
         </div>
@@ -69,10 +111,10 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
           <input
             type="number"
             id="maxBookingDays"
-            name="maxBookingDays"
             min="1"
             max="90"
-            defaultValue={initialConfig.maxBookingDays}
+            value={localMaxDays}
+            onChange={(e) => setLocalMaxDays(parseInt(e.target.value) || 1)}
             className="number-input"
           />
         </div>
@@ -89,8 +131,8 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
           <input
             type="date"
             id="highSeasonStart"
-            name="highSeasonStart"
-            defaultValue={initialConfig.highSeasonStart ? new Date(initialConfig.highSeasonStart).toISOString().split('T')[0] : ''}
+            value={localHighSeasonStart ? new Date(localHighSeasonStart).toISOString().split('T')[0] : ''}
+            onChange={(e) => setLocalHighSeasonStart(e.target.value || null)}
             className="date-input"
           />
         </div>
@@ -103,8 +145,8 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
           <input
             type="date"
             id="highSeasonEnd"
-            name="highSeasonEnd"
-            defaultValue={initialConfig.highSeasonEnd ? new Date(initialConfig.highSeasonEnd).toISOString().split('T')[0] : ''}
+            value={localHighSeasonEnd ? new Date(localHighSeasonEnd).toISOString().split('T')[0] : ''}
+            onChange={(e) => setLocalHighSeasonEnd(e.target.value || null)}
             className="date-input"
           />
         </div>
@@ -121,16 +163,15 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
           <input
             type="number"
             id="childrenFreeAgeLimit"
-            name="childrenFreeAgeLimit"
             min="0"
             max="18"
-            defaultValue={initialConfig.childrenFreeAgeLimit}
+            value={localChildrenFreeAge}
+            onChange={(e) => setLocalChildrenFreeAge(parseInt(e.target.value) || 0)}
             className="number-input"
           />
         </div>
       </div>
 
-      {/* NOWY WPIS */}
       <div className="card-header card-header-spaced">
         <h2 className="card-title">Dostępność terminów</h2>
       </div>
@@ -140,16 +181,67 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
             Zezwalaj na zameldowanie w dniu wymeldowania poprzednich gości
           </label>
           <p className="setting-description">
-            Jeśli włączone, nowi goście mogą przyjechać tego samego dnia, w którym poprzedni wyjeżdżają (po 11:00).<br />
+            Jeśli włączone, nowi goście mogą przyjechać tego samego dnia, w którym poprzedni wyjeżdżają (po {localCheckOutHour}:00).<br />
             Jeśli wyłączone, dzień wymeldowania jest niedostępny dla nowych rezerwacji.
           </p>
         </div>
         <div className="setting-control">
+          <div className="toggle-wrapper">
+            <button
+              type="button"
+              onClick={handleToggle}
+              disabled={togglePending}
+              className={`toggle-switch ${allowCheckin ? 'toggle-on' : 'toggle-off'} ${togglePending ? 'toggle-disabled' : ''}`}
+              aria-pressed={allowCheckin}
+            >
+              <span className="toggle-knob" />
+            </button>
+            <span className={`toggle-status-label ${allowCheckin ? 'status-active' : 'status-inactive'}`}>
+              {allowCheckin ? 'WŁĄCZONE' : 'WYŁĄCZONE'}
+            </span>
+            {togglePending && <span className="loading-spinner">Zapisywanie...</span>}
+          </div>
+        </div>
+      </div>
+
+      <div className="card-header card-header-spaced">
+        <h2 className="card-title">Doba hotelowa</h2>
+      </div>
+      <div className="setting-row">
+        <div className="setting-content">
+          <label htmlFor="checkInHour" className="setting-label">Godzina rozpoczęcia doby (check-in)</label>
+          <p className="setting-description">Od której godziny można się zameldować w dniu przyjazdu.</p>
+        </div>
+        <div className="setting-control">
           <input
-            type="checkbox"
-            id="allowCheckinOnDepartureDay"
-            name="allowCheckinOnDepartureDay"
-            defaultChecked={initialConfig.allowCheckinOnDepartureDay}
+            type="number"
+            id="checkInHour"
+            name="checkInHour"
+            min="0"
+            max="23"
+            step="1"
+            value={localCheckInHour}
+            onChange={(e) => setLocalCheckInHour(parseInt(e.target.value) || 0)}
+            className="number-input"
+          />
+        </div>
+      </div>
+      <div className="setting-row">
+        <div className="setting-content">
+          <label htmlFor="checkOutHour" className="setting-label">Godzina zakończenia doby (check-out)</label>
+          <p className="setting-description">Do której godziny trzeba opuścić domek w dniu wyjazdu.</p>
+        </div>
+        <div className="setting-control">
+          <input
+            type="number"
+            id="checkOutHour"
+            name="checkOutHour"
+            min="0"
+            max="23"
+            step="1"
+            value={localCheckOutHour}
+            onChange={(e) => setLocalCheckOutHour(parseInt(e.target.value) || 0)}
+            className="number-input"
           />
         </div>
       </div>
