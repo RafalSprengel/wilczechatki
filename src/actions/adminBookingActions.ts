@@ -79,7 +79,7 @@ export async function getBookingById(bookingId: string) {
   return JSON.parse(JSON.stringify(booking))
 }
 
-export async function createManualBooking(prevState: any, formData: FormData) {
+export async function createBookingByAdmin(prevState: any, formData: FormData) {
   await dbConnect()
   const rawData = Object.fromEntries(formData.entries())
   const validationErrors = validateBookingData(rawData)
@@ -106,7 +106,6 @@ export async function createManualBooking(prevState: any, formData: FormData) {
       totalPrice: Number(rawData.totalPrice),
       paidAmount: Number(rawData.paidAmount),
       status: 'confirmed',
-      bookingType: 'real',
       invoice: rawData.invoice === 'true',
       invoiceData,
       customerNotes: rawData.internalNotes,
@@ -148,7 +147,6 @@ export async function updateBookingAction(prevState: any, formData: FormData) {
       totalPrice: Number(rawData.totalPrice),
       paidAmount: Number(rawData.paidAmount),
       status: 'confirmed',
-      bookingType: 'real',
       invoice: rawData.invoice === 'true',
       invoiceData,
       customerNotes: rawData.internalNotes,

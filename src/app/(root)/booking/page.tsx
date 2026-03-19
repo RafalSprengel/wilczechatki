@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { searchAction, SearchOption, getMaxTotalGuests } from '@/actions/searchActions'
 import { getBookingConfig } from '@/actions/bookingConfigActions'
-import { getBlockedDates } from '@/actions/bookingActions' // NOWE
+import { getBlockedDates } from '@/actions/bookingActions'
 import QuantityPicker from '../../_components/QuantityPicker/QuantityPicker'
 import CalendarPicker from '../../_components/CalendarPicker/CalendarPicker'
 import { useClickOutside } from '@/hooks/useClickOutside'
@@ -68,7 +68,6 @@ export default function BookingPage() {
     loadConfig();
   }, []);
 
-  // NOWE: Pobierz zablokowane daty po załadowaniu strony
   useEffect(() => {
     const loadBlockedDates = async () => {
       const dates = await getBlockedDates();
@@ -76,7 +75,7 @@ export default function BookingPage() {
     };
     loadBlockedDates();
   }, []);
-
+console.log(blockedDates);
   useEffect(() => {
     const draft = localStorage.getItem(STORAGE_KEY)
     if (draft) {
@@ -251,7 +250,7 @@ export default function BookingPage() {
             className={`${styles.setDate} ${activeBox === 'dates' ? styles.expandedDate : ''}`}
           >
             <CalendarPicker
-              unavailableDates={blockedDates} // NOWE: przekazujemy pobrane daty
+              unavailableDates={blockedDates}
               onDateChange={setBookingDates}
               minBookingDays={minBookingDays}
               maxBookingDays={maxBookingDays}

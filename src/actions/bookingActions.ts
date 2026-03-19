@@ -51,25 +51,25 @@ interface BookingDraftData {
 export async function createBookingFromDraft(draftData: BookingDraftData) {
   try {
     await dbConnect();
-    
+
     const { startDate, endDate, adults, children, extraBeds, selectedOption, guestData } = draftData;
-    
+
     if (!selectedOption) {
       console.error('Brak selectedOption');
       return { success: false, error: 'Brak wybranego obiektu' };
     }
-    
+
     if (!guestData.firstName || !guestData.lastName || !guestData.email || !guestData.phone) {
       console.error('Niekompletne dane gościa');
       return { success: false, error: 'Niekompletne dane gościa' };
     }
-    
+
     const numberOfGuests = adults + children;
     const bookings = [];
 
     if (selectedOption.type === 'whole') {
       const properties = await Property.find({ isActive: true, type: 'single' }).sort({ name: 1 });
-      
+
       if (properties.length === 0) {
         console.error('Brak aktywnych domków w bazie');
         return { success: false, error: 'Brak dostępnych domków' };
@@ -96,7 +96,6 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
           extraBedsCount: extraBedsForThisCabin,
           totalPrice: totalPricePerBooking,
           status: 'confirmed',
-          bookingType: 'real',
           invoice: guestData.invoice,
           invoiceData: guestData.invoiceData,
           customerNotes: `Rezerwacja całej posesji`,
@@ -110,7 +109,7 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
       }
     } else {
       const property = await Property.findOne({ name: selectedOption.displayName, isActive: true }).select('_id');
-      
+
       if (!property) {
         console.error('Nie znaleziono domku w bazie');
         return { success: false, error: 'Nie można znaleźć domku w bazie' };
@@ -128,7 +127,6 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
         extraBedsCount: extraBeds,
         totalPrice: selectedOption.totalPrice,
         status: 'confirmed',
-        bookingType: 'real',
         invoice: guestData.invoice,
         invoiceData: guestData.invoiceData,
         customerNotes: '',
@@ -137,9 +135,9 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
         updatedAt: new Date()
       });
     }
-    
+
     const savedBookings = await Booking.insertMany(bookings);
-    
+
     return {
       success: true,
       message: 'Rezerwacja utworzona pomyślnie',
@@ -147,16 +145,16 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
     };
   } catch (error: any) {
     console.error('Błąd podczas tworzenia rezerwacji:', error);
-    
+
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map((err: any) => err.message);
       return { success: false, error: `Błąd walidacji: ${errors.join(', ')}` };
     }
-    
+
     if (error.message && error.message.includes('Path') && error.message.includes('is not in schema')) {
       return { success: false, error: `Próba zapisu nieznanego pola: ${error.message}` };
     }
-    
+
     return { success: false, error: 'Nie udało się utworzyć rezerwacji' };
   }
 }
@@ -195,9 +193,10 @@ export async function getBlockedDates(): Promise<{ date: string }[]> {
         current = current.add(1, 'day');
       }
 
-      // Jeśli nie pozwalamy na zameldowanie w dniu wymeldowania, blokujemy dzień endDate
+      // Jeśli nie pozwalamy na zameldowanie w dniu zameldowania i wymeldowania
       if (!allowCheckinOnDepartureDay) {
         blockedSet.add(end.format('YYYY-MM-DD'));
+        blockedSet.add(start.format('YYYY-MM-DD')); 
       }
     }
 

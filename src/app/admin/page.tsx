@@ -9,7 +9,7 @@ export default async function AdminDashboard() {
   today.setHours(0, 0, 0, 0);
   
   const upcomingBookings = allBookings
-    .filter((b: any) => new Date(b.endDate) >= today && b.status !== 'cancelled' && b.bookingType !== 'shadow')
+    .filter((b: any) => new Date(b.endDate) >= today && b.status !== 'cancelled')
     .sort((a: any, b: any) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
     .slice(0, 5);
 

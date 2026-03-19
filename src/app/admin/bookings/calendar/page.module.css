@@ -1,242 +1,91 @@
 :root {
     --cal-color-primary: #2e7d32;
-    --cal-color-primary-bg: #ffffff;
     --cal-color-booked: #c62828;
-    --cal-color-booked-bg: #ffebee;
-    --cal-color-cleaning: #ef6c00;
-    --cal-color-cleaning-bg: #fff3e0;
-    --cal-color-blocked: #1565c0;
-    --cal-color-blocked-bg: #e3f2fd;
-    --cal-color-weekend-bg: #f1f1f1;
-    --cal-color-text-dark: #333;
-    --cal-color-text-light: #777;
     --cal-color-border: #ddd;
     --cal-color-header-bg: #f8f9fa;
-    --cal-link-color: #1976d2;
-    --cal-link-hover: #d32f2f;
-    --cal-past-opacity: 0.6;
-    --cal-past-text: #999;
-    --cal-past-bg: #f5f5f5;
+    --cal-color-weekend-bg: #f1f1f1;
 }
 
-.container {
-    padding: 1rem;
-    max-width: 100%;
-    margin: 0 auto;
-    font-family: inherit;
-    min-height: 85vh;
-}
+.container { padding: 1rem; }
+.headerControls { display: flex; justify-content: center; gap: 1rem; margin-bottom: 1rem; }
+.selectInput { padding: 0.5rem; border-radius: 6px; border: 1px solid var(--cal-color-border); }
+.navButton { width: 42px; height: 42px; cursor: pointer; background: white; border: 1px solid #ddd; border-radius: 6px; font-size: 1.4rem; }
 
-.headerControls {
+.tableWrapper { border: 1px solid var(--cal-color-border); overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.calendarTable { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 0.75rem; }
+.calendarTable th, .calendarTable td { padding: 0; text-align: center; border-bottom: 1px solid #eee; border-right: 1px solid #eee; position: relative; height: 55px; }
+
+.stickyCol { position: sticky; left: 0; background: #fafafa; z-index: 10; width: 110px; border-right: 2px solid #ccc !important; }
+.dateContent { display: flex; flex-direction: column; font-weight: bold; }
+
+.free { color: var(--cal-color-primary); font-weight: 600; }
+.statusText { display: block; z-index: 1; position: relative; }
+
+/* BLOKOWY PODZIAŁ (Jak na obrazku) */
+.splitCellContainer { padding: 0 !important; }
+.splitWrapper { display: flex; width: 100%; height: 100%; }
+
+.half {
+    flex: 1; /* Każda połowa zajmuje 50% */
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-}
-
-.selectInput {
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
-    border: 1px solid var(--cal-color-border);
-    border-radius: 6px;
-    background-color: white;
-    cursor: pointer;
-    min-width: 140px;
-    outline: none;
-    transition: border-color 0.2s;
-}
-
-.selectInput:focus {
-    border-color: var(--cal-color-primary);
-}
-
-.tableWrapper {
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--cal-color-border);
     position: relative;
-    background: white;
-    overflow-x: auto;
+    border-right: 1px solid rgba(255,255,255,0.5);
 }
 
-.calendarTable {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    table-layout: fixed;
-    font-size: 0.75rem;
-}
+.half:last-child { border-right: none; }
 
-.calendarTable th,
-.calendarTable td {
-    padding: 10px 6px;
-    text-align: center;
-    border-bottom: 1px solid #eee;
-    border-right: 1px solid #f5f5f5;
-    vertical-align: middle;
-    position: relative;
-}
+.bookedHalf { color: #b71c1c; font-weight: 700; cursor: pointer; }
+.bookedHalf:hover { filter: brightness(0.92); z-index: 5; }
+.freeHalf { color: var(--cal-color-primary); background-color: white; }
 
-.calendarTable th {
-    background-color: var(--cal-color-header-bg);
-    color: #444;
-    font-weight: 700;
-    text-transform: uppercase;
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    border-bottom: 2px solid #ccc;
-    height: 45px;
-}
+.halfText { font-size: 0.6rem; font-weight: 800; }
 
-.stickyCol {
-    position: sticky;
-    left: 0;
-    z-index: 25;
-    background-color: #fafafa;
-    border-right: 2px solid #ccc !important;
-    width: 110px;
-    min-width: 110px;
-}
-
-.calendarTable thead th.stickyCol {
-    z-index: 30;
-}
-
-.dateCell {
-    font-weight: 700;
-}
-
-.weekendCell {
-    background-color: var(--cal-color-weekend-bg);
-}
-
-.dateContent {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.dateDay { font-size: 0.8rem; }
-.dateWeekday { font-size: 0.65rem; color: var(--cal-color-text-light); }
-
-.cell { transition: background-color 0.2s; }
-
-.free { color: var(--cal-color-primary); font-weight: 600; }
-.booked { background-color: var(--cal-color-booked-bg); color: var(--cal-color-booked); font-weight: 700; }
-.blockedSys { background-color: var(--cal-color-blocked-bg); color: var(--cal-color-blocked); }
-
-.statusText { display: block; line-height: 1.2; }
-
-/* TOOLTIP STYLES */
+/* TOOLTIP */
 .tooltipContainer {
     position: absolute;
-    bottom: 90%;
+    bottom: 100%;
     left: 50%;
     transform: translateX(-50%) translateY(10px);
     width: 260px;
-    z-index: 300;
+    z-index: 100;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.2s ease;
+    transition: all 0.2s;
     pointer-events: none;
 }
 
-td:hover .tooltipContainer {
+.cell:hover .tooltipContainer,
+.bookedHalf:hover .tooltipContainer {
     opacity: 1;
     visibility: visible;
-    transform: translateX(-50%) translateY(0);
-    pointer-events: auto;
+    transform: translateX(-50%) translateY(-5px);
 }
 
 .tooltip {
     background: white;
     border-radius: 8px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     border: 1px solid #ddd;
     padding: 12px;
     color: #333;
     text-align: left;
-    line-height: 1.4;
 }
 
-.tooltipHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    border-bottom: 1px solid #f0f0f0;
-    padding-bottom: 6px;
-}
-
-.guestNameText {
-    margin: 0;
-    font-size: 0.95rem;
-    font-weight: 800;
-    font-style: italic;
-}
-
-.badge {
-    background: #e8f5e9;
-    color: #2e7d32;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.6rem;
-    font-weight: 700;
-}
-
-.tooltipRow {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 4px;
-    font-size: 0.75rem;
-    gap: 10px;
-}
-
-.label { color: var(--cal-color-text-light); font-weight: 600; }
-.valueText { font-weight: 600; text-align: right; }
-
-.tooltipSection {
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px dashed #eee;
-}
-
-.clickableLink {
-    color: var(--cal-link-color);
-    text-decoration: none;
-    border-bottom: 1px dotted var(--cal-link-color);
-}
-
+.tooltipHeader { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+.guestNameText { margin: 0; font-style: italic; font-weight: 800; }
+.badge { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 10px; font-size: 0.6rem; }
+.tooltipRow { display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 0.7rem; }
+.label { color: #777; }
+.valueText { font-weight: 600; }
+.tooltipSection { margin-top: 6px; padding-top: 6px; border-top: 1px dashed #eee; }
 .priceValue { color: var(--cal-color-primary); font-weight: 700; }
 
-.paymentPaid { color: #16a34a; }
-.paymentDeposit { color: #ca8a04; }
-.paymentUnpaid { color: #dc2626; }
-
-/* LEGEND & NAV */
-.legend { display: flex; gap: 1rem; justify-content: center; margin-top: 1rem; font-size: 0.75rem; }
-.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-.bookedDot { background-color: var(--cal-color-booked); }
-.blockedSysDot { background-color: var(--cal-color-blocked); }
-.freeDot { background-color: var(--cal-color-primary); }
-
-.navButton {
-    background: white;
-    border: 1px solid var(--cal-color-border);
-    border-radius: 6px;
-    width: 42px;
-    height: 42px;
-    cursor: pointer;
-    font-size: 1.4rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.loadingOverlay { padding: 3rem; text-align: center; color: var(--cal-color-primary); font-weight: bold; }
+.paymentPaid { color: #2e7d32; }
+.paymentDeposit { color: #f57c00; }
+.paymentUnpaid { color: #d32f2f; }
 
 .pastRow { opacity: 0.6; }
-.pastFree, .pastBooked, .pastBlocked { background-color: var(--cal-past-bg) !important; color: var(--cal-past-text) !important; }
+.weekendCell { background-color: var(--cal-color-weekend-bg); }

@@ -13,8 +13,6 @@ export interface IBooking extends Document {
   totalPrice: number;
   paidAmount: number;
   status: 'pending' | 'confirmed' | 'cancelled' | 'blocked';
-  bookingType: 'real' | 'shadow';
-  linkedBookingId?: mongoose.Types.ObjectId;
   invoice?: boolean;
   invoiceData?: {
     companyName?: string;
@@ -66,8 +64,7 @@ const BookingSchema = new Schema({
   },
   numberOfGuests: {
     type: Number,
-    required: true,
-    min: 1
+    required: true
   },
   extraBedsCount: {
     type: Number,
@@ -88,15 +85,6 @@ const BookingSchema = new Schema({
     type: String,
     enum: ['pending', 'confirmed', 'cancelled', 'blocked'],
     default: 'pending'
-  },
-  bookingType: {
-    type: String,
-    enum: ['real', 'shadow'],
-    default: 'real'
-  },
-  linkedBookingId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Booking'
   },
   invoice: {
     type: Boolean,
@@ -128,6 +116,5 @@ const BookingSchema = new Schema({
 BookingSchema.index({ propertyId: 1, startDate: 1, endDate: 1 });
 BookingSchema.index({ startDate: 1, endDate: 1 });
 BookingSchema.index({ status: 1 });
-BookingSchema.index({ bookingType: 1 });
 
 export default mongoose.models.Booking || mongoose.model('Booking', BookingSchema);

@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, useTransition } from 'react'
 import { useActionState } from 'react'
 import styles from './page.module.css'
-import { createManualBooking, calculatePriceAction, getUnavailableDatesForProperty } from '@/actions/adminBookingActions'
+import { createBookingByAdmin, calculatePriceAction, getUnavailableDatesForProperty } from '@/actions/adminBookingActions'
 import { getAllProperties } from '@/actions/adminPropertyActions'
 import { getBookingConfig } from '@/actions/bookingConfigActions'
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton'
@@ -42,7 +42,7 @@ const initialState = {
 }
 
 export default function AddBookingPage() {
-  const [state, formAction, isPending] = useActionState(createManualBooking, initialState)
+  const [state, formAction, isPending] = useActionState(createBookingByAdmin, initialState)
   const formRef = useRef<HTMLFormElement>(null)
   const [properties, setProperties] = useState<PropertyOption[]>([])
   const [propertySelection, setPropertySelection] = useState('')

@@ -181,7 +181,6 @@ export async function seedBookings() {
         totalPrice: 3500,
         paidAmount: 500,
         status: 'confirmed',
-        bookingType: 'real',
         invoice: true,
         invoiceData: {
           companyName: 'Test Sp. z o.o.',
@@ -206,7 +205,6 @@ export async function seedBookings() {
         totalPrice: 1800,
         paidAmount: 1800,
         status: 'confirmed',
-        bookingType: 'real',
         invoice: false,
         customerNotes: '',
         source: 'customer'

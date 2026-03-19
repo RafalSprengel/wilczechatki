@@ -2,6 +2,14 @@
 import dbConnect from '@/db/connection';
 import Booking from '@/db/models/Booking';
 import Property from '@/db/models/Property';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+
+dayjs.extend(utc);
+dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
 
 export interface BookingDetails {
   id: string;
@@ -16,11 +24,14 @@ export interface BookingDetails {
   startDate: string;
   endDate: string;
   durationDays: number;
+  color: string;
 }
 
 export interface CalendarCell {
-  status: 'free' | 'booked' | 'blocked_sys';
+  status: 'free' | 'booked' | 'blocked_sys' | 'check-out' | 'check-in' | 'check-out-in';
   details?: BookingDetails;
+  checkoutDetails?: BookingDetails;
+  checkinDetails?: BookingDetails;
 }
 
 export interface CalendarDay {
@@ -29,78 +40,97 @@ export interface CalendarDay {
   cabins: Record<string, CalendarCell>;
 }
 
+const generatePastelColor = (id: string) => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const h = Math.abs(hash % 360);
+  return `hsl(${h}, 70%, 85%)`;
+};
+
 export async function getCalendarData(daysInMonth: number, startDateStr: string): Promise<CalendarDay[]> {
   await dbConnect();
-  const startDate = new Date(startDateStr);
-  startDate.setHours(0, 0, 0, 0);
-  const endDate = new Date(startDate);
-  endDate.setDate(endDate.getDate() + daysInMonth);
-  endDate.setHours(23, 59, 59, 999);
 
-  const properties = await Property.find({ isActive: true }).lean();
+  const startDate = dayjs.utc(startDateStr).startOf('day');
+  const endDate = startDate.add(daysInMonth, 'day').endOf('day');
+
+  const properties = await Property.find({ isActive: true, type: 'single' }).lean();
   const bookings = await Booking.find({
-    startDate: { $lt: endDate },
-    endDate: { $gt: startDate },
-    status: { $in: ['confirmed', 'blocked'] }
+    status: { $in: ['confirmed', 'blocked'] },
+    startDate: { $lt: endDate.toDate() },
+    endDate: { $gt: startDate.toDate() }
   }).lean();
+
+  const mapBookingDetails = (b: any): BookingDetails => {
+    const id = b._id.toString();
+    return {
+      id,
+      guestName: b.guestName || 'Gość',
+      guestEmail: b.guestEmail || '',
+      guestPhone: b.guestPhone || '',
+      numberOfGuests: b.numberOfGuests || 0,
+      extraBeds: b.extraBedsCount || 0,
+      totalPrice: b.totalPrice || 0,
+      paidAmount: b.paidAmount || 0,
+      status: b.status,
+      startDate: dayjs.utc(b.startDate).format('YYYY-MM-DD'),
+      endDate: dayjs.utc(b.endDate).format('YYYY-MM-DD'),
+      durationDays: dayjs.utc(b.endDate).diff(dayjs.utc(b.startDate), 'day'),
+      color: b.status === 'blocked' ? '#e3f2fd' : generatePastelColor(id)
+    };
+  };
 
   const calendarData: CalendarDay[] = [];
 
   for (let i = 0; i < daysInMonth; i++) {
-    const currentDate = new Date(startDate);
-    currentDate.setDate(startDate.getDate() + i);
-    currentDate.setHours(0, 0, 0, 0);
-    const dateStr = currentDate.toISOString().split('T')[0];
-    const datePL = currentDate.toLocaleDateString('pl-PL');
-
+    const currentDate = startDate.add(i, 'day');
     const dayData: CalendarDay = {
-      date: dateStr,
-      datePL,
+      date: currentDate.format('YYYY-MM-DD'),
+      datePL: currentDate.format('DD.MM.YYYY'),
       cabins: {}
     };
 
     for (const property of properties) {
       const propertyId = property._id.toString();
-      
-      const booking = bookings.find(b => 
+
+      const departing = bookings.find(b => 
         b.propertyId.toString() === propertyId &&
-        new Date(b.startDate) <= currentDate &&
-        new Date(b.endDate) > currentDate
+        dayjs.utc(b.endDate).isSame(currentDate, 'day')
       );
 
-      let cell: CalendarCell;
+      const arriving = bookings.find(b => 
+        b.propertyId.toString() === propertyId &&
+        dayjs.utc(b.startDate).isSame(currentDate, 'day')
+      );
 
-      if (booking) {
-        const start = new Date(booking.startDate);
-        const end = new Date(booking.endDate);
-        const durationDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      const staying = bookings.find(b => 
+        b.propertyId.toString() === propertyId &&
+        dayjs.utc(b.startDate).isBefore(currentDate, 'day') &&
+        dayjs.utc(b.endDate).isAfter(currentDate, 'day')
+      );
 
-        cell = {
-          status: booking.status === 'blocked' ? 'blocked_sys' : 'booked',
-          details: {
-            id: booking._id.toString(),
-            guestName: booking.guestName || 'Gość',
-            guestEmail: booking.guestEmail || '',
-            guestPhone: booking.guestPhone || '',
-            numberOfGuests: booking.numberOfGuests || 0,
-            extraBeds: booking.extraBedsCount || 0,
-            totalPrice: booking.totalPrice || 0,
-            paidAmount: booking.paidAmount || 0,
-            status: booking.status,
-            startDate: booking.startDate.toISOString().split('T')[0],
-            endDate: booking.endDate.toISOString().split('T')[0],
-            durationDays
-          }
+      let cell: CalendarCell = { status: 'free' };
+
+      if (departing && arriving) {
+        cell = { 
+          status: 'check-out-in', 
+          checkoutDetails: mapBookingDetails(departing), 
+          checkinDetails: mapBookingDetails(arriving) 
         };
-      } else {
-        cell = {
-          status: 'free'
+      } else if (staying) {
+        cell = { 
+          status: staying.status === 'blocked' ? 'blocked_sys' : 'booked', 
+          details: mapBookingDetails(staying) 
         };
+      } else if (arriving) {
+        cell = { status: 'check-in', checkinDetails: mapBookingDetails(arriving) };
+      } else if (departing) {
+        cell = { status: 'check-out', checkoutDetails: mapBookingDetails(departing) };
       }
 
       dayData.cabins[propertyId] = cell;
     }
-
     calendarData.push(dayData);
   }
 
