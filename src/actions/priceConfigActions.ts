@@ -132,6 +132,26 @@ export async function updateCustompriceForDate(data: CustomPriceUpdate) {
   }
 }
 
+export async function deleteCustomPricesForDate(data: { propertyId: string; dates: string[] }) {
+  try {
+    await dbConnect();
+
+    const datesAsDates = data.dates.map(date => dayjs(date).startOf('day').toDate());
+
+    await CustomPrice.deleteMany({
+      propertyId: new mongoose.Types.ObjectId(data.propertyId),
+      date: { $in: datesAsDates }
+    });
+
+    revalidatePath('/admin/prices');
+    
+    return { success: true, message: `Przywrócono ceny sezonowe dla ${data.dates.length} dni.` };
+  } catch (error) {
+    console.error('Błąd usuwania cen:', error);
+    return { success: false, message: 'Błąd bazy danych podczas usuwania.' };
+  }
+}
+
 export async function getCustomPrices(propertyId: string): Promise<CustomPriceEntry[]> {
   try {
     await dbConnect();

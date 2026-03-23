@@ -173,9 +173,10 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
       <div className="card-header card-header-spaced">
         <h2 className="card-title">Sezon wysoki</h2>
       </div>
-      <div className="setting-row">
+      <div className="setting-row" style={{ alignItems: 'center' }}>
         <div className="setting-content">
-          <label htmlFor="highSeasonStart" className="setting-label">Data rozpoczęcia</label>
+          <label htmlFor="highSeasonStart" className="setting-label">Data rozpoczęcia (rok jest ignorowany)</label>
+          <p className="setting-description" style={{ fontSize: '0.8rem', margin: 0 }}>Ustawienie będzie aktywne co roku w tym dniu.</p>
         </div>
         <div className="setting-control">
           <input

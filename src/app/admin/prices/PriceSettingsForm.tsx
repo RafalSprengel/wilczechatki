@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useActionState } from 'react'
-import { updatePriceConfig, updateBaseRates, updateCustompriceForDate, getCustomPrices } from '@/actions/priceConfigActions'
+import { updatePriceConfig, updateCustompriceForDate, getCustomPrices, deleteCustomPricesForDate } from '@/actions/priceConfigActions'
 import CalendarPicker, { DatesData } from '@/app/_components/CalendarPicker/CalendarPicker'
 import dayjs from 'dayjs';
 import QuantityPicker from '@/app/_components/QuantityPicker/QuantityPicker'
@@ -91,6 +91,8 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, in
   const [selectedDateForPrice, setSelectedDateForPrice] = useState<string | null>(null)
 
   const [isSavingCustom, setIsSavingCustom] = useState(false)
+  const [isDeletingCustom, setIsDeletingCustom] = useState(false)
+  const [isCustomPricesExpanded, setIsCustomPricesExpanded] = useState(false)
 
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean
@@ -171,25 +173,6 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, in
     }
   }
 
-  const handleSaveBaseRates = async () => {
-    const result = await updateBaseRates({
-      weekday: weekdayTiers,
-      weekend: weekendTiers,
-      highSeason: {
-        weekday: highSeasonWeekdayTiers,
-        weekend: highSeasonWeekendTiers,
-        extraBedPrice: highSeasonExtraBedPrice
-      },
-      extraBedPrice,
-      childrenFreeAgeLimit
-    })
-    if (result.success) {
-      toast.success(result.message)
-    } else {
-      toast.error(result.message)
-    }
-  }
-
  const handleSaveCustomPrice = async () => {
   if (!selectedProperty || !bookingDates.start) return;
   
@@ -241,6 +224,52 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, in
   }
 };
 
+  const handleRemoveCustomPrice = async () => {
+    if (!selectedProperty || !bookingDates.start) return;
+    
+    setIsDeletingCustom(true);
+    
+    try {
+      const dates: string[] = [];
+      const start = dayjs(bookingDates.start);
+      
+      if (bookingDates.end) {
+        const end = dayjs(bookingDates.end);
+        let current = start;
+        
+        while (current.isBefore(end) || current.isSame(end, 'day')) {
+          dates.push(current.format('YYYY-MM-DD'));
+          current = current.add(1, 'day');
+        }
+      } else {
+        dates.push(start.format('YYYY-MM-DD'));
+      }
+
+      const result = await deleteCustomPricesForDate({
+        propertyId: selectedProperty,
+        dates
+      });
+
+      if (result?.success) {
+        toast.success(result.message);
+        const prices = await getCustomPrices(selectedProperty);
+        setCustomPrices(prices);
+        const priceMap: Record<string, number> = {};
+        prices.forEach(p => { priceMap[p.date] = p.price });
+        setCalendarPrices(priceMap);
+        setBookingDates({ start: null, end: null, count: 0 });
+        setSelectedDateForPrice(null);
+      } else {
+        toast.error(result?.message || 'Błąd usuwania.');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Wystąpił błąd podczas usuwania.');
+    } finally {
+      setIsDeletingCustom(false);
+    }
+  };
+
   const handleDateSelect = useCallback((dates: BookingDates) => {
     setBookingDates(prev => {
       if (prev.start === dates.start && prev.end === dates.end && prev.count === dates.count) {
@@ -261,398 +290,418 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, in
   }
 
   return (
-    <form action={formAction} className="settings-card">
-      <input type="hidden" name="weekdayTiers" value={JSON.stringify(weekdayTiers)} />
-      <input type="hidden" name="weekendTiers" value={JSON.stringify(weekendTiers)} />
-      <input type="hidden" name="highSeasonWeekdayTiers" value={JSON.stringify(highSeasonWeekdayTiers)} />
-      <input type="hidden" name="highSeasonWeekendTiers" value={JSON.stringify(highSeasonWeekendTiers)} />
-      <input type="hidden" name="highSeasonExtraBedPrice" value={highSeasonExtraBedPrice} />
-      <input type="hidden" name="extraBedPrice" value={extraBedPrice} />
-      <input type="hidden" name="childrenFreeAgeLimit" value={childrenFreeAgeLimit} />
+    <>
+      <form action={formAction} className="settings-card">
+        <input type="hidden" name="weekdayTiers" value={JSON.stringify(weekdayTiers)} />
+        <input type="hidden" name="weekendTiers" value={JSON.stringify(weekendTiers)} />
+        <input type="hidden" name="highSeasonWeekdayTiers" value={JSON.stringify(highSeasonWeekdayTiers)} />
+        <input type="hidden" name="highSeasonWeekendTiers" value={JSON.stringify(highSeasonWeekendTiers)} />
+        <input type="hidden" name="highSeasonExtraBedPrice" value={highSeasonExtraBedPrice} />
+        <input type="hidden" name="extraBedPrice" value={extraBedPrice} />
+        <input type="hidden" name="childrenFreeAgeLimit" value={childrenFreeAgeLimit} />
 
-      <div className="card-header">
-        <h2 className="card-title">Ceny w sezonie niskim</h2>
-        <span className="card-badge">Globalne</span>
-      </div>
-
-      <div className="setting-row">
-        <div className="setting-content">
-          <label className="setting-label">Cena za dobę - Dzień powszedni (nd–czw)</label>
-          <p className="setting-description">
-            Standardowa stawka obowiązująca od niedzieli do czwartku.
-            Ceny są ustalane w przedziałach liczby gości.
-          </p>
+        <div className="card-header">
+          <h2 className="card-title">Ceny w sezonie niskim</h2>
+          <span className="card-badge">Globalne</span>
         </div>
-        <div className="setting-control">
-          <div className={styles.tiersContainer}>
-            {weekdayTiers.map((tier, index) => (
-              <div key={index} className={styles.tierRow}>
-                <span className={styles.tierRange}>
-                  {tier.minGuests}–{tier.maxGuests} os.
-                </span>
-                <input
-                  type="number"
-                  min="0"
-                  step="10"
-                  value={tier.price}
-                  onChange={(e) => handleBaseRateChange('weekday', index, 'price', parseInt(e.target.value) || 0)}
-                  className={styles.priceInput}
-                />
-                <span className={styles.currency}>zł</span>
-                {weekdayTiers.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => requestRemoveTier('weekday', index)}
-                    className={styles.removeTierBtn}
-                    aria-label={`Usuń przedział ${tier.minGuests}-${tier.maxGuests} osób`}
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => addTier('weekday')}
-              className={styles.addTierBtn}
-            >
-              + Dodaj przedział
-            </button>
+
+        <div className="setting-row">
+          <div className="setting-content">
+            <label className="setting-label">Cena za dobę - Dzień powszedni (nd–czw)</label>
+            <p className="setting-description">
+              Standardowa stawka obowiązująca od niedzieli do czwartku.
+              Ceny są ustalane w przedziałach liczby gości.
+            </p>
           </div>
-        </div>
-      </div>
-
-      <div className="setting-row">
-        <div className="setting-content">
-          <label className="setting-label">Cena za dobę - Weekend (pt–sob)</label>
-          <p className="setting-description">
-            Podwyższona stawka obowiązująca w piątki i soboty.
-          </p>
-        </div>
-        <div className="setting-control">
-          <div className={styles.tiersContainer}>
-            {weekendTiers.map((tier, index) => (
-              <div key={index} className={styles.tierRow}>
-                <span className={styles.tierRange}>
-                  {tier.minGuests}–{tier.maxGuests} os.
-                </span>
-                <input
-                  type="number"
-                  min="0"
-                  step="10"
-                  value={tier.price}
-                  onChange={(e) => handleBaseRateChange('weekend', index, 'price', parseInt(e.target.value) || 0)}
-                  className={styles.priceInput}
-                />
-                <span className={styles.currency}>zł</span>
-                {weekendTiers.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => requestRemoveTier('weekend', index)}
-                    className={styles.removeTierBtn}
-                    aria-label={`Usuń przedział ${tier.minGuests}-${tier.maxGuests} osób`}
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => addTier('weekend')}
-              className={styles.addTierBtn}
-            >
-              + Dodaj przedział
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="setting-row">
-        <div className="setting-content">
-          <label className="setting-label">Cena za dostawkę</label>
-          <p className="setting-description">
-            Dodatkowa opłata za każde łóżko dostawiane ponad bazową pojemność.
-          </p>
-        </div>
-        <div className="setting-control">
-          <div className={styles.priceControl}>
-            <input
-              type="number"
-              min="0"
-              step="10"
-              value={extraBedPrice}
-              onChange={(e) => setExtraBedPrice(parseInt(e.target.value) || 0)}
-              className={styles.priceInputLarge}
-            />
-            <span className={styles.currency}>zł / noc</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="card-header card-header-spaced">
-        <h2 className="card-title">Ceny w sezonie wysokim</h2>
-      </div>
-
-      <div className="setting-row">
-        <div className="setting-content">
-          <label className="setting-label">Cena za dobę - Dzień powszedni (nd–czw)</label>
-          <p className="setting-description">
-            Stawka obowiązująca w sezonie wysokim od niedzieli do czwartku.
-          </p>
-        </div>
-        <div className="setting-control">
-          <div className={styles.tiersContainer}>
-            {highSeasonWeekdayTiers.map((tier, index) => (
-              <div key={index} className={styles.tierRow}>
-                <span className={styles.tierRange}>
-                  {tier.minGuests}–{tier.maxGuests} os.
-                </span>
-                <input
-                  type="number"
-                  min="0"
-                  step="10"
-                  value={tier.price}
-                  onChange={(e) => handleBaseRateChange('highSeasonWeekday', index, 'price', parseInt(e.target.value) || 0)}
-                  className={styles.priceInput}
-                />
-                <span className={styles.currency}>zł</span>
-                {highSeasonWeekdayTiers.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => requestRemoveTier('highSeasonWeekday', index)}
-                    className={styles.removeTierBtn}
-                    aria-label={`Usuń przedział ${tier.minGuests}-${tier.maxGuests} osób`}
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => addTier('highSeasonWeekday')}
-              className={styles.addTierBtn}
-            >
-              + Dodaj przedział
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="setting-row">
-        <div className="setting-content">
-          <label className="setting-label">Cena za dobę - Weekend (pt–sob)</label>
-          <p className="setting-description">
-            Stawka obowiązująca w sezonie wysokim w piątki i soboty.
-          </p>
-        </div>
-        <div className="setting-control">
-          <div className={styles.tiersContainer}>
-            {highSeasonWeekendTiers.map((tier, index) => (
-              <div key={index} className={styles.tierRow}>
-                <span className={styles.tierRange}>
-                  {tier.minGuests}–{tier.maxGuests} os.
-                </span>
-                <input
-                  type="number"
-                  min="0"
-                  step="10"
-                  value={tier.price}
-                  onChange={(e) => handleBaseRateChange('highSeasonWeekend', index, 'price', parseInt(e.target.value) || 0)}
-                  className={styles.priceInput}
-                />
-                <span className={styles.currency}>zł</span>
-                {highSeasonWeekendTiers.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => requestRemoveTier('highSeasonWeekend', index)}
-                    className={styles.removeTierBtn}
-                    aria-label={`Usuń przedział ${tier.minGuests}-${tier.maxGuests} osób`}
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => addTier('highSeasonWeekend')}
-              className={styles.addTierBtn}
-            >
-              + Dodaj przedział
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="setting-row">
-        <div className="setting-content">
-          <label className="setting-label">Cena za dostawkę</label>
-          <p className="setting-description">
-            Dodatkowa opłata za każde łóżko dostawiane w sezonie wysokim.
-          </p>
-        </div>
-        <div className="setting-control">
-          <div className={styles.priceControl}>
-            <input
-              type="number"
-              min="0"
-              step="10"
-              value={highSeasonExtraBedPrice}
-              onChange={(e) => setHighSeasonExtraBedPrice(parseInt(e.target.value) || 0)}
-              className={styles.priceInputLarge}
-            />
-            <span className={styles.currency}>zł / noc</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="form-actions">
-        <button type="button" className="btn-primary" onClick={handleSaveBaseRates} disabled={isPending}>
-          {isPending ? 'Zapisywanie...' : '💾 Zapisz ceny sezonowe'}
-        </button>
-      </div>
-
-      <div className="card-header card-header-spaced">
-        <h2 className="card-title">Ceny indywidualne</h2>
-        <span className="card-badge">Per domek / data</span>
-      </div>
-
-      <div className="setting-row">
-        <div className="setting-content">
-          <label className="setting-label" htmlFor="propertySelect">Wybierz domek</label>
-          <p className="setting-description">
-            Wybierz obiekt, dla którego chcesz ustawić niestandardowe ceny.
-          </p>
-        </div>
-        <div className="setting-control">
-          <select
-            id="propertySelect"
-            value={selectedProperty}
-            onChange={(e) => setSelectedProperty(e.target.value)}
-            className="date-input"
-          >
-            <option value="">-- Wybierz domek --</option>
-            {properties.map(prop => (
-              <option key={prop._id} value={prop._id}>{prop.name}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {selectedProperty && (
-        <>
-          <div className="setting-row">
-            <div className="setting-content">
-              <label className="setting-label">Wybierz datę lub zakres dat</label>
-              <p className="setting-description">
-                Kliknij na dzień w kalendarzu, aby ustawić cenę.
-                Możesz wybrać pojedynczy dzień lub zakres.
-              </p>
-            </div>
-            <div className="setting-control">
-              <div className={styles.calendarWrapper}>
-                <CalendarPicker
-                  dates={calendarDates}
-                  onDateChange={handleDateSelect}
-                  minBookingDays={0}
-                  maxBookingDays={365}
-                />
-              </div>
-              {bookingDates.start && (
-                <div className={styles.selectedDateInfo}>
-                  <span>
-                    Wybrano: {bookingDates.start}
-                    {bookingDates.end && ` — ${bookingDates.end}`}
+          <div className="setting-control">
+            <div className={styles.tiersContainer}>
+              {weekdayTiers.map((tier, index) => (
+                <div key={index} className={styles.tierRow}>
+                  <span className={styles.tierRange}>
+                    {tier.minGuests}–{tier.maxGuests} os.
                   </span>
-                  {!bookingDates.end && (
-                    <span className={styles.dayType}>
-                      ({getDayType(bookingDates.start) === 'weekend' ? 'Weekend' : 'Dzień powszedni'})
-                    </span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="10"
+                    value={tier.price}
+                    onChange={(e) => handleBaseRateChange('weekday', index, 'price', parseInt(e.target.value) || 0)}
+                    className={styles.priceInput}
+                  />
+                  <span className={styles.currency}>zł</span>
+                  {weekdayTiers.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => requestRemoveTier('weekday', index)}
+                      className={styles.removeTierBtn}
+                      aria-label={`Usuń przedział ${tier.minGuests}-${tier.maxGuests} osób`}
+                    >
+                      ✕
+                    </button>
                   )}
                 </div>
-              )}
+              ))}
+              <button
+                type="button"
+                onClick={() => addTier('weekday')}
+                className={styles.addTierBtn}
+              >
+                + Dodaj przedział
+              </button>
             </div>
           </div>
+        </div>
 
-          <div className="setting-row">
-            <div className="setting-content">
-              <label className="setting-label" htmlFor="customPrice">Cena za dobę</label>
-              <p className="setting-description">
-                Wpisz cenę, która ma obowiązywać w wybranych datach dla tego domku.
-              </p>
-            </div>
-            <div className="setting-control">
-              <div className={styles.priceControl}>
-                <input
-                  id="customPrice"
-                  type="number"
-                  min="0"
-                  step="10"
-                  value={customPrice}
-                  onChange={(e) => setCustomPrice(parseInt(e.target.value) || 0)}
-                  className={styles.priceInputLarge}
-                />
-                <span className={styles.currency}>zł / noc</span>
-              </div>
+        <div className="setting-row">
+          <div className="setting-content">
+            <label className="setting-label">Cena za dobę - Weekend (pt–sob)</label>
+            <p className="setting-description">
+              Podwyższona stawka obowiązująca w piątki i soboty.
+            </p>
+          </div>
+          <div className="setting-control">
+            <div className={styles.tiersContainer}>
+              {weekendTiers.map((tier, index) => (
+                <div key={index} className={styles.tierRow}>
+                  <span className={styles.tierRange}>
+                    {tier.minGuests}–{tier.maxGuests} os.
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="10"
+                    value={tier.price}
+                    onChange={(e) => handleBaseRateChange('weekend', index, 'price', parseInt(e.target.value) || 0)}
+                    className={styles.priceInput}
+                  />
+                  <span className={styles.currency}>zł</span>
+                  {weekendTiers.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => requestRemoveTier('weekend', index)}
+                      className={styles.removeTierBtn}
+                      aria-label={`Usuń przedział ${tier.minGuests}-${tier.maxGuests} osób`}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addTier('weekend')}
+                className={styles.addTierBtn}
+              >
+                + Dodaj przedział
+              </button>
             </div>
           </div>
+        </div>
 
-          <div className="setting-row">
-            <div className="setting-content">
-              <label className="setting-label" htmlFor="customExtraBedPrice">Cena za dostawkę</label>
-              <p className="setting-description">
-                Wpisz cenę, która ma obowiązywać w wybranych datach dla dostawki.
-              </p>
-            </div>
-            <div className="setting-control">
-              <div className={styles.priceControl}>
-                <input
-                  id="customExtraBedPrice"
-                  type="number"
-                  min="0"
-                  step="10"
-                  value={customExtraBedPrice}
-                  onChange={(e) => setCustomExtraBedPrice(parseInt(e.target.value) || 0)}
-                  className={styles.priceInputLarge}
-                />
-                <span className={styles.currency}>zł / noc</span>
-              </div>
+        <div className="setting-row">
+          <div className="setting-content">
+            <label className="setting-label">Cena za dostawkę</label>
+            <p className="setting-description">
+              Dodatkowa opłata za każde łóżko dostawiane ponad bazową pojemność.
+            </p>
+          </div>
+          <div className="setting-control">
+            <div className={styles.priceControl}>
+              <input
+                type="number"
+                min="0"
+                step="10"
+                value={extraBedPrice}
+                onChange={(e) => setExtraBedPrice(parseInt(e.target.value) || 0)}
+                className={styles.priceInputLarge}
+              />
+              <span className={styles.currency}>zł / noc</span>
             </div>
           </div>
+        </div>
 
-          <div className="form-actions">
-            <button
-              type="button"
-              className="btn-primary"
-              onClick={handleSaveCustomPrice}
-              disabled={isSavingCustom || !bookingDates.start || !selectedProperty}
+        <div className="card-header card-header-spaced">
+          <h2 className="card-title">Ceny w sezonie wysokim</h2>
+        </div>
+
+        <div className="setting-row">
+          <div className="setting-content">
+            <label className="setting-label">Cena za dobę - Dzień powszedni (nd–czw)</label>
+            <p className="setting-description">
+              Stawka obowiązująca w sezonie wysokim od niedzieli do czwartku.
+            </p>
+          </div>
+          <div className="setting-control">
+            <div className={styles.tiersContainer}>
+              {highSeasonWeekdayTiers.map((tier, index) => (
+                <div key={index} className={styles.tierRow}>
+                  <span className={styles.tierRange}>
+                    {tier.minGuests}–{tier.maxGuests} os.
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="10"
+                    value={tier.price}
+                    onChange={(e) => handleBaseRateChange('highSeasonWeekday', index, 'price', parseInt(e.target.value) || 0)}
+                    className={styles.priceInput}
+                  />
+                  <span className={styles.currency}>zł</span>
+                  {highSeasonWeekdayTiers.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => requestRemoveTier('highSeasonWeekday', index)}
+                      className={styles.removeTierBtn}
+                      aria-label={`Usuń przedział ${tier.minGuests}-${tier.maxGuests} osób`}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addTier('highSeasonWeekday')}
+                className={styles.addTierBtn}
+              >
+                + Dodaj przedział
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="setting-row">
+          <div className="setting-content">
+            <label className="setting-label">Cena za dobę - Weekend (pt–sob)</label>
+            <p className="setting-description">
+              Stawka obowiązująca w sezonie wysokim w piątki i soboty.
+            </p>
+          </div>
+          <div className="setting-control">
+            <div className={styles.tiersContainer}>
+              {highSeasonWeekendTiers.map((tier, index) => (
+                <div key={index} className={styles.tierRow}>
+                  <span className={styles.tierRange}>
+                    {tier.minGuests}–{tier.maxGuests} os.
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="10"
+                    value={tier.price}
+                    onChange={(e) => handleBaseRateChange('highSeasonWeekend', index, 'price', parseInt(e.target.value) || 0)}
+                    className={styles.priceInput}
+                  />
+                  <span className={styles.currency}>zł</span>
+                  {highSeasonWeekendTiers.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => requestRemoveTier('highSeasonWeekend', index)}
+                      className={styles.removeTierBtn}
+                      aria-label={`Usuń przedział ${tier.minGuests}-${tier.maxGuests} osób`}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addTier('highSeasonWeekend')}
+                className={styles.addTierBtn}
+              >
+                + Dodaj przedział
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="setting-row">
+          <div className="setting-content">
+            <label className="setting-label">Cena za dostawkę</label>
+            <p className="setting-description">
+              Dodatkowa opłata za każde łóżko dostawiane w sezonie wysokim.
+            </p>
+          </div>
+          <div className="setting-control">
+            <div className={styles.priceControl}>
+              <input
+                type="number"
+                min="0"
+                step="10"
+                value={highSeasonExtraBedPrice}
+                onChange={(e) => setHighSeasonExtraBedPrice(parseInt(e.target.value) || 0)}
+                className={styles.priceInputLarge}
+              />
+              <span className={styles.currency}>zł / noc</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <button type="submit" className="btn-primary" disabled={isPending}>
+            {isPending ? 'Zapisywanie...' : '💾 Zapisz ceny sezonowe'}
+          </button>
+        </div>
+      </form>
+
+      <form className="settings-card" onSubmit={(e) => e.preventDefault()}>
+        <div className="card-header">
+          <h2 className="card-title">Ceny indywidualne</h2>
+          <span className="card-badge">Per domek / data</span>
+        </div>
+
+        <div className="setting-row">
+          <div className="setting-content">
+            <label className="setting-label" htmlFor="propertySelect">Wybierz domek</label>
+            <p className="setting-description">
+              Wybierz obiekt, dla którego chcesz ustawić niestandardowe ceny.
+            </p>
+          </div>
+          <div className="setting-control">
+            <select
+              id="propertySelect"
+              value={selectedProperty}
+              onChange={(e) => setSelectedProperty(e.target.value)}
+              className="date-input"
             >
-              {isSavingCustom ? 'Zapisywanie...' : '💾 Zapisz cenę dla wybranych dat'}
-            </button>
+              <option value="">-- Wybierz domek --</option>
+              {properties.map(prop => (
+                <option key={prop._id} value={prop._id}>{prop.name}</option>
+              ))}
+            </select>
           </div>
+        </div>
 
-          {customPrices.length > 0 && (
+        {selectedProperty && (
+          <>
             <div className="setting-row">
-              <div className="setting-content" style={{ width: '100%' }}>
-                <label className="setting-label">Ustawione ceny indywidualne</label>
-                <div className={styles.customPricesList}>
-                  {customPrices.slice(0, 10).map((entry, idx) => (
-                    <div key={idx} className={styles.customPriceItem}>
-                      <span className={styles.customPriceDate}>{entry.date}</span>
-                      <span className={styles.customPriceValue}>{entry.price} zł</span>
-                    </div>
-                  ))}
-                  {customPrices.length > 10 && (
-                    <span className={styles.moreItems}>+ {customPrices.length - 10} więcej...</span>
-                  )}
+              <div className="setting-content">
+                <label className="setting-label">Wybierz datę lub zakres dat</label>
+                <p className="setting-description">
+                  Kliknij na dzień w kalendarzu, aby ustawić cenę.
+                  Możesz wybrać pojedynczy dzień lub zakres.
+                </p>
+              </div>
+              <div className="setting-control">
+                <div className={styles.calendarWrapper}>
+                  <CalendarPicker
+                    dates={calendarDates}
+                    onDateChange={handleDateSelect}
+                    minBookingDays={0}
+                    maxBookingDays={365}
+                  />
+                </div>
+                {bookingDates.start && (
+                  <div className={styles.selectedDateInfo}>
+                    <span>
+                      Wybrano: {bookingDates.start}
+                      {bookingDates.end && ` — ${bookingDates.end}`}
+                    </span>
+                    {!bookingDates.end && (
+                      <span className={styles.dayType}>
+                        ({getDayType(bookingDates.start) === 'weekend' ? 'Weekend' : 'Dzień powszedni'})
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="setting-row">
+              <div className="setting-content">
+                <label className="setting-label" htmlFor="customPrice">Cena za dobę</label>
+                <p className="setting-description">
+                  Wpisz cenę, która ma obowiązywać w wybranych datach dla tego domku.
+                </p>
+              </div>
+              <div className="setting-control">
+                <div className={styles.priceControl}>
+                  <input
+                    id="customPrice"
+                    type="number"
+                    min="0"
+                    step="10"
+                    value={customPrice}
+                    onChange={(e) => setCustomPrice(parseInt(e.target.value) || 0)}
+                    className={styles.priceInputLarge}
+                  />
+                  <span className={styles.currency}>zł / noc</span>
                 </div>
               </div>
             </div>
-          )}
-        </>
-      )}
+
+            <div className="setting-row">
+              <div className="setting-content">
+                <label className="setting-label" htmlFor="customExtraBedPrice">Cena za dostawkę</label>
+                <p className="setting-description">
+                  Wpisz cenę, która ma obowiązywać w wybranych datach dla dostawki.
+                </p>
+              </div>
+              <div className="setting-control">
+                <div className={styles.priceControl}>
+                  <input
+                    id="customExtraBedPrice"
+                    type="number"
+                    min="0"
+                    step="10"
+                    value={customExtraBedPrice}
+                    onChange={(e) => setCustomExtraBedPrice(parseInt(e.target.value) || 0)}
+                    className={styles.priceInputLarge}
+                  />
+                  <span className={styles.currency}>zł / noc</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="form-actions" style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handleSaveCustomPrice}
+                disabled={isSavingCustom || isDeletingCustom || !bookingDates.start || !selectedProperty}
+              >
+                {isSavingCustom ? 'Zapisywanie...' : '💾 Zapisz cenę dla wybranych dat'}
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                style={{ backgroundColor: '#ef4444', borderColor: '#ef4444' }}
+                onClick={handleRemoveCustomPrice}
+                disabled={isSavingCustom || isDeletingCustom || !bookingDates.start || !selectedProperty}
+              >
+                {isDeletingCustom ? 'Przywracanie...' : '🗑️ Przywróć cenę sezonową dla wybranych dat'}
+              </button>
+            </div>
+
+            {customPrices.length > 0 && (
+              <div className="setting-row">
+                <div className="setting-content" style={{ width: '100%' }}>
+                  <label className="setting-label">Ustawione ceny indywidualne</label>
+                  <div className={styles.customPricesList}>
+                    {(isCustomPricesExpanded ? customPrices : customPrices.slice(0, 10)).map((entry, idx) => (
+                      <div key={idx} className={styles.customPriceItem}>
+                        <span className={styles.customPriceDate}>{entry.date}</span>
+                        <span className={styles.customPriceValue}>{entry.price} zł</span>
+                      </div>
+                    ))}
+                    {customPrices.length > 10 && (
+                      <button
+                        type="button"
+                        className={styles.moreItems}
+                        onClick={() => setIsCustomPricesExpanded(!isCustomPricesExpanded)}
+                        style={{ border: 'none', background: 'transparent', cursor: 'pointer', textDecoration: 'underline' }}
+                      >
+                        {isCustomPricesExpanded ? 'Zwiń' : `+ ${customPrices.length - 10} więcej...`}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </form>
 
       <Modal
         isOpen={deleteModal.isOpen}
@@ -669,6 +718,6 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, in
         </p>
       </Modal>
       <Toaster position="bottom-right" />
-    </form>
+    </>
   )
 }
