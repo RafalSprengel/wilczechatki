@@ -49,7 +49,7 @@ export default function BookingPage() {
   const [searchResults, setSearchResults] = useState<SearchOption[] | null>(null)
   const [extraBedsMap, setExtraBedsMap] = useState<Record<string, number>>({})
   const [hasDraft, setHasDraft] = useState(false)
-  const [blockedDates, setBlockedDates] = useState<{ date: string }[]>([]) // NOWE
+  const [blockedDates, setBlockedDates] = useState<{ date: string }[]>([])
 
   const guestsRef = useRef<HTMLDivElement>(null)
   const datesRef = useRef<HTMLDivElement>(null)
@@ -75,7 +75,6 @@ export default function BookingPage() {
     };
     loadBlockedDates();
   }, []);
-console.log(blockedDates);
   useEffect(() => {
     const draft = localStorage.getItem(STORAGE_KEY)
     if (draft) {

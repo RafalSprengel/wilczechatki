@@ -16,6 +16,11 @@ interface PriceTier {
 interface BaseRatesUpdate {
   weekday: PriceTier[];
   weekend: PriceTier[];
+  highSeason: {
+    weekday: PriceTier[];
+    weekend: PriceTier[];
+    extraBedPrice: number;
+  };
   extraBedPrice: number;
   childrenFreeAgeLimit: number;
 }
@@ -39,6 +44,9 @@ export async function updatePriceConfig(prevState: any, formData: FormData) {
 
     const weekdayTiers = JSON.parse(formData.get('weekdayTiers') as string) as PriceTier[];
     const weekendTiers = JSON.parse(formData.get('weekendTiers') as string) as PriceTier[];
+    const highSeasonWeekdayTiers = JSON.parse(formData.get('highSeasonWeekdayTiers') as string) as PriceTier[];
+    const highSeasonWeekendTiers = JSON.parse(formData.get('highSeasonWeekendTiers') as string) as PriceTier[];
+    const highSeasonExtraBedPrice = parseInt(formData.get('highSeasonExtraBedPrice') as string) || 0;
     const extraBedPrice = parseInt(formData.get('extraBedPrice') as string) || 50;
     const childrenFreeAgeLimit = parseInt(formData.get('childrenFreeAgeLimit') as string) || 13;
 
@@ -48,6 +56,11 @@ export async function updatePriceConfig(prevState: any, formData: FormData) {
         baseRates: {
           weekday: weekdayTiers,
           weekend: weekendTiers,
+          highSeason: {
+            weekday: highSeasonWeekdayTiers,
+            weekend: highSeasonWeekendTiers,
+            extraBedPrice: highSeasonExtraBedPrice
+          },
           extraBedPrice,
           childrenFreeAgeLimit
         }
@@ -73,6 +86,7 @@ export async function updateBaseRates(data: BaseRatesUpdate) {
         baseRates: {
           weekday: data.weekday,
           weekend: data.weekend,
+          highSeason: data.highSeason,
           extraBedPrice: data.extraBedPrice,
           childrenFreeAgeLimit: data.childrenFreeAgeLimit
         }
@@ -130,5 +144,17 @@ export async function getCustomPrices(propertyId: string): Promise<CustomPriceEn
     }));
   } catch (error) {
     return [];
+  }
+}
+
+export async function getPriceConfig() {
+  try {
+    await dbConnect();
+    const config = await PriceConfig.findById('main').lean();
+    if (!config) return null;
+    return JSON.parse(JSON.stringify(config));
+  } catch (error) {
+    console.error('Błąd pobierania konfiguracji cen:', error);
+    return null;
   }
 }

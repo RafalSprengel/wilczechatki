@@ -12,7 +12,7 @@ export default async function Services() {
         const bookingConfig = await getBookingConfig();
         childrenFreeAge = bookingConfig?.childrenFreeAgeLimit ?? 13;
     } catch {
-        console.log('error')
+        // Error handling mostly silent for UI components
     }
 
     const weekdayRates: PriceItem[] = [

@@ -7,6 +7,7 @@ import CalendarPicker, { DatesData } from '@/app/_components/CalendarPicker/Cale
 import dayjs from 'dayjs';
 import QuantityPicker from '@/app/_components/QuantityPicker/QuantityPicker'
 import Modal from '@/app/_components/Modal/Modal'
+import { toast, Toaster } from 'react-hot-toast';
 import '../settings/settings.css'
 import styles from './page.module.css'
 
@@ -35,31 +36,51 @@ interface CustomPriceEntry {
   propertyId: string
 }
 
+interface BaseRates {
+  weekday: PriceTier[];
+  weekend: PriceTier[];
+  highSeason: {
+    weekday: PriceTier[];
+    weekend: PriceTier[];
+    extraBedPrice: number;
+  };
+  extraBedPrice: number;
+}
+
 interface Props {
   properties: PropertyOption[]
   childrenFreeAgeLimit: number
+  initialRates?: BaseRates
 }
 
-export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: Props) {
+export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, initialRates }: Props) {
   const [state, formAction, isPending] = useActionState(updatePriceConfig, {
     message: '',
     success: false,
   })
 
-  const [showMessage, setShowMessage] = useState(false)
-  const [message, setMessage] = useState({ text: '', success: false })
-
-  const [weekdayTiers, setWeekdayTiers] = useState<PriceTier[]>([
+  const [weekdayTiers, setWeekdayTiers] = useState<PriceTier[]>(initialRates?.weekday || [
     { minGuests: 2, maxGuests: 3, price: 300 },
     { minGuests: 4, maxGuests: 5, price: 400 },
     { minGuests: 6, maxGuests: 10, price: 500 }
   ])
-  const [weekendTiers, setWeekendTiers] = useState<PriceTier[]>([
+  const [weekendTiers, setWeekendTiers] = useState<PriceTier[]>(initialRates?.weekend || [
     { minGuests: 2, maxGuests: 3, price: 400 },
     { minGuests: 4, maxGuests: 5, price: 500 },
     { minGuests: 6, maxGuests: 10, price: 600 }
   ])
-  const [extraBedPrice, setExtraBedPrice] = useState(50)
+  const [highSeasonWeekdayTiers, setHighSeasonWeekdayTiers] = useState<PriceTier[]>(initialRates?.highSeason?.weekday || [
+    { minGuests: 2, maxGuests: 3, price: 500 },
+    { minGuests: 4, maxGuests: 5, price: 600 },
+    { minGuests: 6, maxGuests: 10, price: 700 }
+  ])
+  const [highSeasonWeekendTiers, setHighSeasonWeekendTiers] = useState<PriceTier[]>(initialRates?.highSeason?.weekend || [
+    { minGuests: 2, maxGuests: 3, price: 600 },
+    { minGuests: 4, maxGuests: 5, price: 700 },
+    { minGuests: 6, maxGuests: 10, price: 800 }
+  ])
+  const [highSeasonExtraBedPrice, setHighSeasonExtraBedPrice] = useState(initialRates?.highSeason?.extraBedPrice ?? 50)
+  const [extraBedPrice, setExtraBedPrice] = useState(initialRates?.extraBedPrice ?? 50)
 
   const [selectedProperty, setSelectedProperty] = useState<string>('')
   const [bookingDates, setBookingDates] = useState<BookingDates>({ start: null, end: null, count: 0 })
@@ -73,16 +94,17 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
 
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean
-    type: 'weekday' | 'weekend' | null
+    type: 'weekday' | 'weekend' | 'highSeasonWeekday' | 'highSeasonWeekend' | null
     index: number | null
   }>({ isOpen: false, type: null, index: null })
 
   useEffect(() => {
     if (state.message) {
-      setMessage({ text: state.message, success: state.success })
-      setShowMessage(true)
-      const timer = setTimeout(() => setShowMessage(false), 2000)
-      return () => clearTimeout(timer)
+      if (state.success) {
+        toast.success(state.message)
+      } else {
+        toast.error(state.message)
+      }
     }
   }, [state])
 
@@ -105,12 +127,15 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
   });
 
   const handleBaseRateChange = (
-    type: 'weekday' | 'weekend',
+    type: 'weekday' | 'weekend' | 'highSeasonWeekday' | 'highSeasonWeekend',
     index: number,
     field: keyof PriceTier,
     value: number
   ) => {
-    const setter = type === 'weekday' ? setWeekdayTiers : setWeekendTiers
+    let setter = setWeekdayTiers;
+    if (type === 'weekend') setter = setWeekendTiers;
+    if (type === 'highSeasonWeekday') setter = setHighSeasonWeekdayTiers;
+    if (type === 'highSeasonWeekend') setter = setHighSeasonWeekendTiers;
     setter(prev => {
       const updated = [...prev]
       updated[index] = { ...updated[index], [field]: value }
@@ -118,9 +143,12 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
     })
   }
 
-  const addTier = (type: 'weekday' | 'weekend') => {
-    const setter = type === 'weekday' ? setWeekdayTiers : setWeekendTiers
-    const tiers = type === 'weekday' ? weekdayTiers : weekendTiers
+  const addTier = (type: 'weekday' | 'weekend' | 'highSeasonWeekday' | 'highSeasonWeekend') => {
+    let setter = setWeekdayTiers;
+    let tiers = weekdayTiers;
+    if (type === 'weekend') { setter = setWeekendTiers; tiers = weekendTiers; }
+    if (type === 'highSeasonWeekday') { setter = setHighSeasonWeekdayTiers; tiers = highSeasonWeekdayTiers; }
+    if (type === 'highSeasonWeekend') { setter = setHighSeasonWeekendTiers; tiers = highSeasonWeekendTiers; }
     const lastTier = tiers[tiers.length - 1]
     setter(prev => [
       ...prev,
@@ -128,13 +156,16 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
     ])
   }
 
-  const requestRemoveTier = (type: 'weekday' | 'weekend', index: number) => {
+  const requestRemoveTier = (type: 'weekday' | 'weekend' | 'highSeasonWeekday' | 'highSeasonWeekend', index: number) => {
     setDeleteModal({ isOpen: true, type, index })
   }
 
   const confirmRemoveTier = () => {
     if (deleteModal.type && deleteModal.index !== null) {
-      const setter = deleteModal.type === 'weekday' ? setWeekdayTiers : setWeekendTiers
+      let setter = setWeekdayTiers;
+      if (deleteModal.type === 'weekend') setter = setWeekendTiers;
+      if (deleteModal.type === 'highSeasonWeekday') setter = setHighSeasonWeekdayTiers;
+      if (deleteModal.type === 'highSeasonWeekend') setter = setHighSeasonWeekendTiers;
       setter(prev => prev.filter((_, i) => i !== deleteModal.index))
       setDeleteModal({ isOpen: false, type: null, index: null })
     }
@@ -144,17 +175,18 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
     const result = await updateBaseRates({
       weekday: weekdayTiers,
       weekend: weekendTiers,
+      highSeason: {
+        weekday: highSeasonWeekdayTiers,
+        weekend: highSeasonWeekendTiers,
+        extraBedPrice: highSeasonExtraBedPrice
+      },
       extraBedPrice,
       childrenFreeAgeLimit
     })
     if (result.success) {
-      setMessage({ text: result.message, success: true })
-      setShowMessage(true)
-      setTimeout(() => setShowMessage(false), 2000)
+      toast.success(result.message)
     } else {
-      setMessage({ text: result.message, success: false })
-      setShowMessage(true)
-      setTimeout(() => setShowMessage(false), 2000)
+      toast.error(result.message)
     }
   }
 
@@ -162,7 +194,7 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
   if (!selectedProperty || !bookingDates.start) return;
   
   setIsSavingCustom(true);
-  console.table([bookingDates.start,bookingDates.end, selectedDateForPrice])
+  
   try {
     const dates: string[] = [];
     const start = dayjs(bookingDates.start);
@@ -187,9 +219,7 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
     });
 
     if (result?.success) {
-      setMessage({ text: result.message, success: true });
-      setShowMessage(true);
-      setTimeout(() => setShowMessage(false), 2000);
+      toast.success(result.message);
 
       const prices = await getCustomPrices(selectedProperty);
       setCustomPrices(prices);
@@ -201,15 +231,11 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
       setBookingDates({ start: null, end: null, count: 0 });
       setSelectedDateForPrice(null);
     } else {
-      setMessage({ text: result?.message || 'Błąd zapisu.', success: false });
-      setShowMessage(true);
-      setTimeout(() => setShowMessage(false), 2000);
+      toast.error(result?.message || 'Błąd zapisu.');
     }
   } catch (error) {
     console.error(error);
-    setMessage({ text: 'Wystąpił błąd podczas zapisu.', success: false });
-    setShowMessage(true);
-    setTimeout(() => setShowMessage(false), 2000);
+    toast.error('Wystąpił błąd podczas zapisu.');
   } finally {
     setIsSavingCustom(false);
   }
@@ -230,8 +256,7 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
   }, [calendarPrices])
 
   const getDayType = (dateStr: string) => {
-    const date = new Date(dateStr)
-    const day = date.getDay()
+    const day = dayjs(dateStr).day()
     return day === 0 || day === 6 ? 'weekend' : 'weekday'
   }
 
@@ -239,11 +264,14 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
     <form action={formAction} className="settings-card">
       <input type="hidden" name="weekdayTiers" value={JSON.stringify(weekdayTiers)} />
       <input type="hidden" name="weekendTiers" value={JSON.stringify(weekendTiers)} />
+      <input type="hidden" name="highSeasonWeekdayTiers" value={JSON.stringify(highSeasonWeekdayTiers)} />
+      <input type="hidden" name="highSeasonWeekendTiers" value={JSON.stringify(highSeasonWeekendTiers)} />
+      <input type="hidden" name="highSeasonExtraBedPrice" value={highSeasonExtraBedPrice} />
       <input type="hidden" name="extraBedPrice" value={extraBedPrice} />
       <input type="hidden" name="childrenFreeAgeLimit" value={childrenFreeAgeLimit} />
 
       <div className="card-header">
-        <h2 className="card-title">Ceny podstawowe</h2>
+        <h2 className="card-title">Ceny w sezonie niskim</h2>
         <span className="card-badge">Globalne</span>
       </div>
 
@@ -362,9 +390,127 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
         </div>
       </div>
 
+      <div className="card-header card-header-spaced">
+        <h2 className="card-title">Ceny w sezonie wysokim</h2>
+      </div>
+
+      <div className="setting-row">
+        <div className="setting-content">
+          <label className="setting-label">Cena za dobę - Dzień powszedni (nd–czw)</label>
+          <p className="setting-description">
+            Stawka obowiązująca w sezonie wysokim od niedzieli do czwartku.
+          </p>
+        </div>
+        <div className="setting-control">
+          <div className={styles.tiersContainer}>
+            {highSeasonWeekdayTiers.map((tier, index) => (
+              <div key={index} className={styles.tierRow}>
+                <span className={styles.tierRange}>
+                  {tier.minGuests}–{tier.maxGuests} os.
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  step="10"
+                  value={tier.price}
+                  onChange={(e) => handleBaseRateChange('highSeasonWeekday', index, 'price', parseInt(e.target.value) || 0)}
+                  className={styles.priceInput}
+                />
+                <span className={styles.currency}>zł</span>
+                {highSeasonWeekdayTiers.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => requestRemoveTier('highSeasonWeekday', index)}
+                    className={styles.removeTierBtn}
+                    aria-label={`Usuń przedział ${tier.minGuests}-${tier.maxGuests} osób`}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => addTier('highSeasonWeekday')}
+              className={styles.addTierBtn}
+            >
+              + Dodaj przedział
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="setting-row">
+        <div className="setting-content">
+          <label className="setting-label">Cena za dobę - Weekend (pt–sob)</label>
+          <p className="setting-description">
+            Stawka obowiązująca w sezonie wysokim w piątki i soboty.
+          </p>
+        </div>
+        <div className="setting-control">
+          <div className={styles.tiersContainer}>
+            {highSeasonWeekendTiers.map((tier, index) => (
+              <div key={index} className={styles.tierRow}>
+                <span className={styles.tierRange}>
+                  {tier.minGuests}–{tier.maxGuests} os.
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  step="10"
+                  value={tier.price}
+                  onChange={(e) => handleBaseRateChange('highSeasonWeekend', index, 'price', parseInt(e.target.value) || 0)}
+                  className={styles.priceInput}
+                />
+                <span className={styles.currency}>zł</span>
+                {highSeasonWeekendTiers.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => requestRemoveTier('highSeasonWeekend', index)}
+                    className={styles.removeTierBtn}
+                    aria-label={`Usuń przedział ${tier.minGuests}-${tier.maxGuests} osób`}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => addTier('highSeasonWeekend')}
+              className={styles.addTierBtn}
+            >
+              + Dodaj przedział
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="setting-row">
+        <div className="setting-content">
+          <label className="setting-label">Cena za dostawkę</label>
+          <p className="setting-description">
+            Dodatkowa opłata za każde łóżko dostawiane w sezonie wysokim.
+          </p>
+        </div>
+        <div className="setting-control">
+          <div className={styles.priceControl}>
+            <input
+              type="number"
+              min="0"
+              step="10"
+              value={highSeasonExtraBedPrice}
+              onChange={(e) => setHighSeasonExtraBedPrice(parseInt(e.target.value) || 0)}
+              className={styles.priceInputLarge}
+            />
+            <span className={styles.currency}>zł / noc</span>
+          </div>
+        </div>
+      </div>
+
       <div className="form-actions">
         <button type="button" className="btn-primary" onClick={handleSaveBaseRates} disabled={isPending}>
-          {isPending ? 'Zapisywanie...' : '💾 Zapisz ceny podstawowe'}
+          {isPending ? 'Zapisywanie...' : '💾 Zapisz ceny sezonowe'}
         </button>
       </div>
 
@@ -508,12 +654,6 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
         </>
       )}
 
-      {showMessage && (
-        <div className={`form-message ${message.success ? 'success-message' : 'error-message'}`}>
-          {message.text}
-        </div>
-      )}
-
       <Modal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, type: null, index: null })}
@@ -528,6 +668,7 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
           Ta operacja nie może zostać cofnięta.
         </p>
       </Modal>
+      <Toaster position="bottom-right" />
     </form>
   )
 }

@@ -94,6 +94,7 @@
 }
 
 .day:not(.day__reserved):not(.day__past):hover {
+    color: white;
     background-color: #555555;
     border-radius: 4px;
 }
@@ -104,8 +105,10 @@
 }
 
 .day__today {
-    color: #ff4d4d;
+    color: #c9b363 ;
     font-weight: bold;
+    border: 1px dashed #c9b363 ;
+    border-radius: 4px;
 }
 
 .day__past {
@@ -119,14 +122,6 @@
     pointer-events: none;
 }
 
-/* .day__reserved::before {
-    content: "";
-    position: absolute;
-    width: 60%;
-    height: 1px;
-    background-color: #ff4d4d;
-    transform: rotate(45deg);
-} */
 
 .day__reserved::after {
     content: "";

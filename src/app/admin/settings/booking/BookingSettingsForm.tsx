@@ -28,7 +28,6 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
   const [showMessage, setShowMessage] = useState(false);
   const [message, setMessage] = useState({ text: '', success: false });
 
-  // Stany lokalne dla pól, które wymagają zatwierdzenia formularzem
   const [localMinDays, setLocalMinDays] = useState(initialConfig.minBookingDays);
   const [localMaxDays, setLocalMaxDays] = useState(initialConfig.maxBookingDays);
   const [localHighSeasonStart, setLocalHighSeasonStart] = useState(initialConfig.highSeasonStart);
@@ -37,11 +36,9 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
   const [localCheckInHour, setLocalCheckInHour] = useState(initialConfig.checkInHour);
   const [localCheckOutHour, setLocalCheckOutHour] = useState(initialConfig.checkOutHour);
 
-  // Stany dla przełącznika (działa natychmiast)
   const [allowCheckin, setAllowCheckin] = useState(initialConfig.allowCheckinOnDepartureDay);
   const [togglePending, startToggleTransition] = useTransition();
 
-  // Efekt do aktualizacji stanu po zmianie initialConfig (np. po odświeżeniu)
   useEffect(() => {
     setAllowCheckin(initialConfig.allowCheckinOnDepartureDay);
   }, [initialConfig.allowCheckinOnDepartureDay]);
@@ -62,17 +59,70 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
     startToggleTransition(async () => {
       const result = await updateAllowCheckinOnDepartureDay(newValue);
       if (result.success) {
-        setAllowCheckin(newValue); // aktualizujemy stan lokalny
+        setAllowCheckin(newValue);
       } else {
-        // opcjonalnie pokaż błąd
         alert(result.message || 'Błąd zapisu');
       }
     });
   };
 
+  const handleBlurMinDays = (e: React.FocusEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value)
+    if (!isNaN(val) && val >= 1) {
+      setLocalMinDays(val)
+    } else {
+      e.target.value = localMinDays.toString()
+    }
+  }
+
+  const handleBlurMaxDays = (e: React.FocusEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value)
+    if (!isNaN(val) && val >= 1) {
+      setLocalMaxDays(val)
+    } else {
+      e.target.value = localMaxDays.toString()
+    }
+  }
+
+  const handleBlurChildrenFreeAge = (e: React.FocusEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value)
+    if (!isNaN(val) && val >= 0) {
+      setLocalChildrenFreeAge(val)
+    } else {
+      e.target.value = localChildrenFreeAge.toString()
+    }
+  }
+
+  const handleBlurCheckIn = (e: React.FocusEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value)
+    if (isNaN(val) || val < 0 || val > 23) {
+      e.target.value = localCheckInHour.toString()
+      return
+    }
+    if (val < localCheckOutHour) {
+      alert('Godzina rozpoczęcia doby nie może być wcześniejsza niż godzina zakończenia doby.')
+      e.target.value = localCheckInHour.toString()
+      return
+    }
+    setLocalCheckInHour(val)
+  }
+
+  const handleBlurCheckOut = (e: React.FocusEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value)
+    if (isNaN(val) || val < 0 || val > 23) {
+      e.target.value = localCheckOutHour.toString()
+      return
+    }
+    if (val > localCheckInHour) {
+      alert('Godzina zakończenia doby nie może być późniejsza niż godzina rozpoczęcia doby.')
+      e.target.value = localCheckOutHour.toString()
+      return
+    }
+    setLocalCheckOutHour(val)
+  }
+
   return (
     <form action={formAction} className="settings-card">
-      {/* Ukryte pola formularza – ich wartości pochodzą ze stanów lokalnych */}
       <input type="hidden" name="minBookingDays" value={localMinDays} />
       <input type="hidden" name="maxBookingDays" value={localMaxDays} />
       <input type="hidden" name="highSeasonStart" value={localHighSeasonStart || ''} />
@@ -95,8 +145,8 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
             id="minBookingDays"
             min="1"
             max="30"
-            value={localMinDays}
-            onChange={(e) => setLocalMinDays(parseInt(e.target.value) || 1)}
+            defaultValue={localMinDays}
+            onBlur={handleBlurMinDays}
             className="number-input"
           />
         </div>
@@ -113,8 +163,8 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
             id="maxBookingDays"
             min="1"
             max="90"
-            value={localMaxDays}
-            onChange={(e) => setLocalMaxDays(parseInt(e.target.value) || 1)}
+            defaultValue={localMaxDays}
+            onBlur={handleBlurMaxDays}
             className="number-input"
           />
         </div>
@@ -165,8 +215,8 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
             id="childrenFreeAgeLimit"
             min="0"
             max="18"
-            value={localChildrenFreeAge}
-            onChange={(e) => setLocalChildrenFreeAge(parseInt(e.target.value) || 0)}
+            defaultValue={localChildrenFreeAge}
+            onBlur={handleBlurChildrenFreeAge}
             className="number-input"
           />
         </div>
@@ -220,8 +270,8 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
             min="0"
             max="23"
             step="1"
-            value={localCheckInHour}
-            onChange={(e) => setLocalCheckInHour(parseInt(e.target.value) || 0)}
+            defaultValue={localCheckInHour}
+            onBlur={handleBlurCheckIn}
             className="number-input"
           />
         </div>
@@ -239,8 +289,8 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
             min="0"
             max="23"
             step="1"
-            value={localCheckOutHour}
-            onChange={(e) => setLocalCheckOutHour(parseInt(e.target.value) || 0)}
+            defaultValue={localCheckOutHour}
+            onBlur={handleBlurCheckOut}
             className="number-input"
           />
         </div>
