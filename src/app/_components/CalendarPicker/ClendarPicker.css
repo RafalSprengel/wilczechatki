@@ -11,10 +11,10 @@
     max-width: 400px;
     text-align: center;
     box-sizing: border-box;
-    background-color: #333333;
-    padding: 20px;
+    background-color: #fff;
+    padding: 10px;
     border-radius: 8px;
-    color: white;
+    color: #2d2d2d;
 }
 
 .navigation {
@@ -53,6 +53,10 @@
     color: #cccccc;
     font-size: 0.9em;
     font-weight: bold;
+}
+
+.day__weekend{
+ background-color: #f2b3360d ;
 }
 
 .month-container {
@@ -105,15 +109,24 @@
 }
 
 .day__past {
-    color: #666666 !important;
+    color: #bdbdbd !important;
     cursor: default;
 }
 
 .day__reserved {
-    color: #555555;
+    color: #b7b7b7;
     position: relative;
     pointer-events: none;
 }
+
+/* .day__reserved::before {
+    content: "";
+    position: absolute;
+    width: 60%;
+    height: 1px;
+    background-color: #ff4d4d;
+    transform: rotate(45deg);
+} */
 
 .day__reserved::after {
     content: "";
@@ -128,8 +141,8 @@
 .day__selected-as-end,
 .day__selected-between,
 .day__hovered {
-    background-color: #facc15 !important;
-    color: #000 !important;
+    background-color: #c9b363 !important;
+    color: #fff !important;
     border-radius: 4px;
 }
 
@@ -146,7 +159,6 @@
     font-style: normal;
     font-size: 1.5em;
     line-height: 1;
-    display: inline-block;
 }
 
 .calendar-error {

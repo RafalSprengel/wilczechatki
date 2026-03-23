@@ -1,7 +1,10 @@
 "use client";
 import { useState, useEffect, useMemo } from 'react';
 import dayjs from 'dayjs';
+import 'dayjs/locale/pl';
 import './ClendarPicker.css';
+
+dayjs.locale('pl');
 
 export interface DayData {
   price?: number;
@@ -88,8 +91,8 @@ interface CalendarPickerProps {
 export default function CalendarPicker({
   dates,
   onDateChange,
-  minBookingDays = 1,
-  maxBookingDays = 30
+  minBookingDays = 0,
+  maxBookingDays = 999
 }: CalendarPickerProps) {
   const [viewDate, setViewDate] = useState(dayjs());
   const [selectedStart, setSelectedStart] = useState<string | null>(null);
@@ -147,7 +150,6 @@ export default function CalendarPicker({
       if (end.isBefore(start)) {
         [start, end] = [end, start];
       }
-
       let hasReserved = false;
       let curr = start;
       while (curr.isBefore(end) || curr.isSame(end, 'day')) {
@@ -163,6 +165,7 @@ export default function CalendarPicker({
         setSelectedEnd(null);
       } else {
         const diff = end.diff(start, 'day');
+        
         if (diff < minBookingDays) {
           setError(`Minimalna ilość nocy to ${minBookingDays}.`);
         } else if (diff > maxBookingDays) {
@@ -175,12 +178,15 @@ export default function CalendarPicker({
       }
     }
   };
-
   useEffect(() => {
-    const start = selectedStart ? dayjs(selectedStart) : null;
-    const end = selectedEnd ? dayjs(selectedEnd) : null;
-    const count = start && end ? end.diff(start, 'day') : (start ? 1 : 0);
-    onDateChange({ start: selectedStart, end: selectedEnd, count });
+    const start = selectedStart;
+    const end = selectedEnd;
+    
+    const count = start && end 
+      ? dayjs(end).diff(dayjs(start), 'day') 
+      : (start ? 0 : 0);
+
+    onDateChange({ start, end, count });
   }, [selectedStart, selectedEnd, onDateChange]);
 
   return (
@@ -188,7 +194,7 @@ export default function CalendarPicker({
       <div className="navigation">
         <div className="navigation__arrow material-symbols-outlined" onClick={() => setViewDate(viewDate.subtract(1, 'year'))}>keyboard_double_arrow_left</div>
         <div className="navigation__arrow material-symbols-outlined" onClick={() => setViewDate(viewDate.subtract(1, 'month'))}>keyboard_arrow_left</div>
-        <div className="navigation__current-month" onClick={() => setViewDate(dayjs())}>
+        <div className="navigation__current-month" onClick={() => setViewDate(dayjs())} style={{ textTransform: 'capitalize' }}>
           {viewDate.format('MMMM YYYY')}
         </div>
         <div className="navigation__arrow material-symbols-outlined" onClick={() => setViewDate(viewDate.add(1, 'month'))}>keyboard_arrow_right</div>

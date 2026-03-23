@@ -148,7 +148,7 @@
 }
 
 .buttOk {
-  background: var(--primary-color);
+  background: var(--accent-color);
   color: var(--text-light);
   border: none;
   padding: 12px;

@@ -7,7 +7,7 @@ import { searchAction, SearchOption, getMaxTotalGuests } from '@/actions/searchA
 import { getBookingConfig } from '@/actions/bookingConfigActions'
 import { getBlockedDates } from '@/actions/bookingActions'
 import QuantityPicker from '../../_components/QuantityPicker/QuantityPicker'
-import CalendarPicker from '../../_components/CalendarPicker/CalendarPicker'
+import CalendarPicker, { DatesData } from '../../_components/CalendarPicker/CalendarPicker'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import styles from './page.module.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -106,6 +106,11 @@ console.log(blockedDates);
   }
 
   const closeAllBoxes = () => setActiveBox(null)
+
+  const calendarDates: DatesData = {};
+  blockedDates.forEach((bd) => {
+    calendarDates[bd.date] = { available: false };
+  });
 
   const handleSearch = async () => {
     if (!bookingDates.start || !bookingDates.end || totalGuests === 0) return
@@ -250,7 +255,7 @@ console.log(blockedDates);
             className={`${styles.setDate} ${activeBox === 'dates' ? styles.expandedDate : ''}`}
           >
             <CalendarPicker
-              unavailableDates={blockedDates}
+              dates={calendarDates}
               onDateChange={setBookingDates}
               minBookingDays={minBookingDays}
               maxBookingDays={maxBookingDays}

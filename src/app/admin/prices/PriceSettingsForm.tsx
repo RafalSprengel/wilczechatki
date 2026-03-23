@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useActionState } from 'react'
 import { updatePriceConfig, updateBaseRates, updateCustompriceForDate, getCustomPrices } from '@/actions/priceConfigActions'
-import CalendarPicker from '@/app/_components/CalendarPicker/CalendarPicker'
+import CalendarPicker, { DatesData } from '@/app/_components/CalendarPicker/CalendarPicker'
 import dayjs from 'dayjs';
 import QuantityPicker from '@/app/_components/QuantityPicker/QuantityPicker'
 import Modal from '@/app/_components/Modal/Modal'
@@ -99,6 +99,11 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
     }
   }, [selectedProperty])
 
+  const calendarDates: DatesData = {};
+  Object.entries(calendarPrices).forEach(([date, price]) => {
+    calendarDates[date] = { price, available: true };
+  });
+
   const handleBaseRateChange = (
     type: 'weekday' | 'weekend',
     index: number,
@@ -157,7 +162,7 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
   if (!selectedProperty || !bookingDates.start) return;
   
   setIsSavingCustom(true);
-  
+  console.table([bookingDates.start,bookingDates.end, selectedDateForPrice])
   try {
     const dates: string[] = [];
     const start = dayjs(bookingDates.start);
@@ -166,7 +171,6 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
       const end = dayjs(bookingDates.end);
       let current = start;
       
-      // Bardzo czytelna pętla
       while (current.isBefore(end) || current.isSame(end, 'day')) {
         dates.push(current.format('YYYY-MM-DD'));
         current = current.add(1, 'day');
@@ -224,12 +228,6 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
       if (price) setCustomPrice(price)
     }
   }, [calendarPrices])
-
-  const handleCalendarDayClick = useCallback((date: string, price?: number) => {
-    setSelectedDateForPrice(date)
-    setBookingDates({ start: date, end: null, count: 1 })
-    if (price) setCustomPrice(price)
-  }, [])
 
   const getDayType = (dateStr: string) => {
     const date = new Date(dateStr)
@@ -410,20 +408,23 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit }: 
             <div className="setting-control">
               <div className={styles.calendarWrapper}>
                 <CalendarPicker
-                  unavailableDates={[]}
+                  dates={calendarDates}
                   onDateChange={handleDateSelect}
-                  minBookingDays={1}
+                  minBookingDays={0}
                   maxBookingDays={365}
-                  customPrices={calendarPrices}
-                  onDayClick={handleCalendarDayClick}
                 />
               </div>
-              {selectedDateForPrice && (
+              {bookingDates.start && (
                 <div className={styles.selectedDateInfo}>
-                  <span>Wybrano: {selectedDateForPrice}</span>
-                  <span className={styles.dayType}>
-                    ({getDayType(selectedDateForPrice) === 'weekend' ? 'Weekend' : 'Dzień powszedni'})
+                  <span>
+                    Wybrano: {bookingDates.start}
+                    {bookingDates.end && ` — ${bookingDates.end}`}
                   </span>
+                  {!bookingDates.end && (
+                    <span className={styles.dayType}>
+                      ({getDayType(bookingDates.start) === 'weekend' ? 'Weekend' : 'Dzień powszedni'})
+                    </span>
+                  )}
                 </div>
               )}
             </div>
