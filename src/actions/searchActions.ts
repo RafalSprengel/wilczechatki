@@ -2,7 +2,8 @@
 import dbConnect from '@/db/connection';
 import Property from '@/db/models/Property';
 import Booking from '@/db/models/Booking';
-import PriceConfig, { ISeason } from '@/db/models/PriceConfig';
+import PriceConfig from '@/db/models/PriceConfig';
+import Season, { ISeason } from '@/db/models/Season';
 import CustomPrice from '@/db/models/CustomPrice';
 import SystemConfig from '@/db/models/SystemConfig';
 import { Types } from 'mongoose';
@@ -32,23 +33,6 @@ interface SearchParams {
   extraBeds?: number;
 }
 
-// Helper to check if date is in season ignoring the year (MM-DD comparison)
-function isDateInSeason(date: dayjs.Dayjs, startStr?: string | null, endStr?: string | null) {
-  if (!startStr || !endStr) return false;
-  // Format as MM-DD to ignore year
-  const d = date.format('MM-DD');
-  const s = dayjs(startStr).format('MM-DD');
-  const e = dayjs(endStr).format('MM-DD');
-
-  if (s <= e) {
-    // Standard range (e.g. 06-01 to 08-31)
-    return d >= s && d <= e;
-  } else {
-    // Cross-year range (e.g. 12-20 to 01-05)
-    return d >= s || d <= e;
-  }
-}
-
 async function getDailyPrice({
   date,
   config,
@@ -56,7 +40,8 @@ async function getDailyPrice({
   guests,
   extraBeds,
   propertyBaseCapacity,
-  customPrices
+  customPrices,
+  activeSeasons
 }: {
   date: dayjs.Dayjs;
   config: any;
@@ -65,36 +50,46 @@ async function getDailyPrice({
   extraBeds: number;
   propertyBaseCapacity: number;
   customPrices: Map<string, any>;
+  activeSeasons: ISeason[];
 }): Promise<number> {
   // 1. Check for Individual Price (CustomPrice) - Highest Priority
   const dateKey = date.format('YYYY-MM-DD');
   const customPrice = customPrices.get(dateKey);
 
-  if (customPrice) {
-    return customPrice.price + (extraBeds * customPrice.extraBedPrice);
-  }
-
   const day = date.day();
   const isWeekend = day === 5 || day === 6;
 
-  // 2. Check for High Season (Recurring)
-  const isHighSeason = isDateInSeason(date, systemConfig?.highSeasonStart, systemConfig?.highSeasonEnd);
-  
-  let ratesSource = config.baseRates;
-  let bedPrice = config.baseRates.extraBedPrice;
-  const tierKey = isWeekend ? 'weekend' : 'weekday';
+  if (customPrice) {
+    const extraBedPrice = isWeekend ? customPrice.weekendExtraBedPrice : customPrice.weekdayExtraBedPrice;
+    return customPrice.price + (extraBeds * (extraBedPrice ?? 0));
+  }
 
-  if (isHighSeason && config.baseRates.highSeason) {
-    // Use High Season rates
-    ratesSource = config.baseRates.highSeason;
-    bedPrice = config.baseRates.highSeason.extraBedPrice ?? config.baseRates.extraBedPrice;
+  // 2. Check for Active Season
+  // Find a season that covers this date
+  const activeSeason = activeSeasons.find(s => 
+    date.isSameOrAfter(dayjs(s.startDate), 'day') && 
+    date.isSameOrBefore(dayjs(s.endDate), 'day')
+  );
+  
+  let ratesSource;
+  let bedPrice;
+
+  if (activeSeason) {
+    ratesSource = isWeekend ? activeSeason.weekendPrices : activeSeason.weekdayPrices;
+    bedPrice = isWeekend ? activeSeason.weekendExtraBedPrice : activeSeason.weekdayExtraBedPrice;
+  } else {
+    // 3. Default Prices
+    ratesSource = isWeekend ? config.defaultWeekendPrices : config.defaultWeekdayPrices;
+    bedPrice = isWeekend ? config.defaultWeekendExtraBedPrice : config.defaultWeekdayExtraBedPrice;
   }
 
   const guestsForPricing = Math.min(guests, propertyBaseCapacity);
 
-  const tier = ratesSource[tierKey].find((r: any) =>
+  if (!ratesSource) return 0;
+
+  const tier = ratesSource.find((r: any) =>
     guestsForPricing >= r.minGuests && guestsForPricing <= r.maxGuests
-  ) || ratesSource[tierKey][ratesSource[tierKey].length - 1];
+  ) || ratesSource[ratesSource.length - 1];
 
   if (!tier) return 0;
 
@@ -128,14 +123,19 @@ export async function calculateTotalPrice({
   if (!startDate || !endDate || !guests) return 0;
 
   await dbConnect();
-  const [config, property, systemConfig, customPricesDocs] = await Promise.all([
+  const [config, property, systemConfig, customPricesDocs, activeSeasons] = await Promise.all([
     PriceConfig.findById('main'),
     Property.findById(propertySelection),
     SystemConfig.findById('main'),
     CustomPrice.find({
       propertyId: propertySelection,
       date: { $gte: dayjs(startDate).toDate(), $lt: dayjs(endDate).toDate() }
-    })
+    }),
+    Season.find({
+      isActive: true,
+      startDate: { $lte: dayjs(endDate).toDate() },
+      endDate: { $gte: dayjs(startDate).toDate() }
+    }).sort({ startDate: 1 })
   ]);
 
   if (!config || !property) return 0;
@@ -158,7 +158,8 @@ export async function calculateTotalPrice({
       guests,
       extraBeds,
       propertyBaseCapacity: property.baseCapacity,
-      customPrices: customPricesMap
+      customPrices: customPricesMap,
+      activeSeasons: activeSeasons as ISeason[]
     });
     currentDate = currentDate.add(1, 'day');
   }
@@ -180,13 +181,18 @@ export async function calculateTotalPriceForWhole({
   if (!startDate || !endDate || !guests) return 0;
 
   await dbConnect();
-  const [properties, config, systemConfig, allCustomPrices] = await Promise.all([
+  const [properties, config, systemConfig, allCustomPrices, activeSeasons] = await Promise.all([
     Property.find({ isActive: true, type: 'single' }).sort({ name: 1 }),
     PriceConfig.findById('main'),
     SystemConfig.findById('main'),
     CustomPrice.find({
       date: { $gte: dayjs(startDate).toDate(), $lt: dayjs(endDate).toDate() }
-    })
+    }),
+    Season.find({
+      isActive: true,
+      startDate: { $lte: dayjs(endDate).toDate() },
+      endDate: { $gte: dayjs(startDate).toDate() }
+    }).sort({ startDate: 1 })
   ]);
 
   if (properties.length === 0 || !config) return 0;
@@ -219,7 +225,8 @@ export async function calculateTotalPriceForWhole({
         guests: guestsForThisCabin,
         extraBeds: extraBedsForThisCabin,
         propertyBaseCapacity: property.baseCapacity,
-        customPrices: customPricesMap
+        customPrices: customPricesMap,
+        activeSeasons: activeSeasons as ISeason[]
       });
       currentDate = currentDate.add(1, 'day');
     }
@@ -320,3 +327,4 @@ export async function searchAction({
     throw new Error("Nie udało się pobrać dostępnych terminów.");
   }
 }
+

@@ -1,3 +1,4 @@
+// src/app/admin/dev/page.tsx
 'use client'
 import { useState } from 'react';
 import {
@@ -5,7 +6,8 @@ import {
   seedProperties,
   seedBookings,
   seedSystemConfig,
-  seedPriceConfig,
+  seedPriceConfigDefaults,
+  seedSeasons,
   seedBookingConfig,
   clearAllData
 } from '@/actions/seed';
@@ -15,16 +17,20 @@ export default function DevPage() {
   const [logs, setLogs] = useState<string[]>([]);
 
   const addLog = (msg: string) => {
-    setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`].slice(-10));
+    setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev].slice(0, 20));
   };
 
   const runAction = async (name: string, actionFn: () => Promise<any>) => {
     addLog(`Uruchamiam: ${name}...`);
-    const res = await actionFn();
-    if (res.success) {
-      addLog(`✅ SUCCESS: ${res.message}`);
-    } else {
-      addLog(`❌ ERROR: ${res.error || res.message}`);
+    try {
+      const res = await actionFn();
+      if (res.success) {
+        addLog(`✅ SUCCESS: ${res.message}`);
+      } else {
+        addLog(`❌ ERROR: ${res.error || res.message}`);
+      }
+    } catch (error: any) {
+      addLog(`❌ EXCEPTION: ${error.message}`);
     }
   };
 
@@ -39,27 +45,54 @@ export default function DevPage() {
           <section className={styles.actions}>
             <h3>Database Actions</h3>
             <div className={styles.buttonGroup}>
-              <button className={styles.btnPrimary} onClick={() => runAction('Seed All (Reset)', seedAllData)}>
+              <button 
+                className={styles.btnPrimary} 
+                onClick={() => runAction('Seed All (Reset)', seedAllData)}
+              >
                 Seed All Data (Full Reset)
               </button>
               <hr className={styles.divider} />
-              <button className={styles.btnSecondary} onClick={() => runAction('Seed Properties (2 domki)', seedProperties)}>
+              <button 
+                className={styles.btnSecondary} 
+                onClick={() => runAction('Seed Properties (2 domki)', seedProperties)}
+              >
                 Seed Properties Only (2 domki)
               </button>
-              <button className={styles.btnSecondary} onClick={() => runAction('Seed Price Config', seedPriceConfig)}>
-                Seed Price Config
+              <button 
+                className={styles.btnSecondary} 
+                onClick={() => runAction('Seed Price Config (Default)', seedPriceConfigDefaults)}
+              >
+                Seed Price Config (Default)
               </button>
-              <button className={styles.btnSecondary} onClick={() => runAction('Seed System Config', seedSystemConfig)}>
+              <button 
+                className={styles.btnSecondary} 
+                onClick={() => runAction('Seed Seasons', seedSeasons)}
+              >
+                Seed Seasons (3 sezony)
+              </button>
+              <button 
+                className={styles.btnSecondary} 
+                onClick={() => runAction('Seed System Config', seedSystemConfig)}
+              >
                 Seed System Config
               </button>
-              <button className={styles.btnSecondary} onClick={() => runAction('Seed Booking Config', seedBookingConfig)}>
+              <button 
+                className={styles.btnSecondary} 
+                onClick={() => runAction('Seed Booking Config', seedBookingConfig)}
+              >
                 Seed Booking Config
               </button>
-              <button className={styles.btnSecondary} onClick={() => runAction('Seed Bookings', seedBookings)}>
+              <button 
+                className={styles.btnSecondary} 
+                onClick={() => runAction('Seed Bookings', seedBookings)}
+              >
                 Seed Bookings Only
               </button>
               <hr className={styles.divider} />
-              <button className={styles.btnDanger} onClick={() => runAction('Clear Database', clearAllData)}>
+              <button 
+                className={styles.btnDanger} 
+                onClick={() => runAction('Clear Database', clearAllData)}
+              >
                 Clear All Collections
               </button>
             </div>

@@ -13,15 +13,12 @@ interface PriceTier {
   price: number;
 }
 
-interface BaseRatesUpdate {
+interface SeasonUpdate {
+  seasonIndex: string; // "season0", "season1", etc.
   weekday: PriceTier[];
   weekend: PriceTier[];
-  highSeason: {
-    weekday: PriceTier[];
-    weekend: PriceTier[];
-    extraBedPrice: number;
-  };
-  extraBedPrice: number;
+  weekdayExtraBedPrice: number;
+  weekendExtraBedPrice: number;
   childrenFreeAgeLimit: number;
 }
 
@@ -29,78 +26,50 @@ interface CustomPriceUpdate {
   propertyId: string;
   dates: string[];
   price: number;
-  extraBedPrice: number;
+  weekdayExtraBedPrice: number;
+  weekendExtraBedPrice: number;
 }
 
 export interface CustomPriceEntry {
   date: string;
   price: number;
   propertyId: string;
+  weekdayExtraBedPrice?: number;
+  weekendExtraBedPrice?: number;
 }
 
 export async function updatePriceConfig(prevState: any, formData: FormData) {
   try {
     await dbConnect();
 
+    const seasonIndex = formData.get('seasonIndex') as string;
     const weekdayTiers = JSON.parse(formData.get('weekdayTiers') as string) as PriceTier[];
     const weekendTiers = JSON.parse(formData.get('weekendTiers') as string) as PriceTier[];
-    const highSeasonWeekdayTiers = JSON.parse(formData.get('highSeasonWeekdayTiers') as string) as PriceTier[];
-    const highSeasonWeekendTiers = JSON.parse(formData.get('highSeasonWeekendTiers') as string) as PriceTier[];
-    const highSeasonExtraBedPrice = parseInt(formData.get('highSeasonExtraBedPrice') as string) || 0;
-    const extraBedPrice = parseInt(formData.get('extraBedPrice') as string) || 50;
+    const weekdayExtraBedPrice = parseInt(formData.get('weekdayExtraBedPrice') as string) || 50;
+    const weekendExtraBedPrice = parseInt(formData.get('weekendExtraBedPrice') as string) || 70;
     const childrenFreeAgeLimit = parseInt(formData.get('childrenFreeAgeLimit') as string) || 13;
+
+    const updateData: any = {};
+    updateData[`${seasonIndex}.weekday`] = weekdayTiers;
+    updateData[`${seasonIndex}.weekend`] = weekendTiers;
+    updateData[`${seasonIndex}.weekdayExtraBedPrice`] = weekdayExtraBedPrice;
+    updateData[`${seasonIndex}.weekendExtraBedPrice`] = weekendExtraBedPrice;
+    updateData.childrenFreeAgeLimit = childrenFreeAgeLimit;
 
     await PriceConfig.findByIdAndUpdate(
       'main',
-      {
-        baseRates: {
-          weekday: weekdayTiers,
-          weekend: weekendTiers,
-          highSeason: {
-            weekday: highSeasonWeekdayTiers,
-            weekend: highSeasonWeekendTiers,
-            extraBedPrice: highSeasonExtraBedPrice
-          },
-          extraBedPrice,
-          childrenFreeAgeLimit
-        }
-      },
+      { $set: updateData },
       { upsert: true, new: true }
     );
 
     revalidatePath('/admin/prices');
-    return { success: true, message: 'Zapisano ceny podstawowe.' };
+    return { success: true, message: `Zapisano konfigurację dla ${seasonIndex}.` };
   } catch (error) {
     console.error('Błąd zapisu cen:', error);
     return { success: false, message: 'Wystąpił błąd podczas zapisu.' };
   }
 }
 
-export async function updateBaseRates(data: BaseRatesUpdate) {
-  try {
-    await dbConnect();
-
-    await PriceConfig.findByIdAndUpdate(
-      'main',
-      {
-        baseRates: {
-          weekday: data.weekday,
-          weekend: data.weekend,
-          highSeason: data.highSeason,
-          extraBedPrice: data.extraBedPrice,
-          childrenFreeAgeLimit: data.childrenFreeAgeLimit
-        }
-      },
-      { upsert: true, new: true }
-    );
-
-    revalidatePath('/admin/prices');
-    return { success: true, message: 'Zapisano ceny podstawowe.' };
-  } catch (error) {
-    console.error('Błąd zapisu cen podstawowych:', error);
-    return { success: false, message: 'Wystąpił błąd podczas zapisu.' };
-  }
-}
 
 export async function updateCustompriceForDate(data: CustomPriceUpdate) {
   try {
@@ -115,7 +84,8 @@ export async function updateCustompriceForDate(data: CustomPriceUpdate) {
         update: {
           $set: {
             price: data.price,
-            extraBedPrice: data.extraBedPrice,
+            weekdayExtraBedPrice: data.weekdayExtraBedPrice,
+            weekendExtraBedPrice: data.weekendExtraBedPrice,
             updatedAt: new Date()
           }
         },
@@ -160,7 +130,9 @@ export async function getCustomPrices(propertyId: string): Promise<CustomPriceEn
     return prices.map((p: any) => ({
       date: dayjs(p.date).format('YYYY-MM-DD'),
       price: p.price,
-      propertyId: p.propertyId.toString()
+      propertyId: p.propertyId.toString(),
+      weekdayExtraBedPrice: p.weekdayExtraBedPrice,
+      weekendExtraBedPrice: p.weekendExtraBedPrice
     }));
   } catch (error) {
     return [];

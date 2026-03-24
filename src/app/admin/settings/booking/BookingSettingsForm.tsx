@@ -1,7 +1,10 @@
+// src/app/admin/settings/booking/BookingSettingsForm.tsx
 'use client';
 
 import { useActionState, useEffect, useState, useTransition } from 'react';
 import { updateBookingConfig, updateAllowCheckinOnDepartureDay } from '@/actions/bookingConfigActions';
+import { getAllSeasons, updateSeasonDates, SeasonData } from '@/actions/seasonActions';
+import dayjs from 'dayjs';
 import '../settings.css';
 
 interface BookingConfig {
@@ -39,6 +42,42 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
   const [allowCheckin, setAllowCheckin] = useState(initialConfig.allowCheckinOnDepartureDay);
   const [togglePending, startToggleTransition] = useTransition();
 
+  // Stan dla sezonów
+  const [seasons, setSeasons] = useState<SeasonData[]>([]);
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string>('');
+  const [selectedSeason, setSelectedSeason] = useState<SeasonData | null>(null);
+  const [isLoadingSeasons, setIsLoadingSeasons] = useState(true);
+  const [isUpdatingSeason, setIsUpdatingSeason] = useState(false);
+  const [seasonStartDate, setSeasonStartDate] = useState('');
+  const [seasonEndDate, setSeasonEndDate] = useState('');
+
+  // Pobierz listę sezonów przy starcie
+  useEffect(() => {
+    const loadSeasons = async () => {
+      setIsLoadingSeasons(true);
+      const seasonsList = await getAllSeasons();
+      setSeasons(seasonsList);
+      if (seasonsList.length > 0) {
+        setSelectedSeasonId(seasonsList[0]._id);
+        setSelectedSeason(seasonsList[0]);
+        setSeasonStartDate(dayjs(seasonsList[0].startDate).format('YYYY-MM-DD'));
+        setSeasonEndDate(dayjs(seasonsList[0].endDate).format('YYYY-MM-DD'));
+      }
+      setIsLoadingSeasons(false);
+    };
+    loadSeasons();
+  }, []);
+
+  // Aktualizuj wybrany sezon gdy zmieni się selectedSeasonId
+  useEffect(() => {
+    const season = seasons.find(s => s._id === selectedSeasonId);
+    setSelectedSeason(season || null);
+    if (season) {
+      setSeasonStartDate(dayjs(season.startDate).format('YYYY-MM-DD'));
+      setSeasonEndDate(dayjs(season.endDate).format('YYYY-MM-DD'));
+    }
+  }, [selectedSeasonId, seasons]);
+
   useEffect(() => {
     setAllowCheckin(initialConfig.allowCheckinOnDepartureDay);
   }, [initialConfig.allowCheckinOnDepartureDay]);
@@ -66,60 +105,87 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
     });
   };
 
-  const handleBlurMinDays = (e: React.FocusEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value)
-    if (!isNaN(val) && val >= 1) {
-      setLocalMinDays(val)
+  const handleUpdateSeasonDates = async () => {
+    if (!selectedSeasonId || !seasonStartDate || !seasonEndDate) return;
+    
+    setIsUpdatingSeason(true);
+    const result = await updateSeasonDates(selectedSeasonId, seasonStartDate, seasonEndDate);
+    if (result.success) {
+      // Odśwież listę sezonów
+      const updatedSeasons = await getAllSeasons();
+      setSeasons(updatedSeasons);
+      const updatedSeason = updatedSeasons.find(s => s._id === selectedSeasonId);
+      if (updatedSeason) {
+        setSelectedSeason(updatedSeason);
+      }
+      setMessage({ text: result.message, success: true });
+      setShowMessage(true);
+      setTimeout(() => setShowMessage(false), 2000);
     } else {
-      e.target.value = localMinDays.toString()
+      alert(result.message);
     }
-  }
+    setIsUpdatingSeason(false);
+  };
+
+  const handleBlurMinDays = (e: React.FocusEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value);
+    if (!isNaN(val) && val >= 1) {
+      setLocalMinDays(val);
+    } else {
+      e.target.value = localMinDays.toString();
+    }
+  };
 
   const handleBlurMaxDays = (e: React.FocusEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value)
+    const val = parseInt(e.target.value);
     if (!isNaN(val) && val >= 1) {
-      setLocalMaxDays(val)
+      setLocalMaxDays(val);
     } else {
-      e.target.value = localMaxDays.toString()
+      e.target.value = localMaxDays.toString();
     }
-  }
+  };
 
   const handleBlurChildrenFreeAge = (e: React.FocusEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value)
+    const val = parseInt(e.target.value);
     if (!isNaN(val) && val >= 0) {
-      setLocalChildrenFreeAge(val)
+      setLocalChildrenFreeAge(val);
     } else {
-      e.target.value = localChildrenFreeAge.toString()
+      e.target.value = localChildrenFreeAge.toString();
     }
-  }
+  };
 
   const handleBlurCheckIn = (e: React.FocusEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value)
+    const val = parseInt(e.target.value);
     if (isNaN(val) || val < 0 || val > 23) {
-      e.target.value = localCheckInHour.toString()
-      return
+      e.target.value = localCheckInHour.toString();
+      return;
     }
     if (val < localCheckOutHour) {
-      alert('Godzina rozpoczęcia doby nie może być wcześniejsza niż godzina zakończenia doby.')
-      e.target.value = localCheckInHour.toString()
-      return
+      alert('Godzina rozpoczęcia doby nie może być wcześniejsza niż godzina zakończenia doby.');
+      e.target.value = localCheckInHour.toString();
+      return;
     }
-    setLocalCheckInHour(val)
-  }
+    setLocalCheckInHour(val);
+  };
 
   const handleBlurCheckOut = (e: React.FocusEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value)
+    const val = parseInt(e.target.value);
     if (isNaN(val) || val < 0 || val > 23) {
-      e.target.value = localCheckOutHour.toString()
-      return
+      e.target.value = localCheckOutHour.toString();
+      return;
     }
     if (val > localCheckInHour) {
-      alert('Godzina zakończenia doby nie może być późniejsza niż godzina rozpoczęcia doby.')
-      e.target.value = localCheckOutHour.toString()
-      return
+      alert('Godzina zakończenia doby nie może być późniejsza niż godzina rozpoczęcia doby.');
+      e.target.value = localCheckOutHour.toString();
+      return;
     }
-    setLocalCheckOutHour(val)
-  }
+    setLocalCheckOutHour(val);
+  };
+
+  const formatDateForInput = (date: string | null) => {
+    if (!date) return '';
+    return dayjs(date).format('YYYY-MM-DD');
+  };
 
   return (
     <form action={formAction} className="settings-card">
@@ -171,37 +237,82 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
       </div>
 
       <div className="card-header card-header-spaced">
-        <h2 className="card-title">Sezon wysoki</h2>
+        <h2 className="card-title">Sezony cenowe</h2>
       </div>
-      <div className="setting-row" style={{ alignItems: 'center' }}>
-        <div className="setting-content">
-          <label htmlFor="highSeasonStart" className="setting-label">Data rozpoczęcia (rok jest ignorowany)</label>
-          <p className="setting-description" style={{ fontSize: '0.8rem', margin: 0 }}>Ustawienie będzie aktywne co roku w tym dniu.</p>
-        </div>
-        <div className="setting-control">
-          <input
-            type="date"
-            id="highSeasonStart"
-            value={localHighSeasonStart ? new Date(localHighSeasonStart).toISOString().split('T')[0] : ''}
-            onChange={(e) => setLocalHighSeasonStart(e.target.value || null)}
-            className="date-input"
-          />
-        </div>
-      </div>
+
+      {/* Selector sezonów */}
       <div className="setting-row">
         <div className="setting-content">
-          <label htmlFor="highSeasonEnd" className="setting-label">Data zakończenia</label>
+          <label className="setting-label">Wybierz sezon do edycji</label>
+          <p className="setting-description">Zarządzaj datami obowiązywania poszczególnych sezonów.</p>
         </div>
         <div className="setting-control">
-          <input
-            type="date"
-            id="highSeasonEnd"
-            value={localHighSeasonEnd ? new Date(localHighSeasonEnd).toISOString().split('T')[0] : ''}
-            onChange={(e) => setLocalHighSeasonEnd(e.target.value || null)}
-            className="date-input"
-          />
+          {isLoadingSeasons ? (
+            <span>Ładowanie sezonów...</span>
+          ) : seasons.length === 0 ? (
+            <span className="status-inactive">Brak zdefiniowanych sezonów</span>
+          ) : (
+            <select
+              id="seasonSelect"
+              value={selectedSeasonId}
+              onChange={(e) => setSelectedSeasonId(e.target.value)}
+              className="date-input"
+              style={{ width: '100%', padding: '8px' }}
+            >
+              {seasons.map((season) => (
+                <option key={season._id} value={season._id}>
+                  {season.name} {!season.isActive && '(nieaktywny)'}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
+
+      {/* Formularz edycji dat sezonu */}
+      {selectedSeason && (
+        <div className="setting-row">
+          <div className="setting-content">
+            <label className="setting-label">
+              {selectedSeason.name}
+            </label>
+            {selectedSeason.description && (
+              <p className="setting-description">{selectedSeason.description}</p>
+            )}
+          </div>
+          <div className="setting-control" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '12px' }}>
+            <div>
+              <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Data rozpoczęcia</label>
+              <input
+                type="date"
+                value={seasonStartDate}
+                onChange={(e) => setSeasonStartDate(e.target.value)}
+                className="date-input"
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Data zakończenia</label>
+              <input
+                type="date"
+                value={seasonEndDate}
+                onChange={(e) => setSeasonEndDate(e.target.value)}
+                className="date-input"
+                style={{ width: '100%' }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleUpdateSeasonDates}
+              disabled={isUpdatingSeason}
+              className="btn-secondary"
+              style={{ marginTop: '8px' }}
+            >
+              {isUpdatingSeason ? 'Zapisywanie...' : 'Zapisz daty sezonu'}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="card-header card-header-spaced">
         <h2 className="card-title">Dzieci</h2>

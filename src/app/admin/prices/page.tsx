@@ -1,15 +1,15 @@
 import { getBookingConfig } from '@/actions/bookingConfigActions';
 import { getAllProperties } from '@/actions/adminPropertyActions';
-import { getPriceConfig } from '@/actions/priceConfigActions';
+import { getAllSeasons } from '@/actions/seasonActions';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
 import PriceSettingsForm from './PriceSettingsForm';
 import '../settings/settings.css';
 
 export default async function PricesPage() {
-  const [properties, bookingConfig, priceConfig] = await Promise.all([
+  const [properties, bookingConfig, seasons] = await Promise.all([
     getAllProperties(),
     getBookingConfig(),
-    getPriceConfig()
+    getAllSeasons()
   ]);
 
   const singleProperties = properties.filter(p => p.type === 'single');
@@ -24,7 +24,7 @@ export default async function PricesPage() {
       <PriceSettingsForm 
         properties={singleProperties}
         childrenFreeAgeLimit={bookingConfig.childrenFreeAgeLimit}
-        initialRates={priceConfig?.baseRates}
+        seasons={seasons}
       />
     </div>
   );

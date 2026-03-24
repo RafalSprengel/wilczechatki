@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useActionState } from 'react'
-import { updatePriceConfig, updateCustompriceForDate, getCustomPrices, deleteCustomPricesForDate } from '@/actions/priceConfigActions'
+import { updateSeasonPrices } from '@/actions/seasonActions'
+import { updateCustompriceForDate, getCustomPrices, deleteCustomPricesForDate } from '@/actions/priceConfigActions'
 import CalendarPicker, { DatesData } from '@/app/_components/CalendarPicker/CalendarPicker'
 import dayjs from 'dayjs';
 import QuantityPicker from '@/app/_components/QuantityPicker/QuantityPicker'
@@ -34,59 +35,65 @@ interface CustomPriceEntry {
   date: string
   price: number
   propertyId: string
+  weekdayExtraBedPrice?: number
+  weekendExtraBedPrice?: number
 }
 
-interface BaseRates {
-  weekday: PriceTier[];
-  weekend: PriceTier[];
-  highSeason: {
-    weekday: PriceTier[];
-    weekend: PriceTier[];
-    extraBedPrice: number;
-  };
-  extraBedPrice: number;
+interface Season {
+  _id: string;
+  name: string;
+  description?: string;
+  startDate: Date;
+  endDate: Date;
+  isActive: boolean;
+  weekdayPrices: PriceTier[];
+  weekendPrices: PriceTier[];
+  weekdayExtraBedPrice: number;
+  weekendExtraBedPrice: number;
 }
 
 interface Props {
   properties: PropertyOption[]
   childrenFreeAgeLimit: number
-  initialRates?: BaseRates
+  seasons: Season[]
 }
 
-export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, initialRates }: Props) {
-  const [state, formAction, isPending] = useActionState(updatePriceConfig, {
+export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, seasons }: Props) {
+  const [state, formAction, isPending] = useActionState(updateSeasonPrices, {
     message: '',
     success: false,
   })
 
-  const [weekdayTiers, setWeekdayTiers] = useState<PriceTier[]>(initialRates?.weekday || [
-    { minGuests: 2, maxGuests: 3, price: 300 },
-    { minGuests: 4, maxGuests: 5, price: 400 },
-    { minGuests: 6, maxGuests: 10, price: 500 }
-  ])
-  const [weekendTiers, setWeekendTiers] = useState<PriceTier[]>(initialRates?.weekend || [
-    { minGuests: 2, maxGuests: 3, price: 400 },
-    { minGuests: 4, maxGuests: 5, price: 500 },
-    { minGuests: 6, maxGuests: 10, price: 600 }
-  ])
-  const [highSeasonWeekdayTiers, setHighSeasonWeekdayTiers] = useState<PriceTier[]>(initialRates?.highSeason?.weekday || [
-    { minGuests: 2, maxGuests: 3, price: 500 },
-    { minGuests: 4, maxGuests: 5, price: 600 },
-    { minGuests: 6, maxGuests: 10, price: 700 }
-  ])
-  const [highSeasonWeekendTiers, setHighSeasonWeekendTiers] = useState<PriceTier[]>(initialRates?.highSeason?.weekend || [
-    { minGuests: 2, maxGuests: 3, price: 600 },
-    { minGuests: 4, maxGuests: 5, price: 700 },
-    { minGuests: 6, maxGuests: 10, price: 800 }
-  ])
-  const [highSeasonExtraBedPrice, setHighSeasonExtraBedPrice] = useState(initialRates?.highSeason?.extraBedPrice ?? 50)
-  const [extraBedPrice, setExtraBedPrice] = useState(initialRates?.extraBedPrice ?? 50)
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string>(seasons[0]?._id || '')
+  const [weekdayTiers, setWeekdayTiers] = useState<PriceTier[]>([])
+  const [weekendTiers, setWeekendTiers] = useState<PriceTier[]>([])
+  const [weekdayExtraBedPrice, setWeekdayExtraBedPrice] = useState<number>(50)
+  const [weekendExtraBedPrice, setWeekendExtraBedPrice] = useState<number>(70)
+
+  useEffect(() => {
+    const season = seasons.find(s => s._id === selectedSeasonId)
+    if (season) {
+      setWeekdayTiers(season.weekdayPrices?.length ? season.weekdayPrices : [
+        { minGuests: 2, maxGuests: 3, price: 300 },
+        { minGuests: 4, maxGuests: 5, price: 400 },
+        { minGuests: 6, maxGuests: 10, price: 500 }
+      ])
+      setWeekendTiers(season.weekendPrices?.length ? season.weekendPrices : [
+        { minGuests: 2, maxGuests: 3, price: 400 },
+        { minGuests: 4, maxGuests: 5, price: 500 },
+        { minGuests: 6, maxGuests: 10, price: 600 }
+      ])
+      setWeekdayExtraBedPrice(season.weekdayExtraBedPrice ?? 50)
+      setWeekendExtraBedPrice(season.weekendExtraBedPrice ?? 70)
+    }
+  }, [selectedSeasonId, seasons])
 
   const [selectedProperty, setSelectedProperty] = useState<string>('')
   const [bookingDates, setBookingDates] = useState<BookingDates>({ start: null, end: null, count: 0 })
   const [customPrice, setCustomPrice] = useState<number>(300)
   const [customPrices, setCustomPrices] = useState<CustomPriceEntry[]>([])
-  const [customExtraBedPrice, setCustomExtraBedPrice] = useState<number>(50)
+  const [customWeekdayExtraBedPrice, setCustomWeekdayExtraBedPrice] = useState<number>(50)
+  const [customWeekendExtraBedPrice, setCustomWeekendExtraBedPrice] = useState<number>(70)
   const [calendarPrices, setCalendarPrices] = useState<Record<string, number>>({})
   const [selectedDateForPrice, setSelectedDateForPrice] = useState<string | null>(null)
 
@@ -96,7 +103,7 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, in
 
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean
-    type: 'weekday' | 'weekend' | 'highSeasonWeekday' | 'highSeasonWeekend' | null
+    type: 'weekday' | 'weekend' | null
     index: number | null
   }>({ isOpen: false, type: null, index: null })
 
@@ -129,15 +136,13 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, in
   });
 
   const handleBaseRateChange = (
-    type: 'weekday' | 'weekend' | 'highSeasonWeekday' | 'highSeasonWeekend',
+    type: 'weekday' | 'weekend',
     index: number,
     field: keyof PriceTier,
     value: number
   ) => {
     let setter = setWeekdayTiers;
     if (type === 'weekend') setter = setWeekendTiers;
-    if (type === 'highSeasonWeekday') setter = setHighSeasonWeekdayTiers;
-    if (type === 'highSeasonWeekend') setter = setHighSeasonWeekendTiers;
     setter(prev => {
       const updated = [...prev]
       updated[index] = { ...updated[index], [field]: value }
@@ -145,12 +150,10 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, in
     })
   }
 
-  const addTier = (type: 'weekday' | 'weekend' | 'highSeasonWeekday' | 'highSeasonWeekend') => {
+  const addTier = (type: 'weekday' | 'weekend') => {
     let setter = setWeekdayTiers;
     let tiers = weekdayTiers;
     if (type === 'weekend') { setter = setWeekendTiers; tiers = weekendTiers; }
-    if (type === 'highSeasonWeekday') { setter = setHighSeasonWeekdayTiers; tiers = highSeasonWeekdayTiers; }
-    if (type === 'highSeasonWeekend') { setter = setHighSeasonWeekendTiers; tiers = highSeasonWeekendTiers; }
     const lastTier = tiers[tiers.length - 1]
     setter(prev => [
       ...prev,
@@ -158,7 +161,7 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, in
     ])
   }
 
-  const requestRemoveTier = (type: 'weekday' | 'weekend' | 'highSeasonWeekday' | 'highSeasonWeekend', index: number) => {
+  const requestRemoveTier = (type: 'weekday' | 'weekend', index: number) => {
     setDeleteModal({ isOpen: true, type, index })
   }
 
@@ -166,63 +169,62 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, in
     if (deleteModal.type && deleteModal.index !== null) {
       let setter = setWeekdayTiers;
       if (deleteModal.type === 'weekend') setter = setWeekendTiers;
-      if (deleteModal.type === 'highSeasonWeekday') setter = setHighSeasonWeekdayTiers;
-      if (deleteModal.type === 'highSeasonWeekend') setter = setHighSeasonWeekendTiers;
       setter(prev => prev.filter((_, i) => i !== deleteModal.index))
       setDeleteModal({ isOpen: false, type: null, index: null })
     }
   }
 
- const handleSaveCustomPrice = async () => {
-  if (!selectedProperty || !bookingDates.start) return;
-  
-  setIsSavingCustom(true);
-  
-  try {
-    const dates: string[] = [];
-    const start = dayjs(bookingDates.start);
+  const handleSaveCustomPrice = async () => {
+    if (!selectedProperty || !bookingDates.start) return;
     
-    if (bookingDates.end) {
-      const end = dayjs(bookingDates.end);
-      let current = start;
+    setIsSavingCustom(true);
+    
+    try {
+      const dates: string[] = [];
+      const start = dayjs(bookingDates.start);
       
-      while (current.isBefore(end) || current.isSame(end, 'day')) {
-        dates.push(current.format('YYYY-MM-DD'));
-        current = current.add(1, 'day');
+      if (bookingDates.end) {
+        const end = dayjs(bookingDates.end);
+        let current = start;
+        
+        while (current.isBefore(end) || current.isSame(end, 'day')) {
+          dates.push(current.format('YYYY-MM-DD'));
+          current = current.add(1, 'day');
+        }
+      } else {
+        dates.push(start.format('YYYY-MM-DD'));
       }
-    } else {
-      dates.push(start.format('YYYY-MM-DD'));
+
+      const result = await updateCustompriceForDate({
+        propertyId: selectedProperty,
+        dates,
+        price: customPrice,
+        weekdayExtraBedPrice: customWeekdayExtraBedPrice,
+        weekendExtraBedPrice: customWeekendExtraBedPrice
+      });
+
+      if (result?.success) {
+        toast.success(result.message);
+
+        const prices = await getCustomPrices(selectedProperty);
+        setCustomPrices(prices);
+        
+        const priceMap: Record<string, number> = {};
+        prices.forEach(p => { priceMap[p.date] = p.price });
+        setCalendarPrices(priceMap);
+        
+        setBookingDates({ start: null, end: null, count: 0 });
+        setSelectedDateForPrice(null);
+      } else {
+        toast.error(result?.message || 'Błąd zapisu.');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Wystąpił błąd podczas zapisu.');
+    } finally {
+      setIsSavingCustom(false);
     }
-
-    const result = await updateCustompriceForDate({
-      propertyId: selectedProperty,
-      dates,
-      price: customPrice,
-      extraBedPrice: customExtraBedPrice
-    });
-
-    if (result?.success) {
-      toast.success(result.message);
-
-      const prices = await getCustomPrices(selectedProperty);
-      setCustomPrices(prices);
-      
-      const priceMap: Record<string, number> = {};
-      prices.forEach(p => { priceMap[p.date] = p.price });
-      setCalendarPrices(priceMap);
-      
-      setBookingDates({ start: null, end: null, count: 0 });
-      setSelectedDateForPrice(null);
-    } else {
-      toast.error(result?.message || 'Błąd zapisu.');
-    }
-  } catch (error) {
-    console.error(error);
-    toast.error('Wystąpił błąd podczas zapisu.');
-  } finally {
-    setIsSavingCustom(false);
-  }
-};
+  };
 
   const handleRemoveCustomPrice = async () => {
     if (!selectedProperty || !bookingDates.start) return;
@@ -270,39 +272,53 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, in
     }
   };
 
-  const handleDateSelect = useCallback((dates: BookingDates) => {
-    setBookingDates(prev => {
-      if (prev.start === dates.start && prev.end === dates.end && prev.count === dates.count) {
-        return prev
-      }
-      return dates
-    })
+  const handleDateSelect = (dates: BookingDates) => {
+    setBookingDates(dates);
     if (dates.start && !dates.end) {
       setSelectedDateForPrice(dates.start)
-      const price = calendarPrices[dates.start]
-      if (price) setCustomPrice(price)
+      const priceEntry = customPrices.find(p => p.date === dates.start)
+      if (priceEntry) {
+        setCustomPrice(priceEntry.price)
+        setCustomWeekdayExtraBedPrice(priceEntry.weekdayExtraBedPrice ?? 50)
+        setCustomWeekendExtraBedPrice(priceEntry.weekendExtraBedPrice ?? 70)
+      }
     }
-  }, [calendarPrices])
+  }
 
   const getDayType = (dateStr: string) => {
     const day = dayjs(dateStr).day()
     return day === 0 || day === 6 ? 'weekend' : 'weekday'
   }
 
+  const handleSubmit = (formData: FormData) => {
+    formData.append('weekdayTiers', JSON.stringify(weekdayTiers))
+    formData.append('weekendTiers', JSON.stringify(weekendTiers))
+    formData.append('weekdayExtraBedPrice', weekdayExtraBedPrice.toString())
+    formData.append('weekendExtraBedPrice', weekendExtraBedPrice.toString())
+    formAction(formData)
+  }
+
   return (
     <>
-      <form action={formAction} className="settings-card">
-        <input type="hidden" name="weekdayTiers" value={JSON.stringify(weekdayTiers)} />
-        <input type="hidden" name="weekendTiers" value={JSON.stringify(weekendTiers)} />
-        <input type="hidden" name="highSeasonWeekdayTiers" value={JSON.stringify(highSeasonWeekdayTiers)} />
-        <input type="hidden" name="highSeasonWeekendTiers" value={JSON.stringify(highSeasonWeekendTiers)} />
-        <input type="hidden" name="highSeasonExtraBedPrice" value={highSeasonExtraBedPrice} />
-        <input type="hidden" name="extraBedPrice" value={extraBedPrice} />
-        <input type="hidden" name="childrenFreeAgeLimit" value={childrenFreeAgeLimit} />
+      <form action={handleSubmit} className="settings-card">
+        <input type="hidden" name="seasonId" value={selectedSeasonId} />
 
         <div className="card-header">
-          <h2 className="card-title">Ceny w sezonie niskim</h2>
-          <span className="card-badge">Globalne</span>
+          <h2 className="card-title">Konfiguracja cen sezonowych</h2>
+          <div className="setting-control" style={{marginLeft: 'auto'}}>
+             <select 
+                value={selectedSeasonId} 
+                onChange={(e) => setSelectedSeasonId(e.target.value)}
+                className="date-input"
+                style={{padding: '8px', fontSize: '1rem'}}
+             >
+                {seasons.map(season => (
+                  <option key={season._id} value={season._id}>
+                    {season.name} {!season.isActive && '(nieaktywny)'}
+                  </option>
+                ))}
+             </select>
+          </div>
         </div>
 
         <div className="setting-row">
@@ -400,9 +416,9 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, in
 
         <div className="setting-row">
           <div className="setting-content">
-            <label className="setting-label">Cena za dostawkę</label>
+            <label className="setting-label">Cena za dostawkę (dzień powszedni)</label>
             <p className="setting-description">
-              Dodatkowa opłata za każde łóżko dostawiane ponad bazową pojemność.
+              Dodatkowa opłata za dostawkę od niedzieli do czwartku.
             </p>
           </div>
           <div className="setting-control">
@@ -411,116 +427,20 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, in
                 type="number"
                 min="0"
                 step="10"
-                value={extraBedPrice}
-                onChange={(e) => setExtraBedPrice(parseInt(e.target.value) || 0)}
+                value={weekdayExtraBedPrice}
+                onChange={(e) => setWeekdayExtraBedPrice(parseInt(e.target.value) || 0)}
                 className={styles.priceInputLarge}
               />
               <span className={styles.currency}>zł / noc</span>
             </div>
           </div>
         </div>
-
-        <div className="card-header card-header-spaced">
-          <h2 className="card-title">Ceny w sezonie wysokim</h2>
-        </div>
-
+        
         <div className="setting-row">
           <div className="setting-content">
-            <label className="setting-label">Cena za dobę - Dzień powszedni (nd–czw)</label>
+            <label className="setting-label">Cena za dostawkę (weekend)</label>
             <p className="setting-description">
-              Stawka obowiązująca w sezonie wysokim od niedzieli do czwartku.
-            </p>
-          </div>
-          <div className="setting-control">
-            <div className={styles.tiersContainer}>
-              {highSeasonWeekdayTiers.map((tier, index) => (
-                <div key={index} className={styles.tierRow}>
-                  <span className={styles.tierRange}>
-                    {tier.minGuests}–{tier.maxGuests} os.
-                  </span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="10"
-                    value={tier.price}
-                    onChange={(e) => handleBaseRateChange('highSeasonWeekday', index, 'price', parseInt(e.target.value) || 0)}
-                    className={styles.priceInput}
-                  />
-                  <span className={styles.currency}>zł</span>
-                  {highSeasonWeekdayTiers.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => requestRemoveTier('highSeasonWeekday', index)}
-                      className={styles.removeTierBtn}
-                      aria-label={`Usuń przedział ${tier.minGuests}-${tier.maxGuests} osób`}
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => addTier('highSeasonWeekday')}
-                className={styles.addTierBtn}
-              >
-                + Dodaj przedział
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="setting-row">
-          <div className="setting-content">
-            <label className="setting-label">Cena za dobę - Weekend (pt–sob)</label>
-            <p className="setting-description">
-              Stawka obowiązująca w sezonie wysokim w piątki i soboty.
-            </p>
-          </div>
-          <div className="setting-control">
-            <div className={styles.tiersContainer}>
-              {highSeasonWeekendTiers.map((tier, index) => (
-                <div key={index} className={styles.tierRow}>
-                  <span className={styles.tierRange}>
-                    {tier.minGuests}–{tier.maxGuests} os.
-                  </span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="10"
-                    value={tier.price}
-                    onChange={(e) => handleBaseRateChange('highSeasonWeekend', index, 'price', parseInt(e.target.value) || 0)}
-                    className={styles.priceInput}
-                  />
-                  <span className={styles.currency}>zł</span>
-                  {highSeasonWeekendTiers.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => requestRemoveTier('highSeasonWeekend', index)}
-                      className={styles.removeTierBtn}
-                      aria-label={`Usuń przedział ${tier.minGuests}-${tier.maxGuests} osób`}
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => addTier('highSeasonWeekend')}
-                className={styles.addTierBtn}
-              >
-                + Dodaj przedział
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="setting-row">
-          <div className="setting-content">
-            <label className="setting-label">Cena za dostawkę</label>
-            <p className="setting-description">
-              Dodatkowa opłata za każde łóżko dostawiane w sezonie wysokim.
+              Dodatkowa opłata za dostawkę w piątki i soboty.
             </p>
           </div>
           <div className="setting-control">
@@ -529,8 +449,8 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, in
                 type="number"
                 min="0"
                 step="10"
-                value={highSeasonExtraBedPrice}
-                onChange={(e) => setHighSeasonExtraBedPrice(parseInt(e.target.value) || 0)}
+                value={weekendExtraBedPrice}
+                onChange={(e) => setWeekendExtraBedPrice(parseInt(e.target.value) || 0)}
                 className={styles.priceInputLarge}
               />
               <span className={styles.currency}>zł / noc</span>
@@ -540,7 +460,7 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, in
 
         <div className="form-actions">
           <button type="submit" className="btn-primary" disabled={isPending}>
-            {isPending ? 'Zapisywanie...' : '💾 Zapisz ceny sezonowe'}
+            {isPending ? 'Zapisywanie...' : `💾 Zapisz konfigurację dla ${seasons.find(s => s._id === selectedSeasonId)?.name || 'sezonu'}`}
           </button>
         </div>
       </form>
@@ -633,20 +553,43 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, in
 
             <div className="setting-row">
               <div className="setting-content">
-                <label className="setting-label" htmlFor="customExtraBedPrice">Cena za dostawkę</label>
+                <label className="setting-label" htmlFor="customWeekdayExtraBedPrice">Cena za dostawkę (dzień powszedni)</label>
                 <p className="setting-description">
-                  Wpisz cenę, która ma obowiązywać w wybranych datach dla dostawki.
+                  Cena za dostawkę w dni od niedzieli do czwartku.
                 </p>
               </div>
               <div className="setting-control">
                 <div className={styles.priceControl}>
                   <input
-                    id="customExtraBedPrice"
+                    id="customWeekdayExtraBedPrice"
                     type="number"
                     min="0"
                     step="10"
-                    value={customExtraBedPrice}
-                    onChange={(e) => setCustomExtraBedPrice(parseInt(e.target.value) || 0)}
+                    value={customWeekdayExtraBedPrice}
+                    onChange={(e) => setCustomWeekdayExtraBedPrice(parseInt(e.target.value) || 0)}
+                    className={styles.priceInputLarge}
+                  />
+                  <span className={styles.currency}>zł / noc</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="setting-row">
+              <div className="setting-content">
+                <label className="setting-label" htmlFor="customWeekendExtraBedPrice">Cena za dostawkę (weekend)</label>
+                <p className="setting-description">
+                  Cena za dostawkę w piątki i soboty.
+                </p>
+              </div>
+              <div className="setting-control">
+                <div className={styles.priceControl}>
+                  <input
+                    id="customWeekendExtraBedPrice"
+                    type="number"
+                    min="0"
+                    step="10"
+                    value={customWeekendExtraBedPrice}
+                    onChange={(e) => setCustomWeekendExtraBedPrice(parseInt(e.target.value) || 0)}
                     className={styles.priceInputLarge}
                   />
                   <span className={styles.currency}>zł / noc</span>

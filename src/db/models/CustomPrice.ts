@@ -17,7 +17,12 @@ const CustomPriceSchema = new Schema({
         required: true,
         min: 0
     },
-    extraBedPrice: {
+    weekdayExtraBedPrice: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    weekendExtraBedPrice: {
         type: Number,
         required: true,
         min: 0
