@@ -11,6 +11,7 @@ export interface SeasonData {
   startDate: Date;
   endDate: Date;
   isActive: boolean;
+  order: number;
   weekdayPrices: { minGuests: number; maxGuests: number; price: number }[];
   weekendPrices: { minGuests: number; maxGuests: number; price: number }[];
   weekdayExtraBedPrice: number;
@@ -20,7 +21,7 @@ export interface SeasonData {
 export async function getAllSeasons() {
   try {
     await dbConnect();
-    const seasons = await Season.find({}).sort({ startDate: 1 }).lean();
+    const seasons = await Season.find({}).sort({ order: 1 }).lean();
     return JSON.parse(JSON.stringify(seasons)) as SeasonData[];
   } catch (error) {
     console.error('Błąd pobierania sezonów:', error);
@@ -55,26 +56,39 @@ export async function updateSeasonDates(seasonId: string, startDate: string, end
   }
 }
 
-export async function updateSeasonPrices(seasonId: string, formData: FormData) {
+export async function updateSeasonOrder(seasonId: string, order: number) {
   try {
     await dbConnect();
-    
-    const weekdayTiers = JSON.parse(formData.get('weekdayTiers') as string);
-    const weekendTiers = JSON.parse(formData.get('weekendTiers') as string);
-    const weekdayExtraBedPrice = parseInt(formData.get('weekdayExtraBedPrice') as string) || 50;
-    const weekendExtraBedPrice = parseInt(formData.get('weekendExtraBedPrice') as string) || 70;
-
-    await Season.findByIdAndUpdate(seasonId, {
-      weekdayPrices: weekdayTiers,
-      weekendPrices: weekendTiers,
-      weekdayExtraBedPrice,
-      weekendExtraBedPrice
-    });
-
-    revalidatePath('/admin/prices');
-    return { success: true, message: 'Zapisano konfigurację cen dla sezonu.' };
+    await Season.findByIdAndUpdate(seasonId, { order });
+    revalidatePath('/admin/settings/booking');
+    return { success: true, message: 'Zaktualizowano kolejność wyświetlania' };
   } catch (error) {
-    console.error('Błąd aktualizacji cen sezonu:', error);
-    return { success: false, message: 'Nie udało się zaktualizować cen sezonu.' };
+    console.error('Błąd aktualizacji kolejności sezonu:', error);
+    return { success: false, message: 'Nie udało się zaktualizować kolejności' };
+  }
+}
+
+export async function updateSeasonPrices(
+  seasonId: string,
+  data: {
+    weekdayPrices: { minGuests: number; maxGuests: number; price: number }[];
+    weekendPrices: { minGuests: number; maxGuests: number; price: number }[];
+    weekdayExtraBedPrice: number;
+    weekendExtraBedPrice: number;
+  }
+) {
+  try {
+    await dbConnect();
+    await Season.findByIdAndUpdate(seasonId, {
+      weekdayPrices: data.weekdayPrices,
+      weekendPrices: data.weekendPrices,
+      weekdayExtraBedPrice: data.weekdayExtraBedPrice,
+      weekendExtraBedPrice: data.weekendExtraBedPrice
+    });
+    revalidatePath('/admin/prices');
+    return { success: true, message: 'Zapisano ceny sezonu' };
+  } catch (error) {
+    console.error('Błąd zapisu cen sezonu:', error);
+    return { success: false, message: 'Wystąpił błąd podczas zapisu' };
   }
 }

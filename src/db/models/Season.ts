@@ -6,6 +6,7 @@ export interface ISeason {
   startDate: Date;
   endDate: Date;
   isActive: boolean;
+  order: number;
   weekdayPrices: { minGuests: number; maxGuests: number; price: number }[];
   weekendPrices: { minGuests: number; maxGuests: number; price: number }[];
   weekdayExtraBedPrice: number;
@@ -26,6 +27,7 @@ const SeasonSchema = new Schema<ISeason>({
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
   isActive: { type: Boolean, default: true },
+  order: { type: Number, default: 0 },
   weekdayPrices: { type: [PriceTierSchema], default: [] },
   weekendPrices: { type: [PriceTierSchema], default: [] },
   weekdayExtraBedPrice: { type: Number, default: 50 },

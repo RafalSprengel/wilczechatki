@@ -1,9 +1,8 @@
-// src/app/admin/settings/booking/BookingSettingsForm.tsx
 'use client';
 
 import { useActionState, useEffect, useState, useTransition } from 'react';
 import { updateBookingConfig, updateAllowCheckinOnDepartureDay } from '@/actions/bookingConfigActions';
-import { getAllSeasons, updateSeasonDates, SeasonData } from '@/actions/seasonActions';
+import { getAllSeasons, updateSeasonDates, updateSeasonOrder, SeasonData } from '@/actions/seasonActions';
 import dayjs from 'dayjs';
 import '../settings.css';
 
@@ -42,16 +41,16 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
   const [allowCheckin, setAllowCheckin] = useState(initialConfig.allowCheckinOnDepartureDay);
   const [togglePending, startToggleTransition] = useTransition();
 
-  // Stan dla sezonów
   const [seasons, setSeasons] = useState<SeasonData[]>([]);
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>('');
   const [selectedSeason, setSelectedSeason] = useState<SeasonData | null>(null);
   const [isLoadingSeasons, setIsLoadingSeasons] = useState(true);
   const [isUpdatingSeason, setIsUpdatingSeason] = useState(false);
+  const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
   const [seasonStartDate, setSeasonStartDate] = useState('');
   const [seasonEndDate, setSeasonEndDate] = useState('');
+  const [seasonOrder, setSeasonOrder] = useState<number>(0);
 
-  // Pobierz listę sezonów przy starcie
   useEffect(() => {
     const loadSeasons = async () => {
       setIsLoadingSeasons(true);
@@ -62,19 +61,20 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         setSelectedSeason(seasonsList[0]);
         setSeasonStartDate(dayjs(seasonsList[0].startDate).format('YYYY-MM-DD'));
         setSeasonEndDate(dayjs(seasonsList[0].endDate).format('YYYY-MM-DD'));
+        setSeasonOrder(seasonsList[0].order);
       }
       setIsLoadingSeasons(false);
     };
     loadSeasons();
   }, []);
 
-  // Aktualizuj wybrany sezon gdy zmieni się selectedSeasonId
   useEffect(() => {
     const season = seasons.find(s => s._id === selectedSeasonId);
     setSelectedSeason(season || null);
     if (season) {
       setSeasonStartDate(dayjs(season.startDate).format('YYYY-MM-DD'));
       setSeasonEndDate(dayjs(season.endDate).format('YYYY-MM-DD'));
+      setSeasonOrder(season.order);
     }
   }, [selectedSeasonId, seasons]);
 
@@ -111,7 +111,6 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
     setIsUpdatingSeason(true);
     const result = await updateSeasonDates(selectedSeasonId, seasonStartDate, seasonEndDate);
     if (result.success) {
-      // Odśwież listę sezonów
       const updatedSeasons = await getAllSeasons();
       setSeasons(updatedSeasons);
       const updatedSeason = updatedSeasons.find(s => s._id === selectedSeasonId);
@@ -125,6 +124,23 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
       alert(result.message);
     }
     setIsUpdatingSeason(false);
+  };
+
+  const handleUpdateSeasonOrder = async () => {
+    if (!selectedSeasonId) return;
+    
+    setIsUpdatingOrder(true);
+    const result = await updateSeasonOrder(selectedSeasonId, seasonOrder);
+    if (result.success) {
+      const updatedSeasons = await getAllSeasons();
+      setSeasons(updatedSeasons);
+      setMessage({ text: result.message, success: true });
+      setShowMessage(true);
+      setTimeout(() => setShowMessage(false), 2000);
+    } else {
+      alert(result.message);
+    }
+    setIsUpdatingOrder(false);
   };
 
   const handleBlurMinDays = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -182,11 +198,6 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
     setLocalCheckOutHour(val);
   };
 
-  const formatDateForInput = (date: string | null) => {
-    if (!date) return '';
-    return dayjs(date).format('YYYY-MM-DD');
-  };
-
   return (
     <form action={formAction} className="settings-card">
       <input type="hidden" name="minBookingDays" value={localMinDays} />
@@ -240,7 +251,6 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         <h2 className="card-title">Sezony cenowe</h2>
       </div>
 
-      {/* Selector sezonów */}
       <div className="setting-row">
         <div className="setting-content">
           <label className="setting-label">Wybierz sezon do edycji</label>
@@ -269,20 +279,24 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         </div>
       </div>
 
-      {/* Formularz edycji dat sezonu */}
       {selectedSeason && (
-        <div className="setting-row">
-          <div className="setting-content">
-            <label className="setting-label">
-              {selectedSeason.name}
-            </label>
-            {selectedSeason.description && (
-              <p className="setting-description">{selectedSeason.description}</p>
-            )}
+        <>
+          <div className="setting-row">
+            <div className="setting-content">
+              <label className="setting-label">
+                {selectedSeason.name}
+              </label>
+              {selectedSeason.description && (
+                <p className="setting-description">{selectedSeason.description}</p>
+              )}
+            </div>
           </div>
-          <div className="setting-control" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '12px' }}>
-            <div>
-              <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Data rozpoczęcia</label>
+
+          <div className="setting-row">
+            <div className="setting-content">
+              <label className="setting-label">Data rozpoczęcia</label>
+            </div>
+            <div className="setting-control">
               <input
                 type="date"
                 value={seasonStartDate}
@@ -291,8 +305,13 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
                 style={{ width: '100%' }}
               />
             </div>
-            <div>
-              <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Data zakończenia</label>
+          </div>
+
+          <div className="setting-row">
+            <div className="setting-content">
+              <label className="setting-label">Data zakończenia</label>
+            </div>
+            <div className="setting-control">
               <input
                 type="date"
                 value={seasonEndDate}
@@ -301,17 +320,52 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
                 style={{ width: '100%' }}
               />
             </div>
-            <button
-              type="button"
-              onClick={handleUpdateSeasonDates}
-              disabled={isUpdatingSeason}
-              className="btn-secondary"
-              style={{ marginTop: '8px' }}
-            >
-              {isUpdatingSeason ? 'Zapisywanie...' : 'Zapisz daty sezonu'}
-            </button>
           </div>
-        </div>
+
+          <div className="setting-row">
+            <div className="setting-content">
+              <label className="setting-label">Kolejność wyświetlania</label>
+              <p className="setting-description">
+                Niższa wartość oznacza wyższą pozycję na liście (1, 2, 3...).
+              </p>
+            </div>
+            <div className="setting-control">
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={seasonOrder}
+                  onChange={(e) => setSeasonOrder(parseInt(e.target.value) || 0)}
+                  className="number-input"
+                  style={{ width: '80px' }}
+                />
+                <button
+                  type="button"
+                  onClick={handleUpdateSeasonOrder}
+                  disabled={isUpdatingOrder}
+                  className="btn-secondary"
+                >
+                  {isUpdatingOrder ? 'Zapisywanie...' : 'Zapisz kolejność'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="setting-row">
+            <div className="setting-content"></div>
+            <div className="setting-control">
+              <button
+                type="button"
+                onClick={handleUpdateSeasonDates}
+                disabled={isUpdatingSeason}
+                className="btn-primary"
+              >
+                {isUpdatingSeason ? 'Zapisywanie...' : 'Zapisz daty sezonu'}
+              </button>
+            </div>
+          </div>
+        </>
       )}
 
       <div className="card-header card-header-spaced">

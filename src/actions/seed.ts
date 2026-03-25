@@ -132,6 +132,7 @@ export async function seedSeasons() {
         startDate: new Date(currentYear, 8, 1),  // 1 września bieżącego roku
         endDate: new Date(currentYear + 1, 5, 31), // 31 maja następnego roku
         isActive: true,
+        order: 1,
         weekdayPrices: [
           { minGuests: 2, maxGuests: 3, price: 300 },
           { minGuests: 4, maxGuests: 5, price: 400 },
@@ -151,6 +152,7 @@ export async function seedSeasons() {
         startDate: new Date(currentYear, 5, 1),   // 1 czerwca bieżącego roku
         endDate: new Date(currentYear, 7, 31),    // 31 sierpnia bieżącego roku
         isActive: true,
+        order: 3,
         weekdayPrices: [
           { minGuests: 2, maxGuests: 3, price: 500 },
           { minGuests: 4, maxGuests: 5, price: 600 },
@@ -170,6 +172,7 @@ export async function seedSeasons() {
         startDate: new Date(currentYear, 11, 20),  // 20 grudnia bieżącego roku
         endDate: new Date(currentYear + 1, 0, 5),  // 5 stycznia następnego roku
         isActive: true,
+        order:1,
         weekdayPrices: [
           { minGuests: 2, maxGuests: 3, price: 450 },
           { minGuests: 4, maxGuests: 5, price: 550 },
