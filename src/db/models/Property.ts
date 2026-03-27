@@ -13,14 +13,6 @@ interface ISeasonRates {
   weekdayExtraBedPrice: number;
   weekendExtraBedPrice: number;
 }
-interface IPriceConfiguration {
-  season0: ISeasonRates;
-  season1: ISeasonRates;
-  season2: ISeasonRates;
-  season3: ISeasonRates;
-  season4: ISeasonRates;
-  season5: ISeasonRates;
-}
 
 export interface IProperty extends Document {
   name: string;
@@ -31,32 +23,13 @@ export interface IProperty extends Document {
   images?: string[];
   isActive: boolean;
   type: 'single' | 'whole';
-  componentPropertyIds?: mongoose.Types.ObjectId[];
-  priceConfiguration?: IPriceConfiguration;
+  basicPrices?: {
+    weekdayPrices: IPriceTier[];
+    weekendPrices: IPriceTier[];
+    weekdayExtraBedPrice: number;
+    weekendExtraBedPrice: number;
+  };
 }
-
-const PriceTierSchema = new Schema({
-  minGuests: { type: Number, required: true },
-  maxGuests: { type: Number, required: true },
-  price: { type: Number, required: true }
-}, { _id: false });
-
-const SeasonRatesSchema = new Schema({
-  name: { type: String, default: '' },
-  weekday: { type: [PriceTierSchema], default: [] },
-  weekend: { type: [PriceTierSchema], default: [] },
-  weekdayExtraBedPrice: { type: Number, default: 50 },
-  weekendExtraBedPrice: { type: Number, default: 70 },
-}, { _id: false });
-
-const PriceConfigurationSchema = new Schema({
-  season0: { type: SeasonRatesSchema, default: () => ({}) },
-  season1: { type: SeasonRatesSchema, default: () => ({}) },
-  season2: { type: SeasonRatesSchema, default: () => ({}) },
-  season3: { type: SeasonRatesSchema, default: () => ({}) },
-  season4: { type: SeasonRatesSchema, default: () => ({}) },
-  season5: { type: SeasonRatesSchema, default: () => ({}) },
-}, { _id: false });
 
 const PropertySchema = new Schema<IProperty>({
   name: {
@@ -96,13 +69,22 @@ const PropertySchema = new Schema<IProperty>({
     enum: ['single', 'whole'],
     default: 'single'
   },
-  componentPropertyIds: {
-    type: [Schema.Types.ObjectId],
-    ref: 'Property'
-  },
-  priceConfiguration: {
-    type: PriceConfigurationSchema,
-    default: null
+  basicPrices: {
+    type: {
+      weekdayPrices: [{
+        minGuests: { type: Number, required: true },
+        maxGuests: { type: Number, required: true },
+        price: { type: Number, required: true }
+      }],
+      weekendPrices: [{
+        minGuests: { type: Number, required: true },
+        maxGuests: { type: Number, required: true },
+        price: { type: Number, required: true }
+      }],
+      weekdayExtraBedPrice: { type: Number, default: 50 },
+      weekendExtraBedPrice: { type: Number, default: 70 }
+    },
+    default: undefined
   }
 }, {
   timestamps: true,

@@ -1,67 +1,132 @@
 import dbConnect from '@/db/connection';
-import PriceConfig from '@/db/models/PriceConfig';
+import Season from '@/db/models/Season';
+import CustomPrice from '@/db/models/CustomPrice';
+import Property from '@/db/models/Property';
 
 interface PriceBreakdown {
-  nightlyPrices: { date: string; price: number; type: 'weekday' | 'weekend'; seasonName?: string }[];
+  nightlyPrices: { date: string; price: number; type: 'weekday' | 'weekend'; seasonName?: string; source: 'custom' | 'season' | 'basic' }[];
   totalPrice: number;
   extraBedsTotal: number;
   summary: string;
+}
+
+interface IPriceTier {
+  minGuests: number;
+  maxGuests: number;
+  price: number;
 }
 
 export async function calculateDynamicPrice(
   startDate: string,
   endDate: string,
   totalGuests: number,
-  extraBedsCount: number
+  extraBedsCount: number,
+  propertyId: string
 ): Promise<PriceBreakdown> {
   await dbConnect();
-
-  const config = await PriceConfig.findById('main');
-  
-  if (!config) {
-    throw new Error("Konfiguracja cen nie została znaleziona w bazie danych.");
-  }
 
   const start = new Date(startDate);
   const end = new Date(endDate);
   const nightlyPrices: PriceBreakdown['nightlyPrices'] = [];
   let totalPrice = 0;
+  let totalExtraBedPrice = 0;
+
+  // Fetch property with basicPrices
+  const property = await Property.findById(propertyId);
+  if (!property) {
+    throw new Error("Nieruchomość nie została znaleziona w bazie danych.");
+  }
+
+  // Fetch all seasons
+  const seasons = await Season.find({ isActive: true });
 
   for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
+    const dateStr = d.toISOString().split('T')[0];
     const currentDay = d.getDay();
     const isWeekend = currentDay === 5 || currentDay === 6;
-    
-    const activeSeason = config.seasons.find(s => 
-      s.isActive && 
-      d >= s.startDate && 
-      d <= s.endDate
-    );
 
-    const ratesSource = activeSeason ? activeSeason : config.baseRates;
-    const extraBedPrice = activeSeason?.extraBedPrice ?? config.baseRates.extraBedPrice;
+    let nightPrice: number;
+    let source: 'custom' | 'season' | 'basic' = 'basic';
+    let seasonName: string | undefined;
+    let extraBedPrice: number;
 
-    const tier = ratesSource[isWeekend ? 'weekend' : 'weekday'].find(r => 
-      totalGuests >= r.minGuests && totalGuests <= r.maxGuests
-    ) || ratesSource[isWeekend ? 'weekend' : 'weekday'][ratesSource[isWeekend ? 'weekend' : 'weekday'].length - 1];
-
-    const nightPrice = tier.price + (extraBedsCount * extraBedPrice);
-
-    nightlyPrices.push({
-      date: d.toISOString().split('T')[0],
-      price: nightPrice,
-      type: isWeekend ? 'weekend' : 'weekday',
-      seasonName: activeSeason?.name
+    // Step 1: Check for CustomPrice for this property and date
+    const customPrice = await CustomPrice.findOne({
+      propertyId,
+      date: { $gte: d, $lt: new Date(d.getTime() + 86400000) }
     });
 
-    totalPrice += nightPrice;
+    if (customPrice) {
+      nightPrice = customPrice.price;
+      extraBedPrice = isWeekend ? customPrice.weekendExtraBedPrice : customPrice.weekdayExtraBedPrice;
+      source = 'custom';
+    } else {
+      // Step 2: Check if date falls within any Season
+      const activeSeason = seasons.find(s =>
+        d >= new Date(s.startDate) && d <= new Date(s.endDate)
+      );
+
+      if (activeSeason) {
+        // Use prices from the matching season
+        const pricesTier = isWeekend ? activeSeason.weekendPrices : activeSeason.weekdayPrices;
+        const tier = findPriceTier(pricesTier, totalGuests);
+        
+        if (!tier) {
+          throw new Error(`Nie znaleziono wariantu cenowego dla ${totalGuests} gości w sezonie ${activeSeason.name}`);
+        }
+        
+        nightPrice = tier.price;
+        extraBedPrice = isWeekend ? activeSeason.weekendExtraBedPrice : activeSeason.weekdayExtraBedPrice;
+        seasonName = activeSeason.name;
+        source = 'season';
+      } else {
+        // Step 3: Fallback to basicPrices from Property
+        if (!property.basicPrices) {
+          throw new Error("Brak cen podstawowych dla nieruchomości. Proszę skonfigurować ceny podstawowe w panelu admina.");
+        }
+
+        const basicPricesTier = isWeekend ? property.basicPrices.weekendPrices : property.basicPrices.weekdayPrices;
+        const tier = findPriceTier(basicPricesTier, totalGuests);
+        
+        if (!tier) {
+          throw new Error(`Nie znaleziono wariantu cenowego dla ${totalGuests} gości w cenach podstawowych`);
+        }
+        
+        nightPrice = tier.price;
+        extraBedPrice = isWeekend ? property.basicPrices.weekendExtraBedPrice : property.basicPrices.weekdayExtraBedPrice;
+        source = 'basic';
+      }
+    }
+
+    const finalNightPrice = nightPrice + (extraBedsCount * extraBedPrice);
+
+    nightlyPrices.push({
+      date: dateStr,
+      price: finalNightPrice,
+      type: isWeekend ? 'weekend' : 'weekday',
+      seasonName,
+      source
+    });
+
+    totalPrice += finalNightPrice;
+    totalExtraBedPrice += extraBedsCount * extraBedPrice;
   }
 
   return {
     nightlyPrices,
     totalPrice,
-    extraBedsTotal: extraBedsCount * (activeSeason?.extraBedPrice ?? config.baseRates.extraBedPrice) * getNightsCount(start, end),
+    extraBedsTotal: totalExtraBedPrice,
     summary: `${getNightsCount(start, end)} noclegów, ${totalGuests} gości, ${extraBedsCount} dostawek`
   };
+}
+
+function findPriceTier(tiers: IPriceTier[], guests: number): IPriceTier | null {
+  const matchingTier = tiers.find(r => guests >= r.minGuests && guests <= r.maxGuests);
+  if (matchingTier) {
+    return matchingTier;
+  }
+  // Fallback to highest tier if exact match not found
+  return tiers.length > 0 ? tiers[tiers.length - 1] : null;
 }
 
 function getNightsCount(start: Date, end: Date): number {

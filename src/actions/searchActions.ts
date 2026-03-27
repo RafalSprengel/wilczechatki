@@ -41,7 +41,8 @@ async function getDailyPrice({
   extraBeds,
   propertyBaseCapacity,
   customPrices,
-  activeSeasons
+  activeSeasons,
+  property
 }: {
   date: dayjs.Dayjs;
   config: any;
@@ -51,6 +52,7 @@ async function getDailyPrice({
   propertyBaseCapacity: number;
   customPrices: Map<string, any>;
   activeSeasons: ISeason[];
+  property?: any;
 }): Promise<number> {
   // 1. Check for Individual Price (CustomPrice) - Highest Priority
   const dateKey = date.format('YYYY-MM-DD');
@@ -78,9 +80,15 @@ async function getDailyPrice({
     ratesSource = isWeekend ? activeSeason.weekendPrices : activeSeason.weekdayPrices;
     bedPrice = isWeekend ? activeSeason.weekendExtraBedPrice : activeSeason.weekdayExtraBedPrice;
   } else {
-    // 3. Default Prices
-    ratesSource = isWeekend ? config.defaultWeekendPrices : config.defaultWeekdayPrices;
-    bedPrice = isWeekend ? config.defaultWeekendExtraBedPrice : config.defaultWeekdayExtraBedPrice;
+    // 3. Use Property basicPrices if available, otherwise fallback to config defaults
+    if (property?.basicPrices) {
+      ratesSource = isWeekend ? property.basicPrices.weekendPrices : property.basicPrices.weekdayPrices;
+      bedPrice = isWeekend ? property.basicPrices.weekendExtraBedPrice : property.basicPrices.weekdayExtraBedPrice;
+    } else {
+      // Fallback to global default prices
+      ratesSource = isWeekend ? config.defaultWeekendPrices : config.defaultWeekdayPrices;
+      bedPrice = isWeekend ? config.defaultWeekendExtraBedPrice : config.defaultWeekdayExtraBedPrice;
+    }
   }
 
   const guestsForPricing = Math.min(guests, propertyBaseCapacity);
@@ -159,7 +167,8 @@ export async function calculateTotalPrice({
       extraBeds,
       propertyBaseCapacity: property.baseCapacity,
       customPrices: customPricesMap,
-      activeSeasons: activeSeasons as ISeason[]
+      activeSeasons: activeSeasons as ISeason[],
+      property
     });
     currentDate = currentDate.add(1, 'day');
   }
@@ -226,7 +235,8 @@ export async function calculateTotalPriceForWhole({
         extraBeds: extraBedsForThisCabin,
         propertyBaseCapacity: property.baseCapacity,
         customPrices: customPricesMap,
-        activeSeasons: activeSeasons as ISeason[]
+        activeSeasons: activeSeasons as ISeason[],
+        property
       });
       currentDate = currentDate.add(1, 'day');
     }

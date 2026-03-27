@@ -152,6 +152,32 @@
   font-style: italic;
 }
 
+.loadingText {
+  text-align: center;
+  color: #999;
+}
+
+.formActionsRow {
+  display: flex;
+  gap: 10px;
+}
+
+.dangerButton {
+  background-color: #ef4444;
+  border-color: #ef4444;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.moreItemsButton {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 @media (max-width: 768px) {
   .tierRow {
     flex-wrap: wrap;

@@ -126,26 +126,7 @@ export async function seedSeasons() {
     const currentYear = new Date().getFullYear();
     
     const seasons = [
-      {
-        name: 'Sezon niski (poza sezonem letnim)',
-        description: 'Ceny obowiązujące poza sezonem letnim - idealne dla szukających spokoju i niższych cen',
-        startDate: new Date(currentYear, 8, 1),  // 1 września bieżącego roku
-        endDate: new Date(currentYear + 1, 5, 31), // 31 maja następnego roku
-        isActive: true,
-        order: 1,
-        weekdayPrices: [
-          { minGuests: 2, maxGuests: 3, price: 300 },
-          { minGuests: 4, maxGuests: 5, price: 400 },
-          { minGuests: 6, maxGuests: 10, price: 500 }
-        ],
-        weekendPrices: [
-          { minGuests: 2, maxGuests: 3, price: 400 },
-          { minGuests: 4, maxGuests: 5, price: 500 },
-          { minGuests: 6, maxGuests: 10, price: 600 }
-        ],
-        weekdayExtraBedPrice: 50,
-        weekendExtraBedPrice: 70
-      },
+     
       {
         name: 'Sezon wysoki (wakacje letnie)',
         description: 'Ceny obowiązujące w sezonie letnim - czerwiec, lipiec, sierpień',
