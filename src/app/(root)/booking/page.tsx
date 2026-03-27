@@ -300,6 +300,7 @@ export default function BookingPage() {
                     Dostępne opcje ({availableOptions.length})
                   </h3>
                   {availableOptions.map((option) => {
+                    console.log(option)
                     const extraBeds = extraBedsMap[option.displayName] || 0
                     const totalPriceWithExtraBeds = getTotalPriceWithExtraBeds(option)
 

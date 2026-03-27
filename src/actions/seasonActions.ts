@@ -71,21 +71,29 @@ export async function updateSeasonOrder(seasonId: string, order: number) {
 }
 
 export async function updateSeasonPrices(
-  seasonId: string,
-  data: {
-    weekdayPrices: { minGuests: number; maxGuests: number; price: number }[];
-    weekendPrices: { minGuests: number; maxGuests: number; price: number }[];
-    weekdayExtraBedPrice: number;
-    weekendExtraBedPrice: number;
-  }
+  previousState: { message: string; success: boolean },
+  formData: FormData
 ) {
   try {
+    const seasonId = formData.get('seasonId') as string;
+    const weekdayTiersJson = formData.get('weekdayTiers') as string;
+    const weekendTiersJson = formData.get('weekendTiers') as string;
+    const weekdayExtraBedPrice = parseInt(formData.get('weekdayExtraBedPrice') as string) || 0;
+    const weekendExtraBedPrice = parseInt(formData.get('weekendExtraBedPrice') as string) || 0;
+
+    const weekdayPrices = JSON.parse(weekdayTiersJson);
+    const weekendPrices = JSON.parse(weekendTiersJson);
+
+    if (!seasonId || !Array.isArray(weekdayPrices) || !Array.isArray(weekendPrices)) {
+      return { success: false, message: 'Nieprawidłowe dane' };
+    }
+
     await dbConnect();
     await Season.findByIdAndUpdate(seasonId, {
-      weekdayPrices: data.weekdayPrices,
-      weekendPrices: data.weekendPrices,
-      weekdayExtraBedPrice: data.weekdayExtraBedPrice,
-      weekendExtraBedPrice: data.weekendExtraBedPrice
+      weekdayPrices,
+      weekendPrices,
+      weekdayExtraBedPrice,
+      weekendExtraBedPrice
     });
     revalidatePath('/admin/prices');
     return { success: true, message: 'Zapisano ceny sezonu' };

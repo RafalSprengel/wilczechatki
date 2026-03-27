@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useActionState } from 'react'
 import { updateSeasonPrices } from '@/actions/seasonActions'
 import { updateCustompriceForDate, getCustomPrices, deleteCustomPricesForDate } from '@/actions/priceConfigActions'
@@ -73,18 +73,10 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, se
   useEffect(() => {
     const season = seasons.find(s => s._id === selectedSeasonId)
     if (season) {
-      setWeekdayTiers(season.weekdayPrices?.length ? season.weekdayPrices : [
-        { minGuests: 2, maxGuests: 3, price: 300 },
-        { minGuests: 4, maxGuests: 5, price: 400 },
-        { minGuests: 6, maxGuests: 10, price: 500 }
-      ])
-      setWeekendTiers(season.weekendPrices?.length ? season.weekendPrices : [
-        { minGuests: 2, maxGuests: 3, price: 400 },
-        { minGuests: 4, maxGuests: 5, price: 500 },
-        { minGuests: 6, maxGuests: 10, price: 600 }
-      ])
-      setWeekdayExtraBedPrice(season.weekdayExtraBedPrice ?? 50)
-      setWeekendExtraBedPrice(season.weekendExtraBedPrice ?? 70)
+      setWeekdayTiers(season.weekdayPrices || [])
+      setWeekendTiers(season.weekendPrices || [])
+      setWeekdayExtraBedPrice(season.weekdayExtraBedPrice ?? 0)
+      setWeekendExtraBedPrice(season.weekendExtraBedPrice ?? 0)
     }
   }, [selectedSeasonId, seasons])
 
@@ -130,10 +122,13 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, se
     }
   }, [selectedProperty])
 
-  const calendarDates: DatesData = {};
-  Object.entries(calendarPrices).forEach(([date, price]) => {
-    calendarDates[date] = { price, available: true };
-  });
+  const calendarDates = useMemo(() => {
+    const dates: DatesData = {};
+    Object.entries(calendarPrices).forEach(([date, price]) => {
+      dates[date] = { price, available: true };
+    });
+    return dates;
+  }, [calendarPrices]);
 
   const handleBaseRateChange = (
     type: 'weekday' | 'weekend',
@@ -176,17 +171,17 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, se
 
   const handleSaveCustomPrice = async () => {
     if (!selectedProperty || !bookingDates.start) return;
-    
+
     setIsSavingCustom(true);
-    
+
     try {
       const dates: string[] = [];
       const start = dayjs(bookingDates.start);
-      
+
       if (bookingDates.end) {
         const end = dayjs(bookingDates.end);
         let current = start;
-        
+
         while (current.isBefore(end) || current.isSame(end, 'day')) {
           dates.push(current.format('YYYY-MM-DD'));
           current = current.add(1, 'day');
@@ -208,11 +203,11 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, se
 
         const prices = await getCustomPrices(selectedProperty);
         setCustomPrices(prices);
-        
+
         const priceMap: Record<string, number> = {};
         prices.forEach(p => { priceMap[p.date] = p.price });
         setCalendarPrices(priceMap);
-        
+
         setBookingDates({ start: null, end: null, count: 0 });
         setSelectedDateForPrice(null);
       } else {
@@ -228,17 +223,17 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, se
 
   const handleRemoveCustomPrice = async () => {
     if (!selectedProperty || !bookingDates.start) return;
-    
+
     setIsDeletingCustom(true);
-    
+
     try {
       const dates: string[] = [];
       const start = dayjs(bookingDates.start);
-      
+
       if (bookingDates.end) {
         const end = dayjs(bookingDates.end);
         let current = start;
-        
+
         while (current.isBefore(end) || current.isSame(end, 'day')) {
           dates.push(current.format('YYYY-MM-DD'));
           current = current.add(1, 'day');
@@ -272,8 +267,12 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, se
     }
   };
 
-  const handleDateSelect = (dates: BookingDates) => {
-    setBookingDates(dates);
+  const handleDateSelect = useCallback((dates: BookingDates) => {
+    setBookingDates(prev => {
+      if (prev.start === dates.start && prev.end === dates.end) return prev;
+      return dates;
+    });
+
     if (dates.start && !dates.end) {
       setSelectedDateForPrice(dates.start)
       const priceEntry = customPrices.find(p => p.date === dates.start)
@@ -283,7 +282,7 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, se
         setCustomWeekendExtraBedPrice(priceEntry.weekendExtraBedPrice ?? 70)
       }
     }
-  }
+  }, [customPrices]);
 
   const getDayType = (dateStr: string) => {
     const day = dayjs(dateStr).day()
@@ -291,6 +290,7 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, se
   }
 
   const handleSubmit = (formData: FormData) => {
+    formData.append('seasonId', selectedSeasonId)
     formData.append('weekdayTiers', JSON.stringify(weekdayTiers))
     formData.append('weekendTiers', JSON.stringify(weekendTiers))
     formData.append('weekdayExtraBedPrice', weekdayExtraBedPrice.toString())
@@ -305,19 +305,19 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, se
 
         <div className="card-header">
           <h2 className="card-title">Konfiguracja cen sezonowych</h2>
-          <div className="setting-control" style={{marginLeft: 'auto'}}>
-             <select 
-                value={selectedSeasonId} 
-                onChange={(e) => setSelectedSeasonId(e.target.value)}
-                className="date-input"
-                style={{padding: '8px', fontSize: '1rem'}}
-             >
-                {seasons.map(season => (
-                  <option key={season._id} value={season._id}>
-                    {season.name} {!season.isActive && '(nieaktywny)'}
-                  </option>
-                ))}
-             </select>
+          <div className="setting-control" style={{ marginLeft: 'auto' }}>
+            <select
+              value={selectedSeasonId}
+              onChange={(e) => setSelectedSeasonId(e.target.value)}
+              className="date-input"
+              style={{ padding: '8px', fontSize: '1rem' }}
+            >
+              {seasons.map(season => (
+                <option key={season._id} value={season._id}>
+                  {season.name} {!season.isActive && '(nieaktywny)'}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -435,7 +435,7 @@ export default function PriceSettingsForm({ properties, childrenFreeAgeLimit, se
             </div>
           </div>
         </div>
-        
+
         <div className="setting-row">
           <div className="setting-content">
             <label className="setting-label">Cena za dostawkę (weekend)</label>
