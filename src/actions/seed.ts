@@ -375,6 +375,7 @@ export async function seedSystemConfig() {
     const created = await SystemConfig.create({
       _id: 'main',
       autoBlockOtherCabins: true,
+      onlyOnePropertyInSearchResult: false
     });
     return {
       success: true,

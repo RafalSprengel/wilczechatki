@@ -10,10 +10,6 @@ async function ensureSystemConfigExists() {
   const defaultConfig = {
     _id: 'main',
     autoBlockOtherCabins: true,
-    maxGuestsPerCabin: 6,
-    childrenFreeAgeLimit: 13,
-    highSeasonStart: undefined,
-    highSeasonEnd: undefined,
   };
 
   try {
@@ -29,14 +25,6 @@ async function ensureSystemConfigExists() {
 
     if (typeof existingConfig.autoBlockOtherCabins !== 'boolean') {
       updates.autoBlockOtherCabins = defaultConfig.autoBlockOtherCabins;
-      needsUpdate = true;
-    }
-    if (!existingConfig.maxGuestsPerCabin) {
-      updates.maxGuestsPerCabin = defaultConfig.maxGuestsPerCabin;
-      needsUpdate = true;
-    }
-    if (!existingConfig.childrenFreeAgeLimit) {
-      updates.childrenFreeAgeLimit = defaultConfig.childrenFreeAgeLimit;
       needsUpdate = true;
     }
 
@@ -59,28 +47,18 @@ export async function getSystemConfig() {
     if (!config) {
       return {
         autoBlockOtherCabins: true,
-        highSeasonStart: null,
-        highSeasonEnd: null,
-        maxGuestsPerCabin: 6,
-        childrenFreeAgeLimit: 13
+        onlyOnePropertyInSearchResult: false
       };
     }
 
     return {
       autoBlockOtherCabins: config.autoBlockOtherCabins,
-      highSeasonStart: config.highSeasonStart,
-      highSeasonEnd: config.highSeasonEnd,
-      maxGuestsPerCabin: config.maxGuestsPerCabin,
-      childrenFreeAgeLimit: config.childrenFreeAgeLimit
+      onlyOnePropertyInSearchResult: config.onlyOnePropertyInSearchResult
     };
   } catch (error) {
     console.error(error);
     return {
-      autoBlockOtherCabins: true,
-      highSeasonStart: null,
-      highSeasonEnd: null,
-      maxGuestsPerCabin: 6,
-      childrenFreeAgeLimit: 13
+      autoBlockOtherCabins: true
     };
   }
 }

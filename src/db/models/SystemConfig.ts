@@ -3,6 +3,7 @@ import mongoose, { Schema, Document, Types } from 'mongoose';
 interface ISystemConfigDoc extends Omit<Document, '_id'> {
   _id: string;
   autoBlockOtherCabins: boolean;
+  onlyOnePropertyInSearchResult: boolean
 }
 
 export type ISystemConfig = ISystemConfigDoc;
@@ -13,7 +14,14 @@ const SystemConfigSchema = new Schema<ISystemConfig>(
       type: String,
       default: 'main'
     },
-    autoBlockOtherCabins: { type: Boolean, default: true }
+    autoBlockOtherCabins: {
+      type: Boolean,
+      default: true
+    },
+    onlyOnePropertyInSearchResult: {
+      type: Boolean,
+      default: false
+    }
   },
   {
     versionKey: false,

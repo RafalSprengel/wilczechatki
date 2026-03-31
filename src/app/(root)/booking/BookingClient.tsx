@@ -156,7 +156,7 @@ export default function BookingClient({
 
   const handleSelectOption = (option: SearchOption, totalPriceWithExtraBeds: number) => {
 
-    console.log(option, totalPriceWithExtraBeds);
+    //console.log(option, totalPriceWithExtraBeds);
     const extraBeds = extraBedsMap[option.displayName] || 0
     
     const maxCapacity = option.maxGuests + extraBeds;
