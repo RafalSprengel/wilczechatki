@@ -5,7 +5,11 @@ import Booking from '@/db/models/Booking';
 import Property from '@/db/models/Property';
 import SystemConfig from '@/db/models/SystemConfig';
 import BookingConfig from '@/db/models/BookingConfig';
-import { calculateTotalPrice, calculateTotalPriceForWhole } from '@/actions/searchActions';
+import {
+  calculateTotalPrice,
+  calculateTotalPriceForWhole,
+  distributeGuestsAcrossProperties,
+} from '@/actions/searchActions';
 import { Types } from 'mongoose';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -79,8 +83,13 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
       const recalculatedWholePrice = await calculateTotalPriceForWhole({
         startDate,
         endDate,
-        guests: numberOfGuests,
+        baseGuests: numberOfGuests,
         extraBeds,
+        cabinAllocations: await distributeGuestsAcrossProperties(
+          properties,
+          numberOfGuests,
+          extraBeds
+        ),
       });
       if (recalculatedWholePrice <= 0) {
         return { success: false, error: 'Nie udało się poprawnie wyliczyć ceny rezerwacji.' };
@@ -129,7 +138,7 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
       const recalculatedSinglePrice = await calculateTotalPrice({
         startDate,
         endDate,
-        guests: numberOfGuests,
+        baseGuests: numberOfGuests,
         extraBeds,
         propertySelection: property._id.toString(),
       });

@@ -181,7 +181,7 @@ export async function calculatePriceAction(
   params: {
     startDate: string
     endDate: string
-    guests: number
+    baseGuests: number
     extraBeds: number
     propertySelection: string
   }
@@ -190,7 +190,7 @@ export async function calculatePriceAction(
     const price = await calculateTotalPrice({
       startDate: params.startDate,
       endDate: params.endDate,
-      guests: params.guests,
+      baseGuests: params.baseGuests,
       extraBeds: params.extraBeds,
       propertySelection: params.propertySelection
     });

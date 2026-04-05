@@ -159,7 +159,7 @@ export default function AddBookingPage() {
         const { price } = await calculatePriceAction({
           startDate: start,
           endDate: end,
-          guests: numGuests,
+          baseGuests: numGuests,
           extraBeds,
           propertySelection
         })

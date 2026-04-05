@@ -30,28 +30,35 @@ export interface SearchOption {
 interface SearchParams {
   startDate: string;
   endDate: string;
-  guests: number;
-  extraBeds?: number;
+  baseGuests: number;
+  extraBeds: number;
 }
 
 interface CalculateTotalPriceParams {
   startDate: string;
   endDate: string;
-  guests: number;
-  extraBeds?: number;
+  baseGuests: number;
+  extraBeds: number;
   propertySelection: string;
+}
+
+export interface CabinAllocation {
+  propertyId: string;
+  baseGuests: number;
+  extraBeds: number;
 }
 
 interface CalculateTotalPriceForWholeParams {
   startDate: string;
   endDate: string;
-  guests: number;
-  extraBeds?: number;
+  baseGuests: number;
+  extraBeds: number;
+  cabinAllocations: CabinAllocation[];
 }
 
 interface GetDailyPriceParams {
   date: dayjs.Dayjs;
-  guests: number;
+  baseGuests: number;
   extraBeds: number;
   propertyBaseCapacity: number;
   customPrices: Map<string, any>;
@@ -62,11 +69,11 @@ interface GetDailyPriceParams {
 
 function findPriceTier(
   tiers: { minGuests: number; maxGuests: number; price: number }[] | undefined,
-  guestCount: number
+  baseGuests: number
 ): { minGuests: number; maxGuests: number; price: number } | null {
   if (!tiers?.length) return null;
   return (
-    tiers.find((r) => guestCount >= r.minGuests && guestCount <= r.maxGuests) ??
+    tiers.find((r) => baseGuests >= r.minGuests && baseGuests <= r.maxGuests) ??
     tiers[tiers.length - 1]
   );
 }
@@ -75,7 +82,7 @@ function findPriceTier(
 
 async function getDailyPrice({
   date,
-  guests,
+  baseGuests,
   extraBeds,
   propertyBaseCapacity,
   customPrices,
@@ -85,15 +92,13 @@ async function getDailyPrice({
 }: GetDailyPriceParams): Promise<number> {
   const dateKey = date.format('YYYY-MM-DD');
   const customPrice = customPrices.get(dateKey);
-
   const day = date.day();
   const isWeekend = day === 5 || day === 6; // piątek i sobota
-  const guestsForPricing = Math.min(guests, propertyBaseCapacity);
 
   // 1. CustomPrice (schema: tiery weekday/weekend — bez pola `price`)
   if (customPrice) {
     const tiers = isWeekend ? customPrice.weekendPrices : customPrice.weekdayPrices;
-    const tier = findPriceTier(tiers, guestsForPricing);
+    const tier = findPriceTier(tiers, baseGuests);
     if (tier) {
       const bedPrice = isWeekend
         ? customPrice.weekendExtraBedPrice
@@ -104,6 +109,7 @@ async function getDailyPrice({
 
   // 2. Sezon — tylko gdy data wpada w zakres sezonu I jest wpis PropertyPrices dla tego seasonId
   // 3. W przeciwnym razie (brak sezonu dla daty albo brak cen sezonowych dla property) → cennik podstawowy
+
   const activeSeason = activeSeasons.find(
     (s) =>
       date.isSameOrAfter(dayjs(s.startDate), 'day') &&
@@ -123,19 +129,15 @@ async function getDailyPrice({
       ? seasonPrices.weekendExtraBedPrice
       : seasonPrices.weekdayExtraBedPrice;
   } else {
-    if (!basicPrices) return 0;
     ratesSource = isWeekend ? basicPrices.weekendPrices : basicPrices.weekdayPrices;
     bedPrice = isWeekend
       ? basicPrices.weekendExtraBedPrice
       : basicPrices.weekdayExtraBedPrice;
   }
 
-  const tier =
-    ratesSource.find(
-      (r: any) => guestsForPricing >= r.minGuests && guestsForPricing <= r.maxGuests
-    ) ?? ratesSource[ratesSource.length - 1];
+  const tier = findPriceTier(ratesSource, baseGuests);
 
-  if (!tier) return 0;
+  if (!tier) throw new Error(`Brak odpowiedniego przedziału cenowego dla ${baseGuests} gości w ${isWeekend ? 'weekendzie' : 'dniu powszednim'}.`);
   return tier.price + extraBeds * bedPrice;
 }
 
@@ -157,8 +159,8 @@ export async function getMaxTotalGuests() {
 export async function calculateTotalPrice(
   params: CalculateTotalPriceParams
 ): Promise<number> {
-  const { startDate, endDate, guests, extraBeds = 0, propertySelection } = params;
-  if (!startDate || !endDate || !propertySelection || guests <= 0) {
+  const { startDate, endDate, baseGuests, extraBeds, propertySelection } = params;
+  if (!startDate || !endDate || !propertySelection || baseGuests <= 0 || extraBeds < 0) {
     throw new Error('Nieprawidłowe parametry kalkulacji ceny.');
   }
 
@@ -211,8 +213,6 @@ export async function calculateTotalPrice(
       .map((p) => [p.seasonId!.toString(), p])
   );
 
-  console.log(seasonPricesMap);
-
   const customPricesMap = new Map<string, any>(
     customPricesDocs.map((cp: any) => [dayjs(cp.date).format('YYYY-MM-DD'), cp])
   );
@@ -224,7 +224,7 @@ export async function calculateTotalPrice(
   while (currentDate.isBefore(end, 'day')) {
     total += await getDailyPrice({
       date: currentDate,
-      guests,
+      baseGuests,
       extraBeds,
       propertyBaseCapacity: property.baseCapacity,
       customPrices: customPricesMap,
@@ -243,9 +243,12 @@ export async function calculateTotalPrice(
 export async function calculateTotalPriceForWhole(
   params: CalculateTotalPriceForWholeParams
 ): Promise<number> {
-  const { startDate, endDate, guests, extraBeds = 0 } = params;
-  if (!startDate || !endDate || guests <= 0) {
+  const { startDate, endDate, baseGuests, extraBeds, cabinAllocations } = params;
+  if (!startDate || !endDate || baseGuests <= 0 || extraBeds < 0) {
     throw new Error('Nieprawidłowe parametry kalkulacji ceny dla całej posesji.');
+  }
+  if (!Array.isArray(cabinAllocations) || cabinAllocations.length === 0) {
+    throw new Error('Brak alokacji gości na domki dla kalkulacji całej posesji.');
   }
 
   const startValidation = dayjs(startDate);
@@ -310,14 +313,20 @@ export async function calculateTotalPriceForWhole(
     }
   }
 
+  const allocationsByPropertyId = new Map(
+    cabinAllocations.map((allocation) => [allocation.propertyId, allocation])
+  );
+
   let total = 0;
-  let remainingGuests = guests;
-  let remainingExtraBeds = extraBeds;
 
   for (const property of properties) {
     const pId = property._id.toString();
-    const guestsForThisCabin = Math.min(remainingGuests, property.baseCapacity);
-    const extraBedsForThisCabin = Math.min(remainingExtraBeds, property.maxExtraBeds);
+    const allocation = allocationsByPropertyId.get(pId);
+    if (!allocation) {
+      throw new Error(`Brak alokacji gości dla domku ${pId}.`);
+    }
+    const baseGuestsForThisCabin = allocation.baseGuests;
+    const extraBedsForThisCabin = allocation.extraBeds;
 
     const priceEntry = propertyPricesIndex.get(pId) ?? {
       basicPrices: null,
@@ -332,7 +341,7 @@ export async function calculateTotalPriceForWhole(
     while (currentDate.isBefore(end, 'day')) {
       total += await getDailyPrice({
         date: currentDate,
-        guests: guestsForThisCabin,
+        baseGuests: baseGuestsForThisCabin,
         extraBeds: extraBedsForThisCabin,
         propertyBaseCapacity: property.baseCapacity,
         customPrices: customPricesMap,
@@ -342,18 +351,38 @@ export async function calculateTotalPriceForWhole(
       });
       currentDate = currentDate.add(1, 'day');
     }
-
-    remainingGuests -= guestsForThisCabin;
-    remainingExtraBeds -= extraBedsForThisCabin;
   }
 
   return total;
 }
 
+export async function distributeGuestsAcrossProperties(
+  properties: { _id: unknown; baseCapacity: number; maxExtraBeds: number }[],
+  baseGuests: number,
+  extraBeds: number
+): Promise<CabinAllocation[]> {
+  let remainingBaseGuests = baseGuests;
+  let remainingExtraBeds = extraBeds;
+
+  return properties.map((property) => {
+    const allocatedBaseGuests = Math.min(remainingBaseGuests, property.baseCapacity);
+    const allocatedExtraBeds = Math.min(remainingExtraBeds, property.maxExtraBeds);
+
+    remainingBaseGuests -= allocatedBaseGuests;
+    remainingExtraBeds -= allocatedExtraBeds;
+
+    return {
+      propertyId: String(property._id),
+      baseGuests: allocatedBaseGuests,
+      extraBeds: allocatedExtraBeds,
+    };
+  });
+}
+
 // ─── Wyszukiwanie dostępności ─────────────────────────────────────────────────
 
 export async function searchAction(params: SearchParams) {
-  const { startDate, endDate, guests, extraBeds = 0 } = params;
+  const { startDate, endDate, baseGuests, extraBeds } = params;
   try {
     await dbConnect();
     const start = dayjs(startDate);
@@ -374,7 +403,7 @@ export async function searchAction(params: SearchParams) {
       isActive: true,
       type: 'single',
       _id: { $nin: occupiedIds },
-      baseCapacity: { $gte: guests - extraBeds } // for now extraBeds is always 0
+      baseCapacity: { $gte: baseGuests - extraBeds }
     }).select('-createdAt -updatedAt').sort({ name: 1 });
 
     if (availableProperties.length === 0) return [];
@@ -382,7 +411,7 @@ export async function searchAction(params: SearchParams) {
     const options: SearchOption[] = [];
 
     for (const property of availableProperties) { //loop for each available property
-      if (guests > property.baseCapacity + property.maxExtraBeds) continue;
+      if (baseGuests > property.baseCapacity + property.maxExtraBeds) continue;
 
       // console.log('Zmienne wyszukiwania:', {
       //   startDate,
@@ -396,7 +425,7 @@ export async function searchAction(params: SearchParams) {
       const price = await calculateTotalPrice({ //calculate price for single property
         startDate,
         endDate,
-        guests,
+        baseGuests,
         extraBeds,
         propertySelection: property._id.toString(),
       });
@@ -415,16 +444,23 @@ export async function searchAction(params: SearchParams) {
     const totalGuestsCapacity = availableProperties.reduce((sum, p) => sum + p.baseCapacity, 0);
     const totalExtraCapacity = availableProperties.reduce((sum, p) => sum + p.maxExtraBeds, 0);
 
-    if (guests <= totalGuestsCapacity + totalExtraCapacity) {
+    if (baseGuests <= totalGuestsCapacity + totalExtraCapacity) {
 
       if (isWholeAvailable) {
         const wholeProperty = await Property.findOne({ type: 'whole' }); //find type of property 'whole' should be only one
         if (wholeProperty) {
+          const cabinAllocations = await distributeGuestsAcrossProperties(
+            availableProperties,
+            baseGuests,
+            extraBeds
+          );
+
           const wholePrice = await calculateTotalPriceForWhole({
             startDate,
             endDate,
-            guests,
+            baseGuests,
             extraBeds,
+            cabinAllocations,
           });
           options.push({
             type: 'whole',

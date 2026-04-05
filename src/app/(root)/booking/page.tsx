@@ -37,7 +37,7 @@ export default async function BookingPage({
       searchResults = await searchAction({
         startDate: start,
         endDate: end,
-        guests: totalGuests,
+        baseGuests: totalGuests,
         extraBeds: 0
       })
     } catch (error) {
