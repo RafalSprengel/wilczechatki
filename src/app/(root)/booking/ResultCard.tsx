@@ -49,14 +49,14 @@ export default function ResultCard({
       <div className={styles.cardDetails}>
         <span>Pojemność: {option.maxGuests} osób</span>
         <span className={styles.separator}> • </span>
-        <span>Max dostawek: {option.maxExtraBeds}</span>
+        <span>Max. dostawek: {option.maxExtraBeds}</span>
       </div>
 
       {option.maxExtraBeds > 0 && (
         <div className={styles.extraBedsSection}>
           <div className={styles.extraBedsHeader}>
             <FontAwesomeIcon icon={faBed} className={styles.bedIcon} />
-            <span className={styles.extraBedsLabel}>Dodatkowe miejsca:</span>
+            <span className={styles.extraBedsLabel}>Ilość dostawek:</span>
           </div>
           <QuantityPicker
             value={extraBeds}

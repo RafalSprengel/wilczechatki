@@ -178,6 +178,7 @@
   padding: 20px 15px;
   box-sizing: border-box;
   transition: filter 0.3s ease;
+  margin-bottom: 150px;
 }
 
 .mobileToggle {

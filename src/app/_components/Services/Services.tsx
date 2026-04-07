@@ -1,4 +1,6 @@
 import { getBookingConfig } from '@/actions/bookingConfigActions';
+import { getSingleProperties } from '@/actions/adminPropertyActions';
+import { getBasicPrices } from '@/actions/seasonActions';
 import styles from './Services.module.css';
 
 interface PriceItem {
@@ -6,28 +8,85 @@ interface PriceItem {
     amount: string;
 }
 
+interface PriceTier {
+    minGuests: number;
+    maxGuests: number;
+    price: number;
+}
+
+function formatGuestsLabel(minGuests: number, maxGuests: number): string {
+    if (minGuests === maxGuests) {
+        if (minGuests === 1) return '1 osoba';
+        return `${minGuests} osób`;
+    }
+    return `${minGuests}-${maxGuests} osoby`;
+}
+
+function mapTiersToPriceItems(tiers: PriceTier[]): PriceItem[] {
+    return [...tiers]
+        .sort((a, b) => a.minGuests - b.minGuests)
+        .map((tier) => ({
+            description: formatGuestsLabel(tier.minGuests, tier.maxGuests),
+            amount: `${tier.price} zł`,
+        }));
+}
+
 export default async function Services() {
     let childrenFreeAge
-    try {
-        const bookingConfig = await getBookingConfig();
-        childrenFreeAge = bookingConfig?.childrenFreeAgeLimit ?? 13;
-    } catch {
-        // Error handling mostly silent for UI components
-    }
-
-    const weekdayRates: PriceItem[] = [
+    let weekdayRates: PriceItem[] = [
         { description: '2-3 osoby', amount: '300 zł' },
         { description: '4-5 osób', amount: '400 zł' },
         { description: '6 osób', amount: '500 zł' },
         { description: 'Dostawka', amount: '+50 zł' }
     ];
 
-    const weekendRates: PriceItem[] = [
+    let weekendRates: PriceItem[] = [
         { description: '2-3 osoby', amount: '400 zł' },
         { description: '4-5 osób', amount: '500 zł' },
         { description: '6 osób', amount: '600 zł' },
         { description: 'Dostawka', amount: '+50 zł' }
     ];
+
+    try {
+        const bookingConfig = await getBookingConfig();
+        childrenFreeAge = bookingConfig?.childrenFreeAgeLimit ?? 13;
+
+        const singleProperties = await getSingleProperties();
+        const firstProperty = singleProperties[0];
+
+        if (firstProperty?._id) {
+            const basicPricesResult = await getBasicPrices(firstProperty._id);
+            if (basicPricesResult.success && basicPricesResult.data) {
+                const data = basicPricesResult.data as {
+                    weekdayPrices?: PriceTier[];
+                    weekendPrices?: PriceTier[];
+                    weekdayExtraBedPrice?: number;
+                    weekendExtraBedPrice?: number;
+                };
+
+                const weekdayItems = mapTiersToPriceItems(data.weekdayPrices ?? []);
+                const weekendItems = mapTiersToPriceItems(data.weekendPrices ?? []);
+
+                weekdayRates = [
+                    ...weekdayItems,
+                    {
+                        description: 'Dostawka',
+                        amount: `+${data.weekdayExtraBedPrice ?? 50} zł`,
+                    },
+                ];
+
+                weekendRates = [
+                    ...weekendItems,
+                    {
+                        description: 'Dostawka',
+                        amount: `+${data.weekendExtraBedPrice ?? 70} zł`,
+                    },
+                ];
+            }
+        }
+    } catch {
+        // Error handling mostly silent for UI components
+    }
 
 
     return (

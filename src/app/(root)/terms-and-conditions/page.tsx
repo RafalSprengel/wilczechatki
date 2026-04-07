@@ -10,7 +10,9 @@ export default async function TermsAndConditionsPage() {
     <div className={styles.wrapper}>
       <div className={styles.container}>
         <h1 className={styles.title}>
-          Regulamin Wilczych Chatek <span className={styles.emoji}>🌲</span>
+          Regulamin
+          <br />
+          🌲 Wilczych Chatek <span className={styles.emoji}>🌲</span>
         </h1>
         <p className={styles.lead}>
           Najważniejsze: dobrze się bawcie i porządnie odpoczywajcie! To Wasz czas{' '}
@@ -24,7 +26,7 @@ export default async function TermsAndConditionsPage() {
           </li>
           <li>
             W godzinach <span className={styles.highlight}>22:00 – 6:00</span> obowiązuje cisza nocna – las też chce spać{' '}
-            <span className={styles.emoji}>🌙</span>
+            <span className={styles.emoji}>🌙.</span>
           </li>
           <li>
             W domku przebywa <strong>tylko tyle osób</strong>, ile zostało zgłoszone przy rezerwacji.
@@ -34,7 +36,7 @@ export default async function TermsAndConditionsPage() {
           </li>
           <li>
             <strong>Zostawcie po sobie porządek</strong> – kolejna wilcza ekipa też chce wejść z uśmiechem{' '}
-            <span className={styles.emoji}>🙂</span>
+            <span className={styles.emoji}>🙂.</span>
           </li>
           <li className={styles.pets}>
             <span className={styles.petsIcon}>🐾</span> Zwierzęta są mile widziane! Prosimy tylko o opiekę nad nimi i
@@ -48,7 +50,9 @@ export default async function TermsAndConditionsPage() {
         <div className={styles.footer}>
           <p>Dziękujemy za szacunek do miejsca i natury <span className={styles.emoji}>🌲</span></p>
           <p className={styles.signature}>
-            Miłego pobytu w Wilczych Chatkach! <span className={styles.emoji}>🐺✨</span>
+            Miłego pobytu
+            <br />
+            w Wilczych Chatkach! <span className={styles.emoji}>🐺✨</span>
           </p>
         </div>
 
