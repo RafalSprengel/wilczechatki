@@ -10,6 +10,20 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
   const booking = await getBookingById(id);
   if (!booking) { notFound(); }
 
+  const bookingTypeLabel = booking.source === 'customer'
+    ? 'Klient (online)'
+    : booking.source === 'admin'
+      ? 'Admin (ręcznie)'
+      : '-';
+
+  const propertyTypeLabel = booking.propertyType === 'whole'
+    ? 'Cały obiekt'
+    : booking.propertyType === 'single'
+      ? 'Pojedynczy domek'
+      : '-';
+
+  const propertyName = booking.propertyName || '-';
+
   return (
     <div className={styles.container}>
       <FloatingBackButton />
@@ -26,7 +40,9 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
             <h3 className={styles.cardTitle}>Podsumowanie</h3>
             <div className={styles.infoRow}><span className={styles.label}>ID:</span><code className={styles.code}>{booking._id}</code></div>
             <div className={styles.infoRow}><span className={styles.label}>Utworzono:</span><span>{new Date(booking.createdAt).toLocaleString('pl-PL')}</span></div>
-            <div className={styles.infoRow}><span className={styles.label}>Typ:</span><span className={styles.value}></span></div>
+            <div className={styles.infoRow}><span className={styles.label}>Domek:</span><span className={styles.value}>{propertyName}</span></div>
+            <div className={styles.infoRow}><span className={styles.label}>Typ domku:</span><span className={styles.value}>{propertyTypeLabel}</span></div>
+            <div className={styles.infoRow}><span className={styles.label}>Typ:</span><span className={styles.value}>{bookingTypeLabel}</span></div>
           </div>
           <div className={styles.actionsBlock}>
             <h3 className={styles.cardTitle}>Strefa niebezpieczna</h3>

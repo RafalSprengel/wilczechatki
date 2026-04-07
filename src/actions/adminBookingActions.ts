@@ -66,17 +66,58 @@ function validateBookingData(data: any) {
 
 export async function getAdminBookingsList() {
   await dbConnect()
-  const bookings = await Booking.find({}).sort({ startDate: -1 }).lean()
-  return JSON.parse(JSON.stringify(bookings))
+  const bookings = await Booking.find({})
+    .sort({ startDate: -1 })
+    .populate('propertyId', 'name type')
+    .lean()
+
+  const normalizedBookings = bookings.map((booking: any) => {
+    const property = booking.propertyId
+    const propertyId = property?._id ? String(property._id) : String(property || '')
+    const rawPaidAmount = Number(booking.paidAmount || 0)
+    const rawTotalPrice = Number(booking.totalPrice || 0)
+    const paidAmount = booking.source === 'customer' && rawPaidAmount === 0 && rawTotalPrice > 0
+      ? rawTotalPrice
+      : rawPaidAmount
+
+    return {
+      ...booking,
+      propertyId,
+      propertyName: property?.name || 'Domek',
+      propertyType: property?.type || 'single',
+      paidAmount,
+    }
+  })
+
+  return JSON.parse(JSON.stringify(normalizedBookings))
 }
 
 export async function getBookingById(bookingId: string) {
   await dbConnect()
-  const booking = await Booking.findById(bookingId).lean()
+  const booking = await Booking.findById(bookingId)
+    .populate('propertyId', 'name type')
+    .lean()
+
   if (!booking) {
     return null
   }
-  return JSON.parse(JSON.stringify(booking))
+
+  const property = (booking as any).propertyId
+  const rawPaidAmount = Number((booking as any).paidAmount || 0)
+  const rawTotalPrice = Number((booking as any).totalPrice || 0)
+  const paidAmount = (booking as any).source === 'customer' && rawPaidAmount === 0 && rawTotalPrice > 0
+    ? rawTotalPrice
+    : rawPaidAmount
+
+  const normalizedBooking = {
+    ...booking,
+    propertyId: property?._id ? String(property._id) : String(property || ''),
+    propertyName: property?.name || '',
+    propertyType: property?.type || 'single',
+    paidAmount,
+  }
+
+  return JSON.parse(JSON.stringify(normalizedBooking))
 }
 
 export async function createBookingByAdmin(prevState: any, formData: FormData) {
@@ -146,7 +187,7 @@ export async function updateBookingAction(prevState: any, formData: FormData) {
       extraBedsCount: Number(rawData.extraBeds),
       totalPrice: Number(rawData.totalPrice),
       paidAmount: Number(rawData.paidAmount),
-      status: 'confirmed',
+      status: rawData.status,
       invoice: rawData.invoice === 'true',
       invoiceData,
       customerNotes: rawData.internalNotes,

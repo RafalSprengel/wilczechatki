@@ -2,8 +2,11 @@
 
 import dbConnect from '@/db/connection'
 import Property from '@/db/models/Property'
+import PropertyPrices from '@/db/models/PropertyPrices'
+import CustomPrice from '@/db/models/CustomPrice'
 import { revalidatePath } from 'next/cache'
 import { Types } from 'mongoose'
+import { DEFAULT_FALLBACK_PRICES } from '@/utils/priceDefaults'
 
 export interface PropertyType {
   _id: string;
@@ -84,8 +87,8 @@ export async function createProperty(formData: FormData) {
     let maxExtraBeds = 0;
 
     if (type === 'single') {
-      baseCapacity = parseInt(formData.get('baseCapacity') as string) || 6;
-      maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string) || 2;
+      baseCapacity = parseInt(formData.get('baseCapacity') as string, 10) || 6;
+      maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string, 10) || 2;
     }
 
     const property = await Property.create({
@@ -99,7 +102,21 @@ export async function createProperty(formData: FormData) {
       isActive: true
     });
 
+    if (type === 'single') {
+      await PropertyPrices.findOneAndUpdate(
+        { propertyId: property._id, seasonId: null },
+        {
+          weekdayPrices: DEFAULT_FALLBACK_PRICES.weekdayPrices,
+          weekendPrices: DEFAULT_FALLBACK_PRICES.weekendPrices,
+          weekdayExtraBedPrice: DEFAULT_FALLBACK_PRICES.weekdayExtraBedPrice,
+          weekendExtraBedPrice: DEFAULT_FALLBACK_PRICES.weekendExtraBedPrice,
+        },
+        { upsert: true, new: true }
+      );
+    }
+
     revalidatePath('/admin/properties');
+    revalidatePath('/admin/prices');
     return { success: true, message: 'Domek dodany pomyślnie', propertyId: property._id.toString() };
   } catch (error) {
     console.error(error);
@@ -127,8 +144,8 @@ export async function updateProperty(id: string, formData: FormData) {
     let maxExtraBeds = 0;
 
     if (type === 'single') {
-      baseCapacity = parseInt(formData.get('baseCapacity') as string) || 6;
-      maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string) || 2;
+      baseCapacity = parseInt(formData.get('baseCapacity') as string, 10) || 6;
+      maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string, 10) || 2;
     }
 
     await Property.findByIdAndUpdate(id, {
@@ -170,7 +187,10 @@ export async function deleteProperty(id: string) {
     return { success: false, message: 'Nie można usunąć domku z istniejącymi rezerwacjami' };
   }
 
+  await PropertyPrices.deleteMany({ propertyId: id });
+  await CustomPrice.deleteMany({ propertyId: id });
   await Property.findByIdAndDelete(id);
   revalidatePath('/admin/properties');
+  revalidatePath('/admin/prices');
   return { success: true, message: 'Domek usunięty' };
 }

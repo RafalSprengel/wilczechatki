@@ -64,6 +64,12 @@ export async function getCalendarData(daysInMonth: number, startDateStr: string)
 
   const mapBookingDetails = (b: any): BookingDetails => {
     const id = b._id.toString();
+    const rawPaidAmount = Number(b.paidAmount || 0);
+    const rawTotalPrice = Number(b.totalPrice || 0);
+    const paidAmount = b.source === 'customer' && rawPaidAmount === 0 && rawTotalPrice > 0
+      ? rawTotalPrice
+      : rawPaidAmount;
+
     return {
       id,
       guestName: b.guestName || 'Gość',
@@ -71,8 +77,8 @@ export async function getCalendarData(daysInMonth: number, startDateStr: string)
       guestPhone: b.guestPhone || '',
       numberOfGuests: b.numberOfGuests || 0,
       extraBeds: b.extraBedsCount || 0,
-      totalPrice: b.totalPrice || 0,
-      paidAmount: b.paidAmount || 0,
+      totalPrice: rawTotalPrice,
+      paidAmount,
       status: b.status,
       startDate: dayjs.utc(b.startDate).format('YYYY-MM-DD'),
       endDate: dayjs.utc(b.endDate).format('YYYY-MM-DD'),

@@ -39,12 +39,10 @@ interface BookingDates {
 
 interface CustomPriceEntry {
   date: string
-  weekdayPrices: PriceTier[]
-  weekendPrices: PriceTier[]
+  prices: PriceTier[]
   previewPrice: number
   propertyId: string
-  weekdayExtraBedPrice?: number
-  weekendExtraBedPrice?: number
+  extraBedPrice?: number
 }
 
 interface Season {
@@ -64,8 +62,7 @@ interface Props {
 }
 
 const OFF_SEASON_ID = 'off-season'
-const DEFAULT_CUSTOM_WEEKDAY_TIERS: PriceTier[] = [{ minGuests: 1, maxGuests: 2, price: 300 }]
-const DEFAULT_CUSTOM_WEEKEND_TIERS: PriceTier[] = [{ minGuests: 1, maxGuests: 2, price: 350 }]
+const DEFAULT_CUSTOM_TIERS: PriceTier[] = [{ minGuests: 1, maxGuests: 2, price: 350 }]
 
 type TierField = keyof PriceTier
 
@@ -77,7 +74,7 @@ interface TierValidationError {
 
 function normalizeAndValidateTiers(
   tiers: PriceTier[],
-  label: 'weekday' | 'weekend'
+  label: 'weekday' | 'weekend' | 'custom'
 ): {
   isValid: boolean
   sorted: PriceTier[]
@@ -91,7 +88,9 @@ function normalizeAndValidateTiers(
       message:
         label === 'weekday'
           ? 'Dodaj przynajmniej jeden przedzial dla dni powszednich.'
-          : 'Dodaj przynajmniej jeden przedzial dla weekendu.',
+          : label === 'weekend'
+          ? 'Dodaj przynajmniej jeden przedzial dla weekendu.'
+          : 'Dodaj przynajmniej jeden przedział dla cen indywidualnych.',
     }
   }
 
@@ -212,22 +211,12 @@ export default function PriceSettingsForm({
     end: null,
     count: 0,
   })
-  const [customWeekdayTiers, setCustomWeekdayTiers] = useState<PriceTier[]>([
-    ...DEFAULT_CUSTOM_WEEKDAY_TIERS,
-  ])
-  const [customWeekendTiers, setCustomWeekendTiers] = useState<PriceTier[]>([
-    ...DEFAULT_CUSTOM_WEEKEND_TIERS,
-  ])
+  const [customTiers, setCustomTiers] = useState<PriceTier[]>([...DEFAULT_CUSTOM_TIERS])
   const [customPrices, setCustomPrices] = useState<CustomPriceEntry[]>([])
-  const [customWeekdayExtraBedPrice, setCustomWeekdayExtraBedPrice] = useState<number>(50)
-  const [customWeekendExtraBedPrice, setCustomWeekendExtraBedPrice] = useState<number>(70)
+  const [customExtraBedPrice, setCustomExtraBedPrice] = useState<number>(50)
   const [calendarPrices, setCalendarPrices] = useState<Record<string, number>>({})
-  const [selectedDateForPrice, setSelectedDateForPrice] = useState<string | null>(null)
   const [isCustomRangeMode, setIsCustomRangeMode] = useState(true)
-  const [customTierErrors, setCustomTierErrors] = useState<{
-    weekday: TierValidationError[]
-    weekend: TierValidationError[]
-  }>({ weekday: [], weekend: [] })
+  const [customTierErrors, setCustomTierErrors] = useState<TierValidationError[]>([])
 
   // ── UI state ─────────────────────────────────────────────────────────────────
   const [isSaving, setIsSaving] = useState(false)
@@ -476,31 +465,21 @@ export default function PriceSettingsForm({
       setIsCustomDirty(false)
 
       if (dates.start && !dates.end) {
-        setSelectedDateForPrice(dates.start)
         const priceEntry = customPrices.find((p) => p.date === dates.start)
         if (priceEntry) {
-          setCustomWeekdayTiers(
-            priceEntry.weekdayPrices?.length
-              ? priceEntry.weekdayPrices
-              : [{ minGuests: 1, maxGuests: 2, price: priceEntry.previewPrice || 300 }]
-          )
-          setCustomWeekendTiers(
-            priceEntry.weekendPrices?.length
-              ? priceEntry.weekendPrices
+          setCustomTiers(
+            priceEntry.prices?.length
+              ? priceEntry.prices
               : [{ minGuests: 1, maxGuests: 2, price: priceEntry.previewPrice || 350 }]
           )
-          setCustomWeekdayExtraBedPrice(priceEntry.weekdayExtraBedPrice ?? 50)
-          setCustomWeekendExtraBedPrice(priceEntry.weekendExtraBedPrice ?? 70)
-          setCustomTierErrors({ weekday: [], weekend: [] })
+          setCustomExtraBedPrice(priceEntry.extraBedPrice ?? 50)
+          setCustomTierErrors([])
         } else {
-          setCustomWeekdayTiers([...DEFAULT_CUSTOM_WEEKDAY_TIERS])
-          setCustomWeekendTiers([...DEFAULT_CUSTOM_WEEKEND_TIERS])
-          setCustomWeekdayExtraBedPrice(50)
-          setCustomWeekendExtraBedPrice(70)
-          setCustomTierErrors({ weekday: [], weekend: [] })
+          setCustomTiers([...DEFAULT_CUSTOM_TIERS])
+          setCustomExtraBedPrice(50)
+          setCustomTierErrors([])
         }
       } else {
-        setSelectedDateForPrice(null)
       }
     },
     [customPrices]
@@ -523,50 +502,46 @@ export default function PriceSettingsForm({
   }
 
   const handleCustomTierChange = (
-    type: 'weekday' | 'weekend',
     index: number,
     field: keyof PriceTier,
     value: number
   ) => {
-    const setter = type === 'weekend' ? setCustomWeekendTiers : setCustomWeekdayTiers
     setIsCustomDirty(true)
-    setCustomTierErrors((prev) => ({ ...prev, [type]: [] }))
-    setter((prev) => {
+    setCustomTierErrors([])
+    setCustomTiers((prev) => {
       const updated = [...prev]
       updated[index] = { ...updated[index], [field]: value }
       return updated
     })
   }
 
-  const addCustomTier = (type: 'weekday' | 'weekend') => {
-    const tiers = type === 'weekend' ? customWeekendTiers : customWeekdayTiers
-    const setter = type === 'weekend' ? setCustomWeekendTiers : setCustomWeekdayTiers
-    const fallbackPrice = type === 'weekend' ? 350 : 300
+  const addCustomTier = () => {
+    const tiers = customTiers
+    const fallbackPrice = 350
 
     setIsCustomDirty(true)
-    setCustomTierErrors((prev) => ({ ...prev, [type]: [] }))
+    setCustomTierErrors([])
 
     if (tiers.length === 0) {
-      setter([{ minGuests: 1, maxGuests: 2, price: fallbackPrice }])
+      setCustomTiers([{ minGuests: 1, maxGuests: 2, price: fallbackPrice }])
       return
     }
 
     const last = tiers[tiers.length - 1]
-    setter((prev) => [
+    setCustomTiers((prev) => [
       ...prev,
       { minGuests: last.maxGuests + 1, maxGuests: last.maxGuests + 2, price: last.price },
     ])
   }
 
-  const removeCustomTier = (type: 'weekday' | 'weekend', index: number) => {
-    const setter = type === 'weekend' ? setCustomWeekendTiers : setCustomWeekdayTiers
+  const removeCustomTier = (index: number) => {
     setIsCustomDirty(true)
-    setCustomTierErrors((prev) => ({ ...prev, [type]: [] }))
-    setter((prev) => prev.filter((_, i) => i !== index))
+    setCustomTierErrors([])
+    setCustomTiers((prev) => prev.filter((_, i) => i !== index))
   }
 
-  const getCustomTierError = (type: 'weekday' | 'weekend', index: number) =>
-    customTierErrors[type].find((error) => error.index === index)
+  const getCustomTierError = (index: number) =>
+    customTierErrors.find((error) => error.index === index)
 
   const buildDateRange = (): string[] => {
     if (!bookingDates.start) return []
@@ -588,48 +563,30 @@ export default function PriceSettingsForm({
   const handleSaveCustomPrice = async (): Promise<boolean> => {
     if (!selectedPropertyId || !bookingDates.start) return false
 
-    const weekdayValidation = normalizeAndValidateTiers(customWeekdayTiers, 'weekday')
-    if (!weekdayValidation.isValid) {
-      setCustomWeekdayTiers(weekdayValidation.sorted)
-      setCustomTierErrors((prev) => ({
-        ...prev,
-        weekday: weekdayValidation.errors ?? [],
-      }))
-      toast.error(weekdayValidation.message ?? 'Nieprawidlowe przedzialy custom dla dni powszednich.')
+    const customValidation = normalizeAndValidateTiers(customTiers, 'custom')
+    if (!customValidation.isValid) {
+      setCustomTiers(customValidation.sorted)
+      setCustomTierErrors(customValidation.errors ?? [])
+      toast.error(customValidation.message ?? 'Nieprawidlowe przedzialy custom dla wybranych dni.')
       return false
     }
 
-    const weekendValidation = normalizeAndValidateTiers(customWeekendTiers, 'weekend')
-    if (!weekendValidation.isValid) {
-      setCustomWeekendTiers(weekendValidation.sorted)
-      setCustomTierErrors((prev) => ({
-        ...prev,
-        weekend: weekendValidation.errors ?? [],
-      }))
-      toast.error(weekendValidation.message ?? 'Nieprawidlowe przedzialy custom dla weekendu.')
-      return false
-    }
-
-    setCustomTierErrors({ weekday: [], weekend: [] })
-    setCustomWeekdayTiers(weekdayValidation.sorted)
-    setCustomWeekendTiers(weekendValidation.sorted)
+    setCustomTierErrors([])
+    setCustomTiers(customValidation.sorted)
 
     setIsSaving(true)
     try {
       const result = await updateCustompriceForDate({
         propertyId: selectedPropertyId,
         dates: buildDateRange(),
-        weekdayPrices: weekdayValidation.sorted,
-        weekendPrices: weekendValidation.sorted,
-        weekdayExtraBedPrice: customWeekdayExtraBedPrice,
-        weekendExtraBedPrice: customWeekendExtraBedPrice,
+        prices: customValidation.sorted,
+        extraBedPrice: customExtraBedPrice,
       })
 
       if (result?.success) {
         toast.success(result.message)
         await refreshCustomPrices()
         setBookingDates({ start: null, end: null, count: 0 })
-        setSelectedDateForPrice(null)
         setIsCustomDirty(false)
         return true
       } else {
@@ -647,35 +604,21 @@ export default function PriceSettingsForm({
 
   const resetCustomEditorToCurrentSelection = () => {
     if (!bookingDates.start) {
-      setCustomWeekdayTiers([...DEFAULT_CUSTOM_WEEKDAY_TIERS])
-      setCustomWeekendTiers([...DEFAULT_CUSTOM_WEEKEND_TIERS])
-      setCustomWeekdayExtraBedPrice(50)
-      setCustomWeekendExtraBedPrice(70)
-      setCustomTierErrors({ weekday: [], weekend: [] })
+      setCustomTiers([...DEFAULT_CUSTOM_TIERS])
+      setCustomExtraBedPrice(50)
+      setCustomTierErrors([])
       return
     }
 
     const priceEntry = customPrices.find((p) => p.date === bookingDates.start)
     if (priceEntry) {
-      setCustomWeekdayTiers(
-        priceEntry.weekdayPrices?.length
-          ? priceEntry.weekdayPrices
-          : [...DEFAULT_CUSTOM_WEEKDAY_TIERS]
-      )
-      setCustomWeekendTiers(
-        priceEntry.weekendPrices?.length
-          ? priceEntry.weekendPrices
-          : [...DEFAULT_CUSTOM_WEEKEND_TIERS]
-      )
-      setCustomWeekdayExtraBedPrice(priceEntry.weekdayExtraBedPrice ?? 50)
-      setCustomWeekendExtraBedPrice(priceEntry.weekendExtraBedPrice ?? 70)
+      setCustomTiers(priceEntry.prices?.length ? priceEntry.prices : [...DEFAULT_CUSTOM_TIERS])
+      setCustomExtraBedPrice(priceEntry.extraBedPrice ?? 50)
     } else {
-      setCustomWeekdayTiers([...DEFAULT_CUSTOM_WEEKDAY_TIERS])
-      setCustomWeekendTiers([...DEFAULT_CUSTOM_WEEKEND_TIERS])
-      setCustomWeekdayExtraBedPrice(50)
-      setCustomWeekendExtraBedPrice(70)
+      setCustomTiers([...DEFAULT_CUSTOM_TIERS])
+      setCustomExtraBedPrice(50)
     }
-    setCustomTierErrors({ weekday: [], weekend: [] })
+    setCustomTierErrors([])
   }
 
   const handleSaveAll = async () => {
@@ -729,7 +672,6 @@ export default function PriceSettingsForm({
         toast.success(result.message)
         await refreshCustomPrices()
         setBookingDates({ start: null, end: null, count: 0 })
-        setSelectedDateForPrice(null)
         setIsCustomDirty(false)
       } else {
         toast.error(result?.message ?? 'Błąd usuwania')
@@ -1142,13 +1084,13 @@ export default function PriceSettingsForm({
               <div className="setting-row">
                 <div className="setting-content">
                   <label className="setting-label">
-                    Cena za dobę - Dzień powszedni (nd-czw)
+                    Cena za dobę (dla wybranego dnia / zakresu)
                   </label>
                 </div>
                 <div className="setting-control">
                   <div className={styles.tiersContainer}>
-                    {customWeekdayTiers.map((tier, index) => {
-                      const tierError = getCustomTierError('weekday', index)
+                    {customTiers.map((tier, index) => {
+                      const tierError = getCustomTierError(index)
                       return (
                         <div key={index} className={styles.tierRowWrapper}>
                           <div className={`${styles.tierRow} ${tierError ? styles.tierRowError : ''}`}>
@@ -1161,7 +1103,6 @@ export default function PriceSettingsForm({
                                 value={tier.minGuests}
                                 onChange={(e) =>
                                   handleCustomTierChange(
-                                    'weekday',
                                     index,
                                     'minGuests',
                                     parseInt(e.target.value, 10) || 1
@@ -1179,7 +1120,6 @@ export default function PriceSettingsForm({
                                 value={tier.maxGuests}
                                 onChange={(e) =>
                                   handleCustomTierChange(
-                                    'weekday',
                                     index,
                                     'maxGuests',
                                     parseInt(e.target.value, 10) || 1
@@ -1197,7 +1137,6 @@ export default function PriceSettingsForm({
                                 value={tier.price}
                                 onChange={(e) =>
                                   handleCustomTierChange(
-                                    'weekday',
                                     index,
                                     'price',
                                     parseInt(e.target.value, 10) || 0
@@ -1207,10 +1146,10 @@ export default function PriceSettingsForm({
                               />
                             </label>
                             <span className={styles.currency}>zł</span>
-                            {customWeekdayTiers.length > 1 && (
+                            {customTiers.length > 1 && (
                               <button
                                 type="button"
-                                onClick={() => removeCustomTier('weekday', index)}
+                                onClick={() => removeCustomTier(index)}
                                 className={styles.removeTierBtn}
                               >
                                 ✕
@@ -1223,7 +1162,7 @@ export default function PriceSettingsForm({
                     })}
                     <button
                       type="button"
-                      onClick={() => addCustomTier('weekday')}
+                      onClick={addCustomTier}
                       className={styles.addTierBtn}
                     >
                       + Dodaj przedział
@@ -1234,102 +1173,7 @@ export default function PriceSettingsForm({
 
               <div className="setting-row">
                 <div className="setting-content">
-                  <label className="setting-label">
-                    Cena za dobę - Weekend (pt-sob)
-                  </label>
-                </div>
-                <div className="setting-control">
-                  <div className={styles.tiersContainer}>
-                    {customWeekendTiers.map((tier, index) => {
-                      const tierError = getCustomTierError('weekend', index)
-                      return (
-                        <div key={index} className={styles.tierRowWrapper}>
-                          <div className={`${styles.tierRow} ${tierError ? styles.tierRowError : ''}`}>
-                            <label className={styles.tierField}>
-                              <span className={styles.tierFieldLabel}>Osób od</span>
-                              <input
-                                type="number"
-                                min="1"
-                                step="1"
-                                value={tier.minGuests}
-                                onChange={(e) =>
-                                  handleCustomTierChange(
-                                    'weekend',
-                                    index,
-                                    'minGuests',
-                                    parseInt(e.target.value, 10) || 1
-                                  )
-                                }
-                                className={`${styles.tierInput} ${tierError?.fields.includes('minGuests') ? styles.tierInputError : ''}`}
-                              />
-                            </label>
-                            <label className={styles.tierField}>
-                              <span className={styles.tierFieldLabel}>Osób do</span>
-                              <input
-                                type="number"
-                                min="1"
-                                step="1"
-                                value={tier.maxGuests}
-                                onChange={(e) =>
-                                  handleCustomTierChange(
-                                    'weekend',
-                                    index,
-                                    'maxGuests',
-                                    parseInt(e.target.value, 10) || 1
-                                  )
-                                }
-                                className={`${styles.tierInput} ${tierError?.fields.includes('maxGuests') ? styles.tierInputError : ''}`}
-                              />
-                            </label>
-                            <label className={styles.tierField}>
-                              <span className={styles.tierFieldLabel}>Cena</span>
-                              <input
-                                type="number"
-                                min="0"
-                                step="10"
-                                value={tier.price}
-                                onChange={(e) =>
-                                  handleCustomTierChange(
-                                    'weekend',
-                                    index,
-                                    'price',
-                                    parseInt(e.target.value, 10) || 0
-                                  )
-                                }
-                                className={`${styles.priceInput} ${tierError?.fields.includes('price') ? styles.tierInputError : ''}`}
-                              />
-                            </label>
-                            <span className={styles.currency}>zł</span>
-                            {customWeekendTiers.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => removeCustomTier('weekend', index)}
-                                className={styles.removeTierBtn}
-                              >
-                                ✕
-                              </button>
-                            )}
-                          </div>
-                          {tierError && <p className={styles.tierErrorText}>{tierError.message}</p>}
-                        </div>
-                      )
-                    })}
-                    <button
-                      type="button"
-                      onClick={() => addCustomTier('weekend')}
-                      className={styles.addTierBtn}
-                    >
-                      + Dodaj przedział
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="setting-row">
-                <div className="setting-content">
-                  <label className="setting-label">
-                    Cena za dostawkę (dzień powszedni)
-                  </label>
+                  <label className="setting-label">Cena za dostawkę</label>
                 </div>
                 <div className="setting-control">
                   <div className={styles.priceControl}>
@@ -1337,34 +1181,10 @@ export default function PriceSettingsForm({
                       type="number"
                       min="0"
                       step="10"
-                      value={customWeekdayExtraBedPrice}
+                      value={customExtraBedPrice}
                       onChange={(e) =>
                         {
-                          setCustomWeekdayExtraBedPrice(parseInt(e.target.value) || 0)
-                          setIsCustomDirty(true)
-                        }
-                      }
-                      className={styles.priceInputLarge}
-                    />
-                    <span className={styles.currency}>zł / noc</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="setting-row">
-                <div className="setting-content">
-                  <label className="setting-label">Cena za dostawkę (weekend)</label>
-                </div>
-                <div className="setting-control">
-                  <div className={styles.priceControl}>
-                    <input
-                      type="number"
-                      min="0"
-                      step="10"
-                      value={customWeekendExtraBedPrice}
-                      onChange={(e) =>
-                        {
-                          setCustomWeekendExtraBedPrice(parseInt(e.target.value) || 0)
+                          setCustomExtraBedPrice(parseInt(e.target.value, 10) || 0)
                           setIsCustomDirty(true)
                         }
                       }

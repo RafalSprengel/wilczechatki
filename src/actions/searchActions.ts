@@ -67,22 +67,49 @@ interface GetDailyPriceParams {
   seasonPricesMap: Map<string, any>;
 }
 
+const DEFAULT_FALLBACK_NIGHT_PRICE = 1000;
+const DEFAULT_FALLBACK_EXTRA_BED_PRICE = 50;
+
+function createFallbackBasicPrices(propertyBaseCapacity: number) {
+  return {
+    seasonId: null,
+    weekdayPrices: [
+      {
+        minGuests: 1,
+        maxGuests: Math.max(1, propertyBaseCapacity),
+        price: DEFAULT_FALLBACK_NIGHT_PRICE,
+      },
+    ],
+    weekendPrices: [
+      {
+        minGuests: 1,
+        maxGuests: Math.max(1, propertyBaseCapacity),
+        price: DEFAULT_FALLBACK_NIGHT_PRICE,
+      },
+    ],
+    weekdayExtraBedPrice: DEFAULT_FALLBACK_EXTRA_BED_PRICE,
+    weekendExtraBedPrice: DEFAULT_FALLBACK_EXTRA_BED_PRICE,
+  };
+}
+
 function findPriceTier(
   tiers: { minGuests: number; maxGuests: number; price: number }[] | undefined,
   baseGuests: number
 ): { minGuests: number; maxGuests: number; price: number } | null {
   if (!tiers?.length) return null;
-  return (
-    tiers.find((r) => baseGuests >= r.minGuests && baseGuests <= r.maxGuests) ??
-    tiers[tiers.length - 1]
-  );
+  const matchedTier = tiers.find((r) => baseGuests >= r.minGuests && baseGuests <= r.maxGuests);
+  if (matchedTier) return matchedTier;
+
+  // For guests below the first threshold (e.g. 0 in whole-property allocation),
+  // use the lowest tier instead of falling back to the highest one.
+  if (baseGuests < tiers[0].minGuests) return tiers[0];
+
+  return tiers[tiers.length - 1];
 }
 
 function isDateInRecurringSeason(date: dayjs.Dayjs, season: ISeason): boolean {
 
   const normalize = (dateInput: Date | string | number): number => {
-
-    console.log(season)
     const d = new Date(dateInput);
     if (Number.isNaN(d.getTime())) {
       throw new Error('Nieprawidlowy format daty');
@@ -99,13 +126,9 @@ function isDateInRecurringSeason(date: dayjs.Dayjs, season: ISeason): boolean {
   const end = normalize(season.endDate);
 
   if (start <= end) {
-    const result = check >= start && check <= end;
-    console.log(`Sprawdzanie daty ${date.format('YYYY-MM-DD')} w sezonie ${season.name}: ${result}`);
-    return result;
+    return check >= start && check <= end;
   }
-const result = check >= start || check <= end;
-console.log(`Sprawdzanie daty ${date.format('YYYY-MM-DD')} w sezonie ${season.name} (zakres przechodzący przez rok): ${result}`);
-return result;
+  return check >= start || check <= end;
 }
 
 // ─── Pomocnicza funkcja kalkulacji ceny za jedną noc ─────────────────────────
@@ -221,10 +244,11 @@ export async function calculateTotalPrice(
   const basicPrices = allPropertyPrices.find(
     (p) => p.seasonId === null || p.seasonId === undefined
   );
-
+  const resolvedBasicPrices = basicPrices ?? createFallbackBasicPrices(property.baseCapacity);
   if (!basicPrices) {
-    console.error(`Błąd: Brak cennika podstawowego dla domku: ${propertySelection}`);
-    throw new Error('Błąd konfiguracji cen. Prosimy o kontakt z obsługą.');
+    console.warn(
+      `Brak cennika podstawowego dla domku: ${propertySelection}. Użyto domyślnej stawki ${DEFAULT_FALLBACK_NIGHT_PRICE} zł/noc.`
+    );
   }
 
   const seasonPricesMap = new Map<string, any>(
@@ -249,7 +273,7 @@ export async function calculateTotalPrice(
       propertyBaseCapacity: property.baseCapacity,
       customPrices: customPricesMap,
       activeSeasons: activeSeasons as ISeason[],
-      basicPrices,
+      basicPrices: resolvedBasicPrices,
       seasonPricesMap,
     });
     currentDate = currentDate.add(1, 'day');
@@ -283,7 +307,13 @@ export async function calculateTotalPriceForWhole(
 
   await dbConnect();
 
-  const properties = await Property.find({ isActive: true, type: 'single' }).sort({
+  const requestedPropertyIds = cabinAllocations.map((allocation) => allocation.propertyId);
+
+  const properties = await Property.find({
+    isActive: true,
+    type: 'single',
+    _id: { $in: requestedPropertyIds },
+  }).sort({
     name: 1,
   });
   if (properties.length === 0) return 0;
@@ -348,6 +378,13 @@ export async function calculateTotalPriceForWhole(
       basicPrices: null,
       seasonPricesMap: new Map(),
     };
+    const resolvedBasicPrices =
+      priceEntry.basicPrices ?? createFallbackBasicPrices(property.baseCapacity);
+    if (!priceEntry.basicPrices) {
+      console.warn(
+        `Brak cennika podstawowego dla domku: ${pId}. Użyto domyślnej stawki ${DEFAULT_FALLBACK_NIGHT_PRICE} zł/noc.`
+      );
+    }
     const customPricesMap =
       propertyCustomPrices.get(pId) ?? new Map<string, any>();
 
@@ -362,7 +399,7 @@ export async function calculateTotalPriceForWhole(
         propertyBaseCapacity: property.baseCapacity,
         customPrices: customPricesMap,
         activeSeasons: activeSeasons as ISeason[],
-        basicPrices: priceEntry.basicPrices,
+        basicPrices: resolvedBasicPrices,
         seasonPricesMap: priceEntry.seasonPricesMap,
       });
       currentDate = currentDate.add(1, 'day');

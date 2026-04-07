@@ -57,8 +57,12 @@ export async function calculateDynamicPrice(
     });
 
     if (customPrice) {
-      nightPrice = customPrice.price;
-      extraBedPrice = isWeekend ? customPrice.weekendExtraBedPrice : customPrice.weekdayExtraBedPrice;
+      const tier = findPriceTier(customPrice.prices ?? [], totalGuests);
+      if (!tier) {
+        throw new Error(`Nie znaleziono wariantu cenowego custom dla ${totalGuests} gości`);
+      }
+      nightPrice = tier.price;
+      extraBedPrice = customPrice.extraBedPrice ?? 50;
       source = 'custom';
     } else {
       // Step 2: Check if date falls within any Season

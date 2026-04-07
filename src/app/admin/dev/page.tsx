@@ -10,7 +10,6 @@ import {
   seedBookingConfig,
   seedPropertyPrices,
   clearAllData,
-  migrateEmbeddedPricesToCollection,
 } from '@/actions/seed';
 import styles from './page.module.css';
 
@@ -53,22 +52,6 @@ export default function DevPage() {
                 onClick={() => runAction('Seed All (Reset)', seedAllData)}
               >
                 Seed All Data (Full Reset)
-              </button>
-
-              <hr className={styles.divider} />
-
-              {/* ── MIGRACJA – uruchom jednorazowo po wdrożeniu ─────────────── */}
-              <button
-                className={styles.btnPrimary}
-                style={{ backgroundColor: '#7c3aed' }}
-                onClick={() =>
-                  runAction(
-                    'Migracja embedded prices → PropertyPrices',
-                    migrateEmbeddedPricesToCollection
-                  )
-                }
-              >
-                🔄 Migruj ceny (embedded → PropertyPrices) — JEDNORAZOWO
               </button>
 
               <hr className={styles.divider} />

@@ -37,48 +37,6 @@ export interface CustomPriceEntry {
   extraBedPrice?: number;
 }
 
-async function migrateLegacyCustomPrices(propertyId: string) {
-  const docs = await CustomPrice.find({ propertyId }).lean();
-
-  const operations = docs
-    .filter((doc: any) => {
-      const hasNewFields = Array.isArray(doc.prices);
-      const hasLegacyFields = Array.isArray(doc.weekendPrices) || Array.isArray(doc.weekdayPrices);
-      return !hasNewFields && hasLegacyFields;
-    })
-    .map((doc: any) => {
-      const migratedPrices =
-        (Array.isArray(doc.weekendPrices) && doc.weekendPrices.length > 0
-          ? doc.weekendPrices
-          : doc.weekdayPrices) ?? [];
-      const migratedExtraBedPrice =
-        doc.weekendExtraBedPrice ?? doc.weekdayExtraBedPrice ?? 50;
-
-      return {
-        updateOne: {
-          filter: { _id: doc._id },
-          update: {
-            $set: {
-              prices: migratedPrices,
-              extraBedPrice: migratedExtraBedPrice,
-              updatedAt: new Date(),
-            },
-            $unset: {
-              weekdayPrices: '',
-              weekendPrices: '',
-              weekdayExtraBedPrice: '',
-              weekendExtraBedPrice: '',
-            },
-          },
-        },
-      };
-    });
-
-  if (operations.length > 0) {
-    await CustomPrice.bulkWrite(operations);
-  }
-}
-
 export async function updatePriceConfig(prevState: any, formData: FormData) {
   try {
     await dbConnect();
@@ -116,6 +74,17 @@ export async function updateCustompriceForDate(data: CustomPriceUpdate) {
   try {
     await dbConnect();
 
+    if (!data.propertyId || !Array.isArray(data.dates) || data.dates.length === 0) {
+      return { success: false, message: 'Brak wymaganych danych zapisu.' };
+    }
+
+    if (!Array.isArray(data.prices) || data.prices.length === 0) {
+      return { success: false, message: 'Brak przedziałów cenowych do zapisania.' };
+    }
+
+    const normalizedExtraBedPrice =
+      typeof data.extraBedPrice === 'number' ? data.extraBedPrice : 50;
+
     const operations = data.dates.map(date => ({
       updateOne: {
         filter: {
@@ -125,25 +94,20 @@ export async function updateCustompriceForDate(data: CustomPriceUpdate) {
         update: {
           $set: {
             prices: data.prices,
-            extraBedPrice: data.extraBedPrice,
+            extraBedPrice: normalizedExtraBedPrice,
             updatedAt: new Date()
-          },
-          $unset: {
-            weekdayPrices: '',
-            weekendPrices: '',
-            weekdayExtraBedPrice: '',
-            weekendExtraBedPrice: '',
           },
         },
         upsert: true
       }
     }));
 
-    await CustomPrice.bulkWrite(operations);
+    await CustomPrice.collection.bulkWrite(operations as any[]);
     revalidatePath('/admin/prices');
     
     return { success: true, message: `Zapisano ceny dla ${data.dates.length} dni.` };
   } catch (error) {
+    console.error('Błąd zapisu custom prices:', error);
     return { success: false, message: 'Błąd bazy danych.' };
   }
 }
@@ -171,16 +135,15 @@ export async function deleteCustomPricesForDate(data: { propertyId: string; date
 export async function getCustomPrices(propertyId: string): Promise<CustomPriceEntry[]> {
   try {
     await dbConnect();
-    await migrateLegacyCustomPrices(propertyId);
-    const prices = await CustomPrice.find({ propertyId }).sort({ date: 1 }).lean();
+    const prices = await CustomPrice.collection
+      .find({ propertyId: new mongoose.Types.ObjectId(propertyId) })
+      .sort({ date: 1 })
+      .toArray();
 
     return prices.map((p: any) => ({
       date: dayjs(p.date).format('YYYY-MM-DD'),
       prices: p.prices ?? [],
-      previewPrice:
-        p.prices?.[0]?.price ??
-        p.price ??
-        0,
+      previewPrice: p.prices?.[0]?.price ?? 0,
       propertyId: p.propertyId.toString(),
       extraBedPrice: p.extraBedPrice,
     }));

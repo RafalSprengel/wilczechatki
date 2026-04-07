@@ -25,15 +25,20 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
   const [originalData, setOriginalData] = useState<FormData | null>(null);
 
   const formatDate = (date: Date) => new Date(date).toISOString().split('T')[0];
+  const initialGuestName = initialData.guestName ?? initialData.guestInfo?.name ?? '';
+  const initialGuestEmail = initialData.guestEmail ?? initialData.guestInfo?.email ?? '';
+  const initialGuestPhone = initialData.guestPhone ?? initialData.guestInfo?.phone ?? '';
+  const initialNumGuests = initialData.numberOfGuests ?? initialData.numGuests ?? 0;
+  const initialExtraBeds = initialData.extraBedsCount ?? initialData.extraBeds ?? 0;
 
   const [form, setForm] = useState<FormData>({
-    guestName: initialData.guestInfo?.name || '',
-    guestEmail: initialData.guestInfo?.email || '',
-    guestPhone: initialData.guestInfo?.phone || '',
-    numGuests: initialData.numGuests || 0,
+    guestName: initialGuestName,
+    guestEmail: initialGuestEmail,
+    guestPhone: initialGuestPhone,
+    numGuests: initialNumGuests,
     totalPrice: initialData.totalPrice || 0,
     paidAmount: initialData.paidAmount || 0,
-    status: initialData.status,
+    status: initialData.status || 'pending',
     startDate: formatDate(initialData.startDate),
     endDate: formatDate(initialData.endDate),
   });
@@ -59,13 +64,13 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
   const handleEditToggle = () => {
     if (isEditing) {
       setForm({
-        guestName: initialData.guestInfo?.name || '',
-        guestEmail: initialData.guestInfo?.email || '',
-        guestPhone: initialData.guestInfo?.phone || '',
-        numGuests: initialData.numGuests || 0,
+        guestName: initialGuestName,
+        guestEmail: initialGuestEmail,
+        guestPhone: initialGuestPhone,
+        numGuests: initialNumGuests,
         totalPrice: initialData.totalPrice || 0,
         paidAmount: initialData.paidAmount || 0,
-        status: initialData.status,
+        status: initialData.status || 'pending',
         startDate: formatDate(initialData.startDate),
         endDate: formatDate(initialData.endDate),
       });
@@ -82,7 +87,7 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
     const formData = new FormData();
     formData.append('bookingId', initialData._id);
     formData.append('propertyId', initialData.propertyId);
-    formData.append('extraBeds', String(initialData.extraBeds || 0));
+    formData.append('extraBeds', String(initialExtraBeds));
     formData.append('guestName', form.guestName);
     formData.append('guestEmail', form.guestEmail);
     formData.append('guestPhone', form.guestPhone);
