@@ -4,7 +4,7 @@ import Booking from '@/db/models/Booking'
 import SystemConfig from '@/db/models/SystemConfig'
 import Property from '@/db/models/Property'
 import { revalidatePath } from 'next/cache'
-import { calculateTotalPrice, calculateTotalPriceForWhole } from './searchActions'
+import { calculateTotalPrice } from './searchActions'
 import { Types } from 'mongoose'
 
 interface UnavailableDate {

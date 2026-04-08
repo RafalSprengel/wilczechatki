@@ -441,40 +441,38 @@ export async function searchAction(params: SearchParams) {
     const start = dayjs(startDate);
     const end = dayjs(endDate);
 
-    const systemConfig = await SystemConfig.findById('main'); // autoBlockOtherCabins - onlyOnePropertyInSearchResult
-    const autoBlockOtherCabins = systemConfig?.autoBlockOtherCabins ?? false;
-
     const occupiedIds = await Booking.distinct('propertyId', {
       status: { $in: ['confirmed', 'blocked'] },
       startDate: { $lt: end },
       endDate: { $gt: start },
     });
 
-    const isWholeAvailable = occupiedIds.length === 0;
+    const [singleProperties, wholeProperty] = await Promise.all([
+      Property.find({
+        isActive: true,
+        type: 'single',
+      }).select('-createdAt -updatedAt').sort({ name: 1 }),
+      Property.findOne({ isActive: true, type: 'whole' }),
+    ]);
 
-    const availableProperties = await Property.find({
-      isActive: true,
-      type: 'single',
-      _id: { $nin: occupiedIds },
-      baseCapacity: { $gte: baseGuests - extraBeds }
-    }).select('-createdAt -updatedAt').sort({ name: 1 });
+    const occupiedIdSet = new Set(occupiedIds.map((id) => String(id)));
+    const wholePropertyId = wholeProperty?._id ? String(wholeProperty._id) : null;
+    const hasWholeConflict = wholePropertyId ? occupiedIdSet.has(wholePropertyId) : false;
 
-    if (availableProperties.length === 0) return [];
+    const hasAnySingleConflict = singleProperties.some((property) =>
+      occupiedIdSet.has(String(property._id))
+    );
+
+    const availableProperties = singleProperties.filter((property) => {
+      if (hasWholeConflict) return false;
+      if (occupiedIdSet.has(String(property._id))) return false;
+      if (baseGuests > property.baseCapacity + property.maxExtraBeds) return false;
+      return true;
+    });
 
     const options: SearchOption[] = [];
 
     for (const property of availableProperties) { //loop for each available property
-      if (baseGuests > property.baseCapacity + property.maxExtraBeds) continue;
-
-      // console.log('Zmienne wyszukiwania:', {
-      //   startDate,
-      //   endDate,
-      //   guests,
-      //   extraBeds,
-      //   propertyName: property.name,
-      //   propertyId: property._id.toString(),
-      // });
-
       const price = await calculateTotalPrice({ //calculate price for single property
         startDate,
         endDate,
@@ -493,38 +491,26 @@ export async function searchAction(params: SearchParams) {
       });
     }
 
-    // Opcja całej posesji
-    const totalGuestsCapacity = availableProperties.reduce((sum, p) => sum + p.baseCapacity, 0);
-    const totalExtraCapacity = availableProperties.reduce((sum, p) => sum + p.maxExtraBeds, 0);
+    // Opcja całej posesji jako osobny obiekt z własnym cennikiem i pojemnością
+    const isWholeAvailable = !!wholeProperty && !hasWholeConflict && !hasAnySingleConflict;
 
-    if (baseGuests <= totalGuestsCapacity + totalExtraCapacity) {
+    if (wholeProperty && isWholeAvailable && baseGuests <= wholeProperty.baseCapacity + wholeProperty.maxExtraBeds) {
+      const wholePrice = await calculateTotalPrice({
+        startDate,
+        endDate,
+        baseGuests,
+        extraBeds,
+        propertySelection: wholeProperty._id.toString(),
+      });
 
-      if (isWholeAvailable) {
-        const wholeProperty = await Property.findOne({ type: 'whole' }); //find type of property 'whole' should be only one
-        if (wholeProperty) {
-          const cabinAllocations = await distributeGuestsAcrossProperties(
-            availableProperties,
-            baseGuests,
-            extraBeds
-          );
-
-          const wholePrice = await calculateTotalPriceForWhole({
-            startDate,
-            endDate,
-            baseGuests,
-            extraBeds,
-            cabinAllocations,
-          });
-          options.push({
-            type: 'whole',
-            displayName: wholeProperty.name ?? '',
-            totalPrice: wholePrice,
-            maxGuests: totalGuestsCapacity,
-            maxExtraBeds: totalExtraCapacity,
-            description: wholeProperty.description ?? '',
-          });
-        }
-      }
+      options.push({
+        type: 'whole',
+        displayName: wholeProperty.name ?? '',
+        totalPrice: wholePrice,
+        maxGuests: wholeProperty.baseCapacity,
+        maxExtraBeds: wholeProperty.maxExtraBeds,
+        description: wholeProperty.description ?? '',
+      });
     }
 
     return options.sort((a, b) => {

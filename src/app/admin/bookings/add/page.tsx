@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState, useTransition } from 'react'
 import { useActionState } from 'react'
 import styles from './page.module.css'
 import { createBookingByAdmin, calculatePriceAction, getUnavailableDatesForProperty } from '@/actions/adminBookingActions'
-import { getAllProperties, getWholePropertyCapacity } from '@/actions/adminPropertyActions'
+import { getAllProperties } from '@/actions/adminPropertyActions'
 import { getBookingConfig } from '@/actions/bookingConfigActions'
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton'
 import CalendarPicker, { DatesData } from '@/app/_components/CalendarPicker/CalendarPicker'
@@ -64,32 +64,21 @@ export default function AddBookingPage() {
   const [invoiceErrors, setInvoiceErrors] = useState<Record<string, string>>({})
   const [minBookingDays, setMinBookingDays] = useState(1)
   const [maxBookingDays, setMaxBookingDays] = useState(30)
-  const [wholePropertyCapacity, setWholePropertyCapacity] = useState({ baseCapacity: 0, maxExtraBeds: 0 })
 
   const isDateRangeSelected = !!(bookingDates.start && bookingDates.end)
 
   useEffect(() => {
     const loadInitialData = async () => {
-      const [props, config, wholeCapacity] = await Promise.all([
+      const [props, config] = await Promise.all([
         getAllProperties(),
-        getBookingConfig(),
-        getWholePropertyCapacity()
+        getBookingConfig()
       ]);
       setProperties(props);
       setMinBookingDays(config.minBookingDays);
       setMaxBookingDays(config.maxBookingDays);
-      setWholePropertyCapacity(wholeCapacity);
     };
     loadInitialData();
   }, [])
-
-  const selectedPropertyMaxGuests = selectedProperty?.type === 'whole'
-    ? wholePropertyCapacity.baseCapacity
-    : (selectedProperty?.baseCapacity ?? 12)
-
-  const selectedPropertyMaxExtraBeds = selectedProperty?.type === 'whole'
-    ? wholePropertyCapacity.maxExtraBeds
-    : (selectedProperty?.maxExtraBeds ?? 4)
 
   useEffect(() => {
     if (propertySelection) {
@@ -104,14 +93,16 @@ export default function AddBookingPage() {
 
   useEffect(() => {
     if (selectedProperty) {
-      if (numGuests > selectedPropertyMaxGuests) {
-        setNumGuests(Math.min(2, selectedPropertyMaxGuests))
+      const maxGuests = selectedProperty.baseCapacity
+      const maxExtraBedsValue = selectedProperty.maxExtraBeds
+      if (numGuests > maxGuests) {
+        setNumGuests(Math.min(2, maxGuests))
       }
-      if (extraBeds > selectedPropertyMaxExtraBeds) {
+      if (extraBeds > maxExtraBedsValue) {
         setExtraBeds(0)
       }
     }
-  }, [selectedProperty, selectedPropertyMaxGuests, selectedPropertyMaxExtraBeds, numGuests, extraBeds])
+  }, [selectedProperty, numGuests, extraBeds])
 
   useEffect(() => {
     const fetchUnavailableDates = async () => {
@@ -240,8 +231,8 @@ export default function AddBookingPage() {
     return { text: 'Nieopłacone', class: styles.paymentUnpaid }
   }
   const paymentBadge = getPaymentBadge()
-  const maxGuests = selectedPropertyMaxGuests
-  const maxExtraBedsValue = selectedPropertyMaxExtraBeds
+  const maxGuests = selectedProperty ? selectedProperty.baseCapacity : 12
+  const maxExtraBedsValue = selectedProperty ? selectedProperty.maxExtraBeds : 4
 
   return (
     <div className={styles.container}>
