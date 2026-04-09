@@ -48,6 +48,7 @@ export default async function BookingsListPage() {
                 const statusLabel = booking.status === 'confirmed' ? 'Potwierdzona' : booking.status === 'blocked' ? 'Zablokowana' : booking.status === 'cancelled' ? 'Anulowana' : 'Oczekująca';
                 const remainingAmount = booking.totalPrice - (booking.paidAmount || 0);
                 const paymentBadge = getPaymentBadge(booking.totalPrice, booking.paidAmount || 0);
+                const isFullyPaid = (booking.paidAmount || 0) >= booking.totalPrice && booking.totalPrice > 0;
 
                 return (
                   <article key={booking._id} className={styles.bookingCard}>
@@ -68,18 +69,24 @@ export default async function BookingsListPage() {
                       </div>
                       <div className={styles.detailRow}>
                         <span className={styles.label}>Cena:</span>
-                        <div className={styles.priceBreakdown}>
-                          <span className={styles.priceTotal}>{booking.totalPrice.toFixed(2)} zł</span>
-                          <span className={styles.pricePaid}>Wpłacono: {(booking.paidAmount || 0).toFixed(2)} zł</span>
-                          <span className={styles.priceDue}>Do zapłaty: {remainingAmount.toFixed(2)} zł</span>
+                        {isFullyPaid ? (
+                          <span className={`${styles.value} ${styles.paymentPaid}`}>Opłacone</span>
+                        ) : (
+                          <div className={styles.priceBreakdown}>
+                            <span className={styles.priceTotal}>{booking.totalPrice.toFixed(2)} zł</span>
+                            <span className={styles.pricePaid}>Wpłacono: {(booking.paidAmount || 0).toFixed(2)} zł</span>
+                            <span className={styles.priceDue}>Do zapłaty: {remainingAmount.toFixed(2)} zł</span>
+                          </div>
+                        )}
+                      </div>
+                      {!isFullyPaid && (
+                        <div className={styles.detailRow}>
+                          <span className={styles.label}>Płatność:</span>
+                          <span className={`${styles.value} ${paymentBadge.class}`}>
+                            {paymentBadge.text}
+                          </span>
                         </div>
-                      </div>
-                      <div className={styles.detailRow}>
-                        <span className={styles.label}>Płatność:</span>
-                        <span className={`${styles.value} ${paymentBadge.class}`}>
-                          {paymentBadge.text}
-                        </span>
-                      </div>
+                      )}
                     </div>
 
                     <div className={styles.cardFooter}>
@@ -107,6 +114,7 @@ export default async function BookingsListPage() {
                 const statusLabel = booking.status === 'confirmed' ? 'Potwierdzona' : booking.status === 'blocked' ? 'Zablokowana' : booking.status === 'cancelled' ? 'Anulowana' : 'Oczekująca';
                 const remainingAmount = booking.totalPrice - (booking.paidAmount || 0);
                 const paymentBadge = getPaymentBadge(booking.totalPrice, booking.paidAmount || 0);
+                const isFullyPaid = (booking.paidAmount || 0) >= booking.totalPrice && booking.totalPrice > 0;
 
                 return (
                   <article key={booking._id} className={`${styles.bookingCard} ${styles.pastCard}`}>
@@ -127,18 +135,24 @@ export default async function BookingsListPage() {
                       </div>
                       <div className={styles.detailRow}>
                         <span className={styles.label}>Cena:</span>
-                        <div className={styles.priceBreakdown}>
-                          <span className={styles.priceTotal}>{booking.totalPrice.toFixed(2)} zł</span>
-                          <span className={styles.pricePaid}>Wpłacono: {(booking.paidAmount || 0).toFixed(2)} zł</span>
-                          <span className={styles.priceDue}>Do zapłaty: {remainingAmount.toFixed(2)} zł</span>
+                        {isFullyPaid ? (
+                          <span className={`${styles.value} ${styles.paymentPaid}`}>Opłacone</span>
+                        ) : (
+                          <div className={styles.priceBreakdown}>
+                            <span className={styles.priceTotal}>{booking.totalPrice.toFixed(2)} zł</span>
+                            <span className={styles.pricePaid}>Wpłacono: {(booking.paidAmount || 0).toFixed(2)} zł</span>
+                            <span className={styles.priceDue}>Do zapłaty: {remainingAmount.toFixed(2)} zł</span>
+                          </div>
+                        )}
+                      </div>
+                      {!isFullyPaid && (
+                        <div className={styles.detailRow}>
+                          <span className={styles.label}>Płatność:</span>
+                          <span className={`${styles.value} ${paymentBadge.class}`}>
+                            {paymentBadge.text}
+                          </span>
                         </div>
-                      </div>
-                      <div className={styles.detailRow}>
-                        <span className={styles.label}>Płatność:</span>
-                        <span className={`${styles.value} ${paymentBadge.class}`}>
-                          {paymentBadge.text}
-                        </span>
-                      </div>
+                      )}
                     </div>
 
                     <div className={styles.cardFooter}>

@@ -7,8 +7,6 @@ import SystemConfig from '@/db/models/SystemConfig';
 import BookingConfig from '@/db/models/BookingConfig';
 import {
   calculateTotalPrice,
-  calculateTotalPriceForWhole,
-  distributeGuestsAcrossProperties,
 } from '@/actions/searchActions';
 import { Types } from 'mongoose';
 import dayjs from 'dayjs';
@@ -38,7 +36,7 @@ interface GuestData {
 }
 
 interface SelectedOption {
-  type: 'single' | 'whole';
+  type: 'cabin';
   displayName: string;
   totalPrice: number;
 }
@@ -72,102 +70,44 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
     const numberOfGuests = adults + children;
     const bookings = [];
 
-    if (selectedOption.type === 'whole') {
-      const properties = await Property.find({ isActive: true, type: 'single' }).sort({ name: 1 });
+    const property = await Property.findOne({ name: selectedOption.displayName, isActive: true }).select('_id');
 
-      if (properties.length === 0) {
-        console.error('Brak aktywnych domków w bazie');
-        return { success: false, error: 'Brak dostępnych domków' };
-      }
-
-      const recalculatedWholePrice = await calculateTotalPriceForWhole({
-        startDate,
-        endDate,
-        baseGuests: numberOfGuests,
-        extraBeds,
-        cabinAllocations: await distributeGuestsAcrossProperties(
-          properties,
-          numberOfGuests,
-          extraBeds
-        ),
-      });
-      if (recalculatedWholePrice <= 0) {
-        return { success: false, error: 'Nie udało się poprawnie wyliczyć ceny rezerwacji.' };
-      }
-
-      let remainingGuests = numberOfGuests;
-      let remainingExtraBeds = extraBeds;
-      const totalPricePerBooking = Number((recalculatedWholePrice / properties.length).toFixed(2));
-
-      for (let i = 0; i < properties.length; i++) {
-        const property = properties[i];
-        const guestsForThisCabin = Math.min(remainingGuests, property.baseCapacity);
-        const extraBedsForThisCabin = Math.min(remainingExtraBeds, property.maxExtraBeds);
-
-        bookings.push({
-          propertyId: new Types.ObjectId(property._id.toString()),
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
-          guestName: `${guestData.firstName} ${guestData.lastName}`,
-          guestEmail: guestData.email,
-          guestPhone: guestData.phone,
-          guestAddress: guestData.address,
-          numberOfGuests: guestsForThisCabin,
-          extraBedsCount: extraBedsForThisCabin,
-          totalPrice: totalPricePerBooking,
-          paidAmount: totalPricePerBooking,
-          status: 'confirmed',
-          invoice: guestData.invoice,
-          invoiceData: guestData.invoiceData,
-          customerNotes: `Rezerwacja całej posesji`,
-          source: 'customer',
-          createdAt: new Date(),
-          updatedAt: new Date()
-        });
-
-        remainingGuests -= guestsForThisCabin;
-        remainingExtraBeds -= extraBedsForThisCabin;
-      }
-    } else {
-      const property = await Property.findOne({ name: selectedOption.displayName, isActive: true }).select('_id');
-
-      if (!property) {
-        console.error('Nie znaleziono domku w bazie');
-        return { success: false, error: 'Nie można znaleźć domku w bazie' };
-      }
-
-      const recalculatedSinglePrice = await calculateTotalPrice({
-        startDate,
-        endDate,
-        baseGuests: numberOfGuests,
-        extraBeds,
-        propertySelection: property._id.toString(),
-      });
-      if (recalculatedSinglePrice <= 0) {
-        return { success: false, error: 'Nie udało się poprawnie wyliczyć ceny rezerwacji.' };
-      }
-
-      bookings.push({
-        propertyId: new Types.ObjectId(property._id.toString()),
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        guestName: `${guestData.firstName} ${guestData.lastName}`,
-        guestEmail: guestData.email,
-        guestPhone: guestData.phone,
-        guestAddress: guestData.address,
-        numberOfGuests,
-        extraBedsCount: extraBeds,
-        totalPrice: recalculatedSinglePrice,
-        paidAmount: recalculatedSinglePrice,
-        status: 'confirmed',
-        invoice: guestData.invoice,
-        invoiceData: guestData.invoiceData,
-        customerNotes: '',
-        source: 'customer',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
+    if (!property) {
+      console.error('Nie znaleziono domku w bazie');
+      return { success: false, error: 'Nie można znaleźć domku w bazie' };
     }
+
+    const recalculatedPrice = await calculateTotalPrice({
+      startDate,
+      endDate,
+      baseGuests: numberOfGuests,
+      extraBeds,
+      propertySelection: property._id.toString(),
+    });
+    if (recalculatedPrice <= 0) {
+      return { success: false, error: 'Nie udało się poprawnie wyliczyć ceny rezerwacji.' };
+    }
+
+    bookings.push({
+      propertyId: new Types.ObjectId(property._id.toString()),
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      guestName: `${guestData.firstName} ${guestData.lastName}`,
+      guestEmail: guestData.email,
+      guestPhone: guestData.phone,
+      guestAddress: guestData.address,
+      numberOfGuests,
+      extraBedsCount: extraBeds,
+      totalPrice: recalculatedPrice,
+      paidAmount: recalculatedPrice,
+      status: 'confirmed',
+      invoice: guestData.invoice,
+      invoiceData: guestData.invoiceData,
+      customerNotes: '',
+      source: 'customer',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
 
     const savedBookings = await Booking.insertMany(bookings);
 

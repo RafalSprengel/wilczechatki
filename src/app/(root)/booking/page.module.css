@@ -388,16 +388,7 @@
   display: block;
 }
 
-.doubleIcon {
-  color: #9b59b6;
-  margin-right: 5px;
-}
-
-.badgeDouble {
-  background-color: #9b59b6;
-}
-
-.badgeSingle {
+.badgeCabin {
   background-color: var(--accent-color);
 }
 

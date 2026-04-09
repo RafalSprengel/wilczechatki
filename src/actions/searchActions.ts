@@ -19,7 +19,7 @@ dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
 
 export interface SearchOption {
-  type: 'single' | 'whole';
+  type: 'cabin';
   displayName: string;
   totalPrice: number;
   maxGuests: number;
@@ -48,7 +48,7 @@ export interface CabinAllocation {
   extraBeds: number;
 }
 
-interface CalculateTotalPriceForWholeParams {
+interface CalculateTotalPriceForEntireStayParams {
   startDate: string;
   endDate: string;
   baseGuests: number;
@@ -100,7 +100,7 @@ function findPriceTier(
   const matchedTier = tiers.find((r) => baseGuests >= r.minGuests && baseGuests <= r.maxGuests);
   if (matchedTier) return matchedTier;
 
-  // For guests below the first threshold (e.g. 0 in whole-property allocation),
+  // For guests below the first threshold (e.g. 0 in multi-cabin allocation),
   // use the lowest tier instead of falling back to the highest one.
   if (baseGuests < tiers[0].minGuests) return tiers[0];
 
@@ -193,7 +193,7 @@ async function getDailyPrice({
 export async function getMaxTotalGuests() {
   try {
     await dbConnect();
-    const properties = await Property.find({ isActive: true, type: 'single' });
+    const properties = await Property.find({ isActive: true });
     return properties.reduce((sum, prop) => sum + prop.baseCapacity, 0);
   } catch (error) {
     console.error('Błąd podczas pobierania maksymalnej pojemności:', error);
@@ -284,8 +284,8 @@ export async function calculateTotalPrice(
 
 // ─── Kalkulacja ceny dla całej posesji (wszystkie domki) ─────────────────────
 
-export async function calculateTotalPriceForWhole(
-  params: CalculateTotalPriceForWholeParams
+export async function calculateTotalPriceForEntireStay(
+  params: CalculateTotalPriceForEntireStayParams
 ): Promise<number> {
   const { startDate, endDate, baseGuests, extraBeds, cabinAllocations } = params;
   if (!startDate || !endDate || baseGuests <= 0 || extraBeds < 0) {
@@ -311,7 +311,6 @@ export async function calculateTotalPriceForWhole(
 
   const properties = await Property.find({
     isActive: true,
-    type: 'single',
     _id: { $in: requestedPropertyIds },
   }).sort({
     name: 1,
@@ -409,7 +408,7 @@ export async function calculateTotalPriceForWhole(
   return total;
 }
 
-export async function distributeGuestsAcrossProperties(
+export async function allocateGuestsAcrossCabins(
   properties: { _id: unknown; baseCapacity: number; maxExtraBeds: number }[],
   baseGuests: number,
   extraBeds: number
@@ -441,7 +440,7 @@ export async function searchAction(params: SearchParams) {
     const start = dayjs(startDate);
     const end = dayjs(endDate);
 
-    const systemConfig = await SystemConfig.findById('main'); // autoBlockOtherCabins - onlyOnePropertyInSearchResult
+    const systemConfig = await SystemConfig.findById('main');
     const autoBlockOtherCabins = systemConfig?.autoBlockOtherCabins ?? false;
 
     const occupiedIds = await Booking.distinct('propertyId', {
@@ -450,11 +449,12 @@ export async function searchAction(params: SearchParams) {
       endDate: { $gt: start },
     });
 
-    const isWholeAvailable = occupiedIds.length === 0;
+    if (autoBlockOtherCabins && occupiedIds.length > 0) {
+      return [];
+    }
 
     const availableProperties = await Property.find({
       isActive: true,
-      type: 'single',
       _id: { $nin: occupiedIds },
       baseCapacity: { $gte: baseGuests - extraBeds }
     }).select('-createdAt -updatedAt').sort({ name: 1 });
@@ -475,7 +475,7 @@ export async function searchAction(params: SearchParams) {
       //   propertyId: property._id.toString(),
       // });
 
-      const price = await calculateTotalPrice({ //calculate price for single property
+      const price = await calculateTotalPrice({ //calculate price for selected cabin
         startDate,
         endDate,
         baseGuests,
@@ -484,7 +484,7 @@ export async function searchAction(params: SearchParams) {
       });
 
       options.push({
-        type: 'single',
+        type: 'cabin',
         displayName: property.name ?? '',
         totalPrice: price,
         maxGuests: property.baseCapacity,
@@ -493,45 +493,7 @@ export async function searchAction(params: SearchParams) {
       });
     }
 
-    // Opcja całej posesji
-    const totalGuestsCapacity = availableProperties.reduce((sum, p) => sum + p.baseCapacity, 0);
-    const totalExtraCapacity = availableProperties.reduce((sum, p) => sum + p.maxExtraBeds, 0);
-
-    if (baseGuests <= totalGuestsCapacity + totalExtraCapacity) {
-
-      if (isWholeAvailable) {
-        const wholeProperty = await Property.findOne({ type: 'whole' }); //find type of property 'whole' should be only one
-        if (wholeProperty) {
-          const cabinAllocations = await distributeGuestsAcrossProperties(
-            availableProperties,
-            baseGuests,
-            extraBeds
-          );
-
-          const wholePrice = await calculateTotalPriceForWhole({
-            startDate,
-            endDate,
-            baseGuests,
-            extraBeds,
-            cabinAllocations,
-          });
-          options.push({
-            type: 'whole',
-            displayName: wholeProperty.name ?? '',
-            totalPrice: wholePrice,
-            maxGuests: totalGuestsCapacity,
-            maxExtraBeds: totalExtraCapacity,
-            description: wholeProperty.description ?? '',
-          });
-        }
-      }
-    }
-
-    return options.sort((a, b) => {
-      if (a.type === 'whole') return 1;
-      if (b.type === 'whole') return -1;
-      return a.displayName.localeCompare(b.displayName);
-    });
+    return options.sort((a, b) => a.displayName.localeCompare(b.displayName));
   } catch (error) {
     console.error('Błąd wyszukiwania dostępności:', error);
     throw new Error('Nie udało się pobrać dostępnych terminów.');

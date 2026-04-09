@@ -29,18 +29,6 @@ export default async function SettingsPage() {
             />
           </div>
         </div>
-        <div className="setting-row">
-          <div className="setting-content">
-            <label className="setting-label" htmlFor="only-one-property-toggle">Pokaż w wynikach tylko jeden domek na raz</label>
-            <p className="setting-description">Gdy ta opcja jest <strong>włączona</strong>, w wynikach wyszukiwania widoczny jest tylko jeden domek mimo że obydwa mogą być w tym momencie dostępne</p>
-          </div>
-          <div className="setting-control">
-            <ToggleSwitch 
-              initialState={config.onlyOnePropertyInSearchResult}
-              settingKey="onlyOnePropertyInSearchResult"
-            />
-          </div>
-        </div>
       </section>
     </div>
   );

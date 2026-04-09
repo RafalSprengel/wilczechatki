@@ -5,16 +5,11 @@ import { createProperty } from '@/actions/adminPropertyActions';
 import styles from './page.module.css';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
 
-interface AddPropertyFormProps {
-  isWholePropertyExists: boolean;
-}
-
-export default function AddPropertyForm({ isWholePropertyExists }: AddPropertyFormProps) {
+export default function AddPropertyForm() {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [propertyType, setPropertyType] = useState('single');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -25,7 +20,6 @@ export default function AddPropertyForm({ isWholePropertyExists }: AddPropertyFo
     if (result.success) {
       setMessage({ type: 'success', text: result.message });
       formRef.current?.reset();
-      setPropertyType('single');
       setTimeout(() => { router.push('/admin/properties'); router.refresh(); }, 1500);
     } else {
       setMessage({ type: 'error', text: result.message });
@@ -50,21 +44,6 @@ export default function AddPropertyForm({ isWholePropertyExists }: AddPropertyFo
               <input id="name" name="name" type="text" required placeholder="np. Chatka A (Wilcza)" />
             </div>
             <div className={styles.inputGroup}>
-              <label htmlFor="type">Typ obiektu *</label>
-              <select 
-                id="type" 
-                name="type" 
-                required 
-                value={propertyType}
-                onChange={(e) => setPropertyType(e.target.value)}
-              >
-                <option value="single">Pojedynczy domek</option>
-                <option value="whole" disabled={isWholePropertyExists}>
-                  Cała posesja {isWholePropertyExists && '(już istnieje)'}
-                </option>
-              </select>
-            </div>
-            <div className={styles.inputGroup}>
               <label htmlFor="slug">Slug (URL)</label>
               <input id="slug" name="slug" type="text" placeholder="chatka-a" pattern="[a-z0-9\-]+" title="Tylko małe litery, cyfry i myślniki" />
               <small className={styles.hint}>Opcjonalne. Np. chatka-a</small>
@@ -76,39 +55,37 @@ export default function AddPropertyForm({ isWholePropertyExists }: AddPropertyFo
           </div>
         </div>
 
-        {propertyType === 'single' && (
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Pojemność</h2>
-            <div className={styles.grid}>
-              <div className={styles.inputGroup}>
-                <label htmlFor="baseCapacity">Bazowa pojemność *</label>
-                <input
-                  id="baseCapacity"
-                  name="baseCapacity"
-                  type="number"
-                  min="1"
-                  max="20"
-                  defaultValue={6}
-                  required
-                />
-                <small className={styles.hint}>Maksymalna liczba osób na podstawowych łóżkach</small>
-              </div>
-              <div className={styles.inputGroup}>
-                <label htmlFor="maxExtraBeds">Maksymalna liczba dostawek *</label>
-                <input
-                  id="maxExtraBeds"
-                  name="maxExtraBeds"
-                  type="number"
-                  min="0"
-                  max="10"
-                  defaultValue={2}
-                  required
-                />
-                <small className={styles.hint}>Ile dodatkowych łóżek można dostawić</small>
-              </div>
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>Pojemność</h2>
+          <div className={styles.grid}>
+            <div className={styles.inputGroup}>
+              <label htmlFor="baseCapacity">Bazowa pojemność *</label>
+              <input
+                id="baseCapacity"
+                name="baseCapacity"
+                type="number"
+                min="1"
+                max="20"
+                defaultValue={6}
+                required
+              />
+              <small className={styles.hint}>Maksymalna liczba osób na podstawowych łóżkach</small>
+            </div>
+            <div className={styles.inputGroup}>
+              <label htmlFor="maxExtraBeds">Maksymalna liczba dostawek *</label>
+              <input
+                id="maxExtraBeds"
+                name="maxExtraBeds"
+                type="number"
+                min="0"
+                max="10"
+                defaultValue={2}
+                required
+              />
+              <small className={styles.hint}>Ile dodatkowych łóżek można dostawić</small>
             </div>
           </div>
-        )}
+        </div>
 
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Zdjęcia</h2>

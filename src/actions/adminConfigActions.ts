@@ -10,7 +10,6 @@ async function ensureSystemConfigExists() {
   const defaultConfig = {
     _id: 'main',
     autoBlockOtherCabins: true,
-    onlyOnePropertyInSearchResult: false,
   };
 
   try {
@@ -28,11 +27,6 @@ async function ensureSystemConfigExists() {
       updates.autoBlockOtherCabins = defaultConfig.autoBlockOtherCabins;
       needsUpdate = true;
     }
-    if (typeof existingConfig.onlyOnePropertyInSearchResult !== 'boolean') {
-      updates.onlyOnePropertyInSearchResult = defaultConfig.onlyOnePropertyInSearchResult;
-      needsUpdate = true;
-    }
-
     if (needsUpdate) {
       await SystemConfig.findByIdAndUpdate('main', updates, { runValidators: false });
     }
@@ -52,19 +46,16 @@ export async function getSystemConfig() {
     if (!config) {
       return {
         autoBlockOtherCabins: true,
-        onlyOnePropertyInSearchResult: false
       };
     }
 
     return {
       autoBlockOtherCabins: config.autoBlockOtherCabins,
-      onlyOnePropertyInSearchResult: config.onlyOnePropertyInSearchResult
     };
   } catch (error) {
     console.error(error);
     return {
       autoBlockOtherCabins: true,
-      onlyOnePropertyInSearchResult: false
     };
   }
 }

@@ -75,7 +75,7 @@ export default function Calendar() {
   useEffect(() => {
     const loadProperties = async () => {
       const props = await getAllProperties()
-      setCabinNames(props.filter(p => p.type === 'single').map(p => ({ id: p._id, name: p.name })))
+      setCabinNames(props.map(p => ({ id: p._id, name: p.name })))
     }
     loadProperties()
   }, [])

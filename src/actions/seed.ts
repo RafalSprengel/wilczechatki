@@ -98,7 +98,6 @@ export async function seedProperties() {
         maxExtraBeds: 2,
         images: ['/gallery/wnetrze1.webp', '/gallery/wnetrze2.webp'],
         isActive: true,
-        type: 'single',
       },
       {
         name: 'Chatka B (Leśna)',
@@ -108,7 +107,6 @@ export async function seedProperties() {
         maxExtraBeds: 2,
         images: ['/gallery/wnetrze4.webp', '/gallery/wnetrze5.webp'],
         isActive: true,
-        type: 'single',
       },
     ];
 
@@ -133,7 +131,7 @@ export async function seedPropertyPrices() {
   try {
     await dbConnect();
 
-    const properties = await Property.find({ type: 'single' }).lean();
+    const properties = await Property.find({}).lean();
     const seasons = await Season.find({}).lean();
 
     if (properties.length === 0) {
@@ -286,8 +284,7 @@ export async function seedSystemConfig() {
     await SystemConfig.deleteMany({});
     const created = await SystemConfig.create({
       _id: 'main',
-      autoBlockOtherCabins: true,
-      onlyOnePropertyInSearchResult: false
+      autoBlockOtherCabins: true
     });
     return {
       success: true,
@@ -328,7 +325,7 @@ export async function seedBookings() {
   try {
     await dbConnect();
 
-    const properties = await Property.find({ isActive: true, type: 'single' }).lean();
+    const properties = await Property.find({ isActive: true }).lean();
     if (properties.length < 2) {
       return { success: false, error: 'Najpierw utwórz minimum 2 domki' };
     }

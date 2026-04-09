@@ -2,9 +2,8 @@
 import dbConnect from '@/db/connection'
 import Booking from '@/db/models/Booking'
 import SystemConfig from '@/db/models/SystemConfig'
-import Property from '@/db/models/Property'
 import { revalidatePath } from 'next/cache'
-import { calculateTotalPrice, calculateTotalPriceForWhole } from './searchActions'
+import { calculateTotalPrice } from './searchActions'
 import { Types } from 'mongoose'
 
 interface UnavailableDate {
@@ -14,19 +13,12 @@ interface UnavailableDate {
 export async function getUnavailableDatesForProperty(propertyId: string): Promise<UnavailableDate[]> {
   await dbConnect()
   const config = await SystemConfig.findById('main')
-  const selectedProperty = await Property.findById(propertyId).select('type').lean()
-  const isWholeProperty = selectedProperty?.type === 'whole'
   const autoBlockOtherCabins = config?.autoBlockOtherCabins ?? true
   const query: any = {
     status: { $in: ['confirmed', 'blocked'] }
   }
 
-  if (isWholeProperty) {
-    const singleProperties = await Property.find({ type: 'single' }).select('_id').lean()
-    const propertyIds = singleProperties.map((property) => property._id)
-    propertyIds.push(new Types.ObjectId(propertyId))
-    query.propertyId = { $in: propertyIds }
-  } else if (!autoBlockOtherCabins) {
+  if (!autoBlockOtherCabins) {
     query.propertyId = new Types.ObjectId(propertyId)
   }
 
@@ -78,7 +70,7 @@ export async function getAdminBookingsList() {
   await dbConnect()
   const bookings = await Booking.find({})
     .sort({ startDate: -1 })
-    .populate('propertyId', 'name type')
+    .populate('propertyId', 'name')
     .lean()
 
   const normalizedBookings = bookings.map((booking: any) => {
@@ -94,7 +86,6 @@ export async function getAdminBookingsList() {
       ...booking,
       propertyId,
       propertyName: property?.name || 'Domek',
-      propertyType: property?.type || 'single',
       paidAmount,
     }
   })
@@ -105,7 +96,7 @@ export async function getAdminBookingsList() {
 export async function getBookingById(bookingId: string) {
   await dbConnect()
   const booking = await Booking.findById(bookingId)
-    .populate('propertyId', 'name type')
+    .populate('propertyId', 'name')
     .lean()
 
   if (!booking) {
@@ -123,7 +114,6 @@ export async function getBookingById(bookingId: string) {
     ...booking,
     propertyId: property?._id ? String(property._id) : String(property || ''),
     propertyName: property?.name || '',
-    propertyType: property?.type || 'single',
     paidAmount,
   }
 

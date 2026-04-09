@@ -1,5 +1,5 @@
 import { getBookingConfig } from '@/actions/bookingConfigActions';
-import { getSingleProperties } from '@/actions/adminPropertyActions';
+import { getAllProperties } from '@/actions/adminPropertyActions';
 import { getBasicPrices } from '@/actions/seasonActions';
 import styles from './Services.module.css';
 
@@ -51,8 +51,8 @@ export default async function Services() {
         const bookingConfig = await getBookingConfig();
         childrenFreeAge = bookingConfig?.childrenFreeAgeLimit ?? 13;
 
-        const singleProperties = await getSingleProperties();
-        const firstProperty = singleProperties[0];
+        const properties = await getAllProperties();
+        const firstProperty = properties[0];
 
         if (firstProperty?._id) {
             const basicPricesResult = await getBasicPrices(firstProperty._id);

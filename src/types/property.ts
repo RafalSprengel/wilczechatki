@@ -7,7 +7,6 @@ export interface Property {
   baseCapacity: number;
   maxExtraBeds: number;
   isActive: boolean;
-  type: 'single' | 'whole';
   createdAt: string;
   updatedAt: string;
 }

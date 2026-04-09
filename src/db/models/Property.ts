@@ -8,7 +8,6 @@ export interface IProperty extends Document {
   maxExtraBeds: number;
   images?: string[];
   isActive: boolean;
-  type: 'single' | 'whole';
 }
 
 const PropertySchema = new Schema<IProperty>(
@@ -20,7 +19,6 @@ const PropertySchema = new Schema<IProperty>(
     maxExtraBeds: { type: Number, required: true, default: 2 },
     images: { type: [String], default: [] },
     isActive: { type: Boolean, default: true },
-    type: { type: String, enum: ['single', 'whole'], default: 'single' },
   },
   { timestamps: true }
 );

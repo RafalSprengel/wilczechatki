@@ -5,7 +5,7 @@ import { SearchOption } from '@/actions/searchActions'
 import QuantityPicker from '../../_components/QuantityPicker/QuantityPicker'
 import styles from './page.module.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHouse, faBed } from '@fortawesome/free-solid-svg-icons'
+import { faBed } from '@fortawesome/free-solid-svg-icons'
 
 const EXTRA_BED_PRICE = 50
 
@@ -27,22 +27,12 @@ export default function ResultCard({
   return (
     <div className={styles.resultCard}>
       <div className={styles.cardHeader}>
-        <span className={`${styles.cardBadge} ${option.type === 'whole' ? styles.badgeDouble : styles.badgeSingle}`}>
-          {option.type === 'whole' ? 'CAŁA POSESJA' : 'POJEDYNCZY DOMEK'}
+        <span className={`${styles.cardBadge} ${styles.badgeCabin}`}>
+          POJEDYNCZY DOMEK
         </span>
-        {option.type === 'whole' && (
-          <span className={styles.privacyBadge}>Prywatny teren</span>
-        )}
       </div>
 
-      <h4 className={styles.cardTitle}>
-        {option.type === 'whole' ? (
-          <>
-            <FontAwesomeIcon icon={faHouse} className={styles.doubleIcon} />
-            &nbsp;{option.displayName}
-          </>
-        ) : option.displayName}
-      </h4>
+      <h4 className={styles.cardTitle}>{option.displayName}</h4>
 
       <p className={styles.cardDesc}>{option.description}</p>
 

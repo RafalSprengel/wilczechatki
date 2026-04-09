@@ -17,19 +17,14 @@ export interface PropertyType {
   baseCapacity: number;
   maxExtraBeds: number;
   isActive: boolean;
-  type: 'single' | 'whole';
   createdAt: string;
   updatedAt: string;
 }
 
-export async function getAllProperties(filter?: { type?: 'single' | 'whole' }): Promise<PropertyType[]> {
+export async function getAllProperties(): Promise<PropertyType[]> {
   await dbConnect();
-  const query: any = {};
-  if (filter?.type) {
-    query.type = filter.type;
-  }
-  const properties = await Property.find(query)
-    .sort({ type: -1, name: 1 })
+  const properties = await Property.find({})
+    .sort({ name: 1 })
     .select('-__v')
     .lean();
   
@@ -39,27 +34,6 @@ export async function getAllProperties(filter?: { type?: 'single' | 'whole' }): 
     createdAt: prop.createdAt?.toISOString(),
     updatedAt: prop.updatedAt?.toISOString(),
   }));
-}
-
-export async function getSingleProperties() {
-  return getAllProperties({ type: 'single' });
-}
-
-export async function getWholeProperties() {
-  return getAllProperties({ type: 'whole' });
-}
-
-export async function getWholePropertyCapacity(): Promise<{ baseCapacity: number; maxExtraBeds: number }> {
-  await dbConnect();
-
-  const singleProperties = await Property.find({ isActive: true, type: 'single' })
-    .select('baseCapacity maxExtraBeds')
-    .lean();
-
-  const baseCapacity = singleProperties.reduce((sum, property: any) => sum + (property.baseCapacity || 0), 0);
-  const maxExtraBeds = singleProperties.reduce((sum, property: any) => sum + (property.maxExtraBeds || 0), 0);
-
-  return { baseCapacity, maxExtraBeds };
 }
 
 export async function getPropertyById(id: string): Promise<PropertyType | null> {
@@ -86,27 +60,15 @@ export async function createProperty(formData: FormData) {
   
   try {
     const name = formData.get('name') as string;
-    const type = formData.get('type') as string;
     const slug = formData.get('slug') as string;
     const description = formData.get('description') as string;
     const imagesString = formData.get('images') as string;
     const images = imagesString ? imagesString.split(',').map(s => s.trim()).filter(Boolean) : [];
-
-    if (type !== 'single' && type !== 'whole') {
-      return { success: false, message: 'Nieprawidłowy typ obiektu.' };
-    }
-
-    let baseCapacity = 0;
-    let maxExtraBeds = 0;
-
-    if (type === 'single') {
-      baseCapacity = parseInt(formData.get('baseCapacity') as string, 10) || 6;
-      maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string, 10) || 2;
-    }
+    const baseCapacity = parseInt(formData.get('baseCapacity') as string, 10) || 6;
+    const maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string, 10) || 2;
 
     const property = await Property.create({
       name,
-      type,
       slug: slug || undefined,
       description,
       baseCapacity,
@@ -115,18 +77,16 @@ export async function createProperty(formData: FormData) {
       isActive: true
     });
 
-    if (type === 'single') {
-      await PropertyPrices.findOneAndUpdate(
-        { propertyId: property._id, seasonId: null },
-        {
-          weekdayPrices: DEFAULT_FALLBACK_PRICES.weekdayPrices,
-          weekendPrices: DEFAULT_FALLBACK_PRICES.weekendPrices,
-          weekdayExtraBedPrice: DEFAULT_FALLBACK_PRICES.weekdayExtraBedPrice,
-          weekendExtraBedPrice: DEFAULT_FALLBACK_PRICES.weekendExtraBedPrice,
-        },
-        { upsert: true, new: true }
-      );
-    }
+    await PropertyPrices.findOneAndUpdate(
+      { propertyId: property._id, seasonId: null },
+      {
+        weekdayPrices: DEFAULT_FALLBACK_PRICES.weekdayPrices,
+        weekendPrices: DEFAULT_FALLBACK_PRICES.weekendPrices,
+        weekdayExtraBedPrice: DEFAULT_FALLBACK_PRICES.weekdayExtraBedPrice,
+        weekendExtraBedPrice: DEFAULT_FALLBACK_PRICES.weekendExtraBedPrice,
+      },
+      { upsert: true, new: true }
+    );
 
     revalidatePath('/admin/properties');
     revalidatePath('/admin/prices');
@@ -142,28 +102,16 @@ export async function updateProperty(id: string, formData: FormData) {
   
   try {
     const name = formData.get('name') as string;
-    const type = formData.get('type') as string;
     const slug = formData.get('slug') as string;
     const description = formData.get('description') as string;
     const imagesString = formData.get('images') as string;
     const images = imagesString ? imagesString.split(',').map(s => s.trim()).filter(Boolean) : [];
     const isActive = formData.get('isActive') === 'true';
-
-    if (type && type !== 'single' && type !== 'whole') {
-      return { success: false, message: 'Nieprawidłowy typ obiektu.' };
-    }
-
-    let baseCapacity = 0;
-    let maxExtraBeds = 0;
-
-    if (type === 'single') {
-      baseCapacity = parseInt(formData.get('baseCapacity') as string, 10) || 6;
-      maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string, 10) || 2;
-    }
+    const baseCapacity = parseInt(formData.get('baseCapacity') as string, 10) || 6;
+    const maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string, 10) || 2;
 
     await Property.findByIdAndUpdate(id, {
       name,
-      type,
       slug: slug || undefined,
       description,
       baseCapacity,
