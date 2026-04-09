@@ -49,6 +49,19 @@ export async function getWholeProperties() {
   return getAllProperties({ type: 'whole' });
 }
 
+export async function getWholePropertyCapacity(): Promise<{ baseCapacity: number; maxExtraBeds: number }> {
+  await dbConnect();
+
+  const singleProperties = await Property.find({ isActive: true, type: 'single' })
+    .select('baseCapacity maxExtraBeds')
+    .lean();
+
+  const baseCapacity = singleProperties.reduce((sum, property: any) => sum + (property.baseCapacity || 0), 0);
+  const maxExtraBeds = singleProperties.reduce((sum, property: any) => sum + (property.maxExtraBeds || 0), 0);
+
+  return { baseCapacity, maxExtraBeds };
+}
+
 export async function getPropertyById(id: string): Promise<PropertyType | null> {
   await dbConnect();
   
@@ -83,8 +96,13 @@ export async function createProperty(formData: FormData) {
       return { success: false, message: 'Nieprawidłowy typ obiektu.' };
     }
 
-    const baseCapacity = parseInt(formData.get('baseCapacity') as string, 10) || 6;
-    const maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string, 10) || 2;
+    let baseCapacity = 0;
+    let maxExtraBeds = 0;
+
+    if (type === 'single') {
+      baseCapacity = parseInt(formData.get('baseCapacity') as string, 10) || 6;
+      maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string, 10) || 2;
+    }
 
     const property = await Property.create({
       name,
@@ -97,16 +115,18 @@ export async function createProperty(formData: FormData) {
       isActive: true
     });
 
-    await PropertyPrices.findOneAndUpdate(
-      { propertyId: property._id, seasonId: null },
-      {
-        weekdayPrices: DEFAULT_FALLBACK_PRICES.weekdayPrices,
-        weekendPrices: DEFAULT_FALLBACK_PRICES.weekendPrices,
-        weekdayExtraBedPrice: DEFAULT_FALLBACK_PRICES.weekdayExtraBedPrice,
-        weekendExtraBedPrice: DEFAULT_FALLBACK_PRICES.weekendExtraBedPrice,
-      },
-      { upsert: true, new: true }
-    );
+    if (type === 'single') {
+      await PropertyPrices.findOneAndUpdate(
+        { propertyId: property._id, seasonId: null },
+        {
+          weekdayPrices: DEFAULT_FALLBACK_PRICES.weekdayPrices,
+          weekendPrices: DEFAULT_FALLBACK_PRICES.weekendPrices,
+          weekdayExtraBedPrice: DEFAULT_FALLBACK_PRICES.weekdayExtraBedPrice,
+          weekendExtraBedPrice: DEFAULT_FALLBACK_PRICES.weekendExtraBedPrice,
+        },
+        { upsert: true, new: true }
+      );
+    }
 
     revalidatePath('/admin/properties');
     revalidatePath('/admin/prices');
@@ -133,8 +153,13 @@ export async function updateProperty(id: string, formData: FormData) {
       return { success: false, message: 'Nieprawidłowy typ obiektu.' };
     }
 
-    const baseCapacity = parseInt(formData.get('baseCapacity') as string, 10) || 6;
-    const maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string, 10) || 2;
+    let baseCapacity = 0;
+    let maxExtraBeds = 0;
+
+    if (type === 'single') {
+      baseCapacity = parseInt(formData.get('baseCapacity') as string, 10) || 6;
+      maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string, 10) || 2;
+    }
 
     await Property.findByIdAndUpdate(id, {
       name,

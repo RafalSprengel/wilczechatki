@@ -12,9 +12,10 @@ export default async function PricesPage() {
     getAllSeasons()
   ]);
 
+  const singleProperties = properties.filter(p => p.type === 'single');
   const childrenFreeAge = bookingConfig?.childrenFreeAgeLimit ?? 13;
 
-  const serializedProperties = JSON.parse(JSON.stringify(properties));
+  const serializedProperties = JSON.parse(JSON.stringify(singleProperties));
   const serializedSeasons = JSON.parse(JSON.stringify(seasons));
 
   return (

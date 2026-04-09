@@ -76,37 +76,39 @@ export default function AddPropertyForm({ isWholePropertyExists }: AddPropertyFo
           </div>
         </div>
 
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Pojemność</h2>
-          <div className={styles.grid}>
-            <div className={styles.inputGroup}>
-              <label htmlFor="baseCapacity">Maksymalna liczba gości *</label>
-              <input
-                id="baseCapacity"
-                name="baseCapacity"
-                type="number"
-                min="1"
-                max="40"
-                defaultValue={propertyType === 'whole' ? 12 : 6}
-                required
-              />
-              <small className={styles.hint}>Limit gości dla tego obiektu (także dla całej posesji)</small>
-            </div>
-            <div className={styles.inputGroup}>
-              <label htmlFor="maxExtraBeds">Maksymalna liczba dostawek *</label>
-              <input
-                id="maxExtraBeds"
-                name="maxExtraBeds"
-                type="number"
-                min="0"
-                max="20"
-                defaultValue={propertyType === 'whole' ? 4 : 2}
-                required
-              />
-              <small className={styles.hint}>Limit dostawek dla tego obiektu</small>
+        {propertyType === 'single' && (
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Pojemność</h2>
+            <div className={styles.grid}>
+              <div className={styles.inputGroup}>
+                <label htmlFor="baseCapacity">Bazowa pojemność *</label>
+                <input
+                  id="baseCapacity"
+                  name="baseCapacity"
+                  type="number"
+                  min="1"
+                  max="20"
+                  defaultValue={6}
+                  required
+                />
+                <small className={styles.hint}>Maksymalna liczba osób na podstawowych łóżkach</small>
+              </div>
+              <div className={styles.inputGroup}>
+                <label htmlFor="maxExtraBeds">Maksymalna liczba dostawek *</label>
+                <input
+                  id="maxExtraBeds"
+                  name="maxExtraBeds"
+                  type="number"
+                  min="0"
+                  max="10"
+                  defaultValue={2}
+                  required
+                />
+                <small className={styles.hint}>Ile dodatkowych łóżek można dostawić</small>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Zdjęcia</h2>

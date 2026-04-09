@@ -7,6 +7,8 @@ import SystemConfig from '@/db/models/SystemConfig';
 import BookingConfig from '@/db/models/BookingConfig';
 import {
   calculateTotalPrice,
+  calculateTotalPriceForWhole,
+  distributeGuestsAcrossProperties,
 } from '@/actions/searchActions';
 import { Types } from 'mongoose';
 import dayjs from 'dayjs';
@@ -71,45 +73,61 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
     const bookings = [];
 
     if (selectedOption.type === 'whole') {
-      const wholeProperty = await Property.findOne({ name: selectedOption.displayName, isActive: true, type: 'whole' }).select('_id');
+      const properties = await Property.find({ isActive: true, type: 'single' }).sort({ name: 1 });
 
-      if (!wholeProperty) {
-        console.error('Nie znaleziono obiektu całej posesji w bazie');
-        return { success: false, error: 'Nie można znaleźć obiektu całej posesji w bazie' };
+      if (properties.length === 0) {
+        console.error('Brak aktywnych domków w bazie');
+        return { success: false, error: 'Brak dostępnych domków' };
       }
 
-      const recalculatedWholePrice = await calculateTotalPrice({
+      const recalculatedWholePrice = await calculateTotalPriceForWhole({
         startDate,
         endDate,
         baseGuests: numberOfGuests,
         extraBeds,
-        propertySelection: wholeProperty._id.toString(),
+        cabinAllocations: await distributeGuestsAcrossProperties(
+          properties,
+          numberOfGuests,
+          extraBeds
+        ),
       });
-
       if (recalculatedWholePrice <= 0) {
         return { success: false, error: 'Nie udało się poprawnie wyliczyć ceny rezerwacji.' };
       }
 
-      bookings.push({
-        propertyId: new Types.ObjectId(wholeProperty._id.toString()),
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        guestName: `${guestData.firstName} ${guestData.lastName}`,
-        guestEmail: guestData.email,
-        guestPhone: guestData.phone,
-        guestAddress: guestData.address,
-        numberOfGuests,
-        extraBedsCount: extraBeds,
-        totalPrice: recalculatedWholePrice,
-        paidAmount: recalculatedWholePrice,
-        status: 'confirmed',
-        invoice: guestData.invoice,
-        invoiceData: guestData.invoiceData,
-        customerNotes: 'Rezerwacja całej posesji',
-        source: 'customer',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
+      let remainingGuests = numberOfGuests;
+      let remainingExtraBeds = extraBeds;
+      const totalPricePerBooking = Number((recalculatedWholePrice / properties.length).toFixed(2));
+
+      for (let i = 0; i < properties.length; i++) {
+        const property = properties[i];
+        const guestsForThisCabin = Math.min(remainingGuests, property.baseCapacity);
+        const extraBedsForThisCabin = Math.min(remainingExtraBeds, property.maxExtraBeds);
+
+        bookings.push({
+          propertyId: new Types.ObjectId(property._id.toString()),
+          startDate: new Date(startDate),
+          endDate: new Date(endDate),
+          guestName: `${guestData.firstName} ${guestData.lastName}`,
+          guestEmail: guestData.email,
+          guestPhone: guestData.phone,
+          guestAddress: guestData.address,
+          numberOfGuests: guestsForThisCabin,
+          extraBedsCount: extraBedsForThisCabin,
+          totalPrice: totalPricePerBooking,
+          paidAmount: totalPricePerBooking,
+          status: 'confirmed',
+          invoice: guestData.invoice,
+          invoiceData: guestData.invoiceData,
+          customerNotes: `Rezerwacja całej posesji`,
+          source: 'customer',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+
+        remainingGuests -= guestsForThisCabin;
+        remainingExtraBeds -= extraBedsForThisCabin;
+      }
     } else {
       const property = await Property.findOne({ name: selectedOption.displayName, isActive: true }).select('_id');
 
