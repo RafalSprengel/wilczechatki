@@ -42,20 +42,6 @@ interface CalculateTotalPriceParams {
   propertySelection: string;
 }
 
-export interface CabinAllocation {
-  propertyId: string;
-  baseGuests: number;
-  extraBeds: number;
-}
-
-interface CalculateTotalPriceForEntireStayParams {
-  startDate: string;
-  endDate: string;
-  baseGuests: number;
-  extraBeds: number;
-  cabinAllocations: CabinAllocation[];
-}
-
 interface GetDailyPriceParams {
   date: dayjs.Dayjs;
   baseGuests: number;
@@ -193,11 +179,11 @@ async function getDailyPrice({
 export async function getMaxTotalGuests() {
   try {
     await dbConnect();
-    const properties = await Property.find({ isActive: true });
-    return properties.reduce((sum, prop) => sum + prop.baseCapacity, 0);
+    const properties = await Property.find({ isActive: true }).sort({ baseCapacity: -1 });
+    return properties.length > 0 ? properties[0].baseCapacity : 6;
   } catch (error) {
     console.error('Błąd podczas pobierania maksymalnej pojemności:', error);
-    return 12;
+    return 6;
   }
 }
 
@@ -280,155 +266,6 @@ export async function calculateTotalPrice(
   }
 
   return total;
-}
-
-// ─── Kalkulacja ceny dla całej posesji (wszystkie domki) ─────────────────────
-
-export async function calculateTotalPriceForEntireStay(
-  params: CalculateTotalPriceForEntireStayParams
-): Promise<number> {
-  const { startDate, endDate, baseGuests, extraBeds, cabinAllocations } = params;
-  if (!startDate || !endDate || baseGuests <= 0 || extraBeds < 0) {
-    throw new Error('Nieprawidłowe parametry kalkulacji ceny dla całej posesji.');
-  }
-  if (!Array.isArray(cabinAllocations) || cabinAllocations.length === 0) {
-    throw new Error('Brak alokacji gości na domki dla kalkulacji całej posesji.');
-  }
-
-  const startValidation = dayjs(startDate);
-  const endValidation = dayjs(endDate);
-  if (
-    !startValidation.isValid() ||
-    !endValidation.isValid() ||
-    !startValidation.isBefore(endValidation, 'day')
-  ) {
-    throw new Error('Nieprawidłowy zakres dat kalkulacji ceny dla całej posesji.');
-  }
-
-  await dbConnect();
-
-  const requestedPropertyIds = cabinAllocations.map((allocation) => allocation.propertyId);
-
-  const properties = await Property.find({
-    isActive: true,
-    _id: { $in: requestedPropertyIds },
-  }).sort({
-    name: 1,
-  });
-  if (properties.length === 0) return 0;
-
-  const propertyIds = properties.map((p) => p._id);
-
-  const [allCustomPrices, activeSeasons, allPropertyPrices] = await Promise.all([
-    CustomPrice.find({
-      propertyId: { $in: propertyIds },
-      date: {
-        $gte: dayjs(startDate).toDate(),
-        $lt: dayjs(endDate).toDate(),
-      },
-    }),
-    Season.find({ isActive: true }).sort({ order: 1, startDate: 1 }),
-    // Wszystkie ceny dla wszystkich domków jednym zapytaniem
-    PropertyPrices.find({ propertyId: { $in: propertyIds } }).lean(),
-  ]);
-
-  // Grupuj custom ceny: propertyId → (date → rekord)
-  const propertyCustomPrices = new Map<string, Map<string, any>>();
-  for (const cp of allCustomPrices as any[]) {
-    const pId = cp.propertyId.toString();
-    if (!propertyCustomPrices.has(pId)) propertyCustomPrices.set(pId, new Map());
-    propertyCustomPrices.get(pId)!.set(dayjs(cp.date).format('YYYY-MM-DD'), cp);
-  }
-
-  // Grupuj PropertyPrices: propertyId → { basicPrices, seasonPricesMap }
-  const propertyPricesIndex = new Map<
-    string,
-    { basicPrices: any | null; seasonPricesMap: Map<string, any> }
-  >();
-  for (const pp of allPropertyPrices) {
-    const pId = pp.propertyId.toString();
-    if (!propertyPricesIndex.has(pId)) {
-      propertyPricesIndex.set(pId, { basicPrices: null, seasonPricesMap: new Map() });
-    }
-    const entry = propertyPricesIndex.get(pId)!;
-    if (pp.seasonId === null || pp.seasonId === undefined) {
-      entry.basicPrices = pp;
-    } else {
-      entry.seasonPricesMap.set(pp.seasonId.toString(), pp);
-    }
-  }
-
-  const allocationsByPropertyId = new Map(
-    cabinAllocations.map((allocation) => [allocation.propertyId, allocation])
-  );
-
-  let total = 0;
-
-  for (const property of properties) {
-    const pId = property._id.toString();
-    const allocation = allocationsByPropertyId.get(pId);
-    if (!allocation) {
-      throw new Error(`Brak alokacji gości dla domku ${pId}.`);
-    }
-    const baseGuestsForThisCabin = allocation.baseGuests;
-    const extraBedsForThisCabin = allocation.extraBeds;
-
-    const priceEntry = propertyPricesIndex.get(pId) ?? {
-      basicPrices: null,
-      seasonPricesMap: new Map(),
-    };
-    const resolvedBasicPrices =
-      priceEntry.basicPrices ?? createFallbackBasicPrices(property.baseCapacity);
-    if (!priceEntry.basicPrices) {
-      console.warn(
-        `Brak cennika podstawowego dla domku: ${pId}. Użyto domyślnej stawki ${DEFAULT_FALLBACK_NIGHT_PRICE} zł/noc.`
-      );
-    }
-    const customPricesMap =
-      propertyCustomPrices.get(pId) ?? new Map<string, any>();
-
-    let currentDate = dayjs(startDate);
-    const end = dayjs(endDate);
-
-    while (currentDate.isBefore(end, 'day')) {
-      total += await getDailyPrice({
-        date: currentDate,
-        baseGuests: baseGuestsForThisCabin,
-        extraBeds: extraBedsForThisCabin,
-        propertyBaseCapacity: property.baseCapacity,
-        customPrices: customPricesMap,
-        activeSeasons: activeSeasons as ISeason[],
-        basicPrices: resolvedBasicPrices,
-        seasonPricesMap: priceEntry.seasonPricesMap,
-      });
-      currentDate = currentDate.add(1, 'day');
-    }
-  }
-
-  return total;
-}
-
-export async function allocateGuestsAcrossCabins(
-  properties: { _id: unknown; baseCapacity: number; maxExtraBeds: number }[],
-  baseGuests: number,
-  extraBeds: number
-): Promise<CabinAllocation[]> {
-  let remainingBaseGuests = baseGuests;
-  let remainingExtraBeds = extraBeds;
-
-  return properties.map((property) => {
-    const allocatedBaseGuests = Math.min(remainingBaseGuests, property.baseCapacity);
-    const allocatedExtraBeds = Math.min(remainingExtraBeds, property.maxExtraBeds);
-
-    remainingBaseGuests -= allocatedBaseGuests;
-    remainingExtraBeds -= allocatedExtraBeds;
-
-    return {
-      propertyId: String(property._id),
-      baseGuests: allocatedBaseGuests,
-      extraBeds: allocatedExtraBeds,
-    };
-  });
 }
 
 // ─── Wyszukiwanie dostępności ─────────────────────────────────────────────────
