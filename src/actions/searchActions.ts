@@ -322,15 +322,15 @@ export async function searchAction(params: SearchParams) {
 
       const extraBedPrice = property.maxExtraBeds > extraBeds
         ? Math.max(
-            0,
-            (await calculateTotalPrice({
-              startDate,
-              endDate,
-              baseGuests,
-              extraBeds: extraBeds + 1,
-              propertySelection: property._id.toString(),
-            })) - price
-          )
+          0,
+          (await calculateTotalPrice({
+            startDate,
+            endDate,
+            baseGuests,
+            extraBeds: extraBeds + 1,
+            propertySelection: property._id.toString(),
+          })) - price
+        )
         : 0;
 
       options.push({
@@ -342,8 +342,8 @@ export async function searchAction(params: SearchParams) {
         description: property.description ?? '',
       });
     }
-
-    return options.sort((a, b) => a.displayName.localeCompare(b.displayName));
+    const result  = options.sort((a, b) => a.totalPrice - b.totalPrice);
+    return { propertiesAvailable: result, areAllAvailable: result.length === availableProperties.length };
   } catch (error) {
     console.error('Błąd wyszukiwania dostępności:', error);
     throw new Error('Nie udało się pobrać dostępnych terminów.');

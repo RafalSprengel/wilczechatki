@@ -11,6 +11,7 @@ import ResultCard from './ResultCard'
 import styles from './page.module.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUsers, faSpinner, faExclamationCircle, faArrowRight } from '@fortawesome/free-solid-svg-icons'
+import AllPropertiesCard from './allPropertiesCard'
 
 interface BookingDates {
   start: string | null
@@ -74,7 +75,7 @@ export default function BookingClient({
 
   useEffect(() => {
     setIsSearching(false)
-  }, [searchResults])
+  }, [searchResults?.areAllAvailable])
 
   useEffect(() => {
     if (initialStart || initialEnd) {
@@ -287,7 +288,7 @@ export default function BookingClient({
           </div>
         )}
 
-        {(adults + children !== initialAdults + initialChildren || bookingDates.start !== initialStart || bookingDates.end !== initialEnd) && searchResults !== null && (
+        {(adults + children !== initialAdults + initialChildren || bookingDates.start !== initialStart || bookingDates.end !== initialEnd) && searchResults.propertiesAvailable !== null && (
           <div className={styles.emptyState}>
             {adults + children !== initialAdults + initialChildren && (
               <p>Zmieniłeś liczbę osób z {initialAdults + initialChildren} na {adults + children}.</p>
@@ -299,10 +300,10 @@ export default function BookingClient({
           </div>
         )}
 
-        {!isSearching && searchResults !== null && adults + children === initialAdults + initialChildren && bookingDates.start === initialStart && bookingDates.end === initialEnd && (
+        {!isSearching && searchResults.propertiesAvailable !== null && adults + children === initialAdults + initialChildren && bookingDates.start === initialStart && bookingDates.end === initialEnd && (
           <>
             {(() => {
-              if (searchResults.length === 0) {
+              if (searchResults.propertiesAvailable.length === 0) {
                 return (
                   <div className={styles.emptyState}>
                     <FontAwesomeIcon icon={faExclamationCircle} className={styles.emptyIcon} />
@@ -315,9 +316,9 @@ export default function BookingClient({
               return (
                 <div className={styles.resultsGrid}>
                   <h3 className={styles.resultsTitle}>
-                    Dostępne opcje ({searchResults.length})
+                    Dostępne opcje ({searchResults.propertiesAvailable.length})
                   </h3>
-                  {searchResults.map((option) => (
+                  {searchResults.propertiesAvailable.map((option) => (
                     <ResultCard
                       key={option.displayName}
                       option={option}
@@ -326,6 +327,15 @@ export default function BookingClient({
                       onSelect={handleSelectOption}
                     />
                   ))}
+                  {searchResults.areAllAvailable && (
+                    <div className={styles.allAvailableNote}>
+                      <h3>Zarezerwuj {searchResults.propertiesAvailable.length} domki teraz</h3>
+                      {searchResults.propertiesAvailable.map((option) => (
+                        <AllPropertiesCard key={option.displayName} />
+                      ))}
+                    </div>
+                  )}
+
                 </div>
               )
             })()}

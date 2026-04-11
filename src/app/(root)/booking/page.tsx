@@ -45,7 +45,7 @@ export default async function BookingPage({
       searchResults = []
     }
   }
-  
+  console.log(searchResults)
   return (
     <BookingClient
       initialStart={start}
