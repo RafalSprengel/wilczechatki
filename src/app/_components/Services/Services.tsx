@@ -24,14 +24,21 @@ interface BasicPricesData {
 function formatGuestsLabel(minGuests: number, maxGuests: number): string {
     if (minGuests === maxGuests) {
         if (minGuests === 1) return '1 osoba';
+        const lastDigit = minGuests % 10;
+        const lastTwoDigits = minGuests % 100;
+        if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 10 || lastTwoDigits > 20)) {
+            return `${minGuests} osoby`;
+        }
         return `${minGuests} osób`;
-    } else if(maxGuests === 2 || maxGuests === 3 || maxGuests === 4) {
-        return `${minGuests}-${maxGuests} osoby`
-    }else {
+    } else {
+        const lastDigitMax = maxGuests % 10;
+        const lastTwoDigitsMax = maxGuests % 100;
+        if (lastDigitMax >= 2 && lastDigitMax <= 4 && (lastTwoDigitsMax < 10 || lastTwoDigitsMax > 20)) {
+            return `${minGuests}-${maxGuests} osoby`;
+        }
         return `${minGuests}-${maxGuests} osób`;
     }
 }
-
 
 function mapTiersToPriceItems(tiers: PriceTier[]): PriceItem[] {
     return [...tiers]
@@ -43,19 +50,19 @@ function mapTiersToPriceItems(tiers: PriceTier[]): PriceItem[] {
 }
 
 export default async function Services() {
-    let childrenFreeAge = 13;
+    let childrenFreeAge: number | null = 13;
     const defaultWeekdayRates: PriceItem[] = [
-        { description: '2-3 osoby', amount: '' },
-        { description: '4-5 osób', amount: '' },
-        { description: '6 osób', amount: '' },
-        { description: 'Dostawka', amount: '' }
+        { description: '2-3 osoby', amount: 'Kontakt' },
+        { description: '4-5 osób', amount: 'Kontakt' },
+        { description: '6 osób', amount: 'Kontakt' },
+        { description: 'Dostawka', amount: 'Kontakt' }
     ];
 
     const defaultWeekendRates: PriceItem[] = [
-        { description: '2-3 osoby', amount: '' },
-        { description: '4-5 osób', amount: '' },
-        { description: '6 osób', amount: '' },
-        { description: 'Dostawka', amount: '' }
+        { description: '2-3 osoby', amount: 'Kontakt' },
+        { description: '4-5 osób', amount: 'Kontakt' },
+        { description: '6 osób', amount: 'Kontakt' },
+        { description: 'Dostawka', amount: 'Kontakt' }
     ];
 
     let basicPricesData: BasicPricesData | null = null;
@@ -74,7 +81,7 @@ export default async function Services() {
             }
         }
     } catch {
-        // Error handling mostly silent for UI components
+        
     }
 
     const weekdayRates = basicPricesData
@@ -82,7 +89,7 @@ export default async function Services() {
             ...mapTiersToPriceItems(basicPricesData.weekdayPrices ?? []),
             {
                 description: 'Dostawka',
-                amount: basicPricesData.weekdayExtraBedPrice != null ? `+${basicPricesData.weekdayExtraBedPrice} zł` : '',
+                amount: basicPricesData.weekdayExtraBedPrice != null ? `+${basicPricesData.weekdayExtraBedPrice} zł` : '—',
             },
         ]
         : defaultWeekdayRates;
@@ -92,11 +99,10 @@ export default async function Services() {
             ...mapTiersToPriceItems(basicPricesData.weekendPrices ?? []),
             {
                 description: 'Dostawka',
-                amount: basicPricesData.weekendExtraBedPrice != null ? `+${basicPricesData.weekendExtraBedPrice} zł` : '',
+                amount: basicPricesData.weekendExtraBedPrice != null ? `+${basicPricesData.weekendExtraBedPrice} zł` : '—',
             },
         ]
         : defaultWeekendRates;
-
 
     return (
         <section id="services" className={styles.section}>
@@ -158,7 +164,7 @@ export default async function Services() {
                                 </div>
                             ))}
                         </div>
-                        {childrenFreeAge &&
+                        {childrenFreeAge !== null &&
                             <div className={styles.note}>* Dzieci do {childrenFreeAge} roku życia bezpłatnie.</div>
                         }
                         <div className={styles.note}>** Cennik obowiązuje poza sezonem wysokim.</div>
@@ -181,7 +187,7 @@ export default async function Services() {
                             <li>Plac zabaw dla dzieci</li>
                             <li>Trampolina</li>
                             <li>Miejsce na ognisko</li>
-                            <li> Teren ogrodzony</li>
+                            <li>Teren ogrodzony</li>
                         </ul>
                     </div>
                 </div>
