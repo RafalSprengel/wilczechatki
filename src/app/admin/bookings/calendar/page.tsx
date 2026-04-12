@@ -113,6 +113,16 @@ export default function Calendar() {
             </tr>
           </thead>
           <tbody>
+            {loading && (
+              <tr>
+                <td colSpan={Math.max(2, cabinNames.length + 1)} className={styles.loadingStateCell}>
+                  <div className={styles.loadingState}>
+                    <span className={styles.loadingSpinner} aria-hidden="true"></span>
+                    <span>Wczytywanie...</span>
+                  </div>
+                </td>
+              </tr>
+            )}
             {!loading && data.map((row) => {
               const date = dayjs(row.date)
               const isPast = date.isBefore(dayjs(), 'day')

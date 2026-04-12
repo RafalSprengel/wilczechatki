@@ -139,7 +139,7 @@
 }
 
 .bookedHalf:hover {
-    filter: brightness(0.92);
+    filter: none;
 }
 
 .freeHalf {
@@ -258,9 +258,62 @@
 }
 
 .pastRow {
-    opacity: 0.6;
+    opacity: 1;
+}
+
+.pastRow .free,
+.pastRow .freeHalf,
+.pastRow .free .statusText,
+.pastRow .freeHalf .halfText {
+    color: #94a3b8;
+}
+
+.pastRow .dateDay,
+.pastRow .dateWeekday,
+.pastRow .statusText,
+.pastRow .halfText {
+    color: #94a3b8;
+}
+
+.pastRow .bookedHalf {
+    background-color: #f5f5f5;
+    color: #94a3b8;
+}
+
+.pastRow .bookedHalf .halfText {
+    color: #94a3b8;
+    font-weight: 800;
 }
 
 .weekendCell {
     background-color: var(--cal-color-weekend-bg);
+}
+
+.loadingStateCell {
+    height: 120px !important;
+    background: #ffffff;
+    border-right: none !important;
+}
+
+.loadingState {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.loadingSpinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #e2e8f0;
+    border-top-color: #2e7d32;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }

@@ -5,6 +5,7 @@ import {
   updateBasicPrices,
   updateSeasonPricesForProperty,
   getPricesForProperty,
+  copyPricesToAllProperties,
 } from '@/actions/seasonActions'
 import {
   updateCustompriceForDate,
@@ -89,8 +90,8 @@ function normalizeAndValidateTiers(
         label === 'weekday'
           ? 'Dodaj przynajmniej jeden przedzial dla dni powszednich.'
           : label === 'weekend'
-          ? 'Dodaj przynajmniej jeden przedzial dla weekendu.'
-          : 'Dodaj przynajmniej jeden przedział dla cen indywidualnych.',
+            ? 'Dodaj przynajmniej jeden przedzial dla weekendu.'
+            : 'Dodaj przynajmniej jeden przedział dla cen indywidualnych.',
     }
   }
 
@@ -222,8 +223,11 @@ export default function PriceSettingsForm({
   const [isSaving, setIsSaving] = useState(false)
   const [isDeletingCustom, setIsDeletingCustom] = useState(false)
   const [isDiscarding, setIsDiscarding] = useState(false)
+  const [isCopying, setIsCopying] = useState(false)
+  const [copyConfirmOpen, setCopyConfirmOpen] = useState(false)
   const [isCustomPricesExpanded, setIsCustomPricesExpanded] = useState(false)
   const [isLoadingPrices, setIsLoadingPrices] = useState(false)
+  const [isLoadingCustomPrices, setIsLoadingCustomPrices] = useState(false)
   const [isSeasonDirty, setIsSeasonDirty] = useState(false)
   const [isCustomDirty, setIsCustomDirty] = useState(false)
   const [deleteModal, setDeleteModal] = useState<{
@@ -244,17 +248,17 @@ export default function PriceSettingsForm({
       // Jedno zapytanie – wszystkie rekordy dla domku
       const allPrices = await getPricesForProperty(selectedPropertyId)
 
-        // seasonId === null → basicPrices
-        const basicPrices = allPrices.find(
-          (p: any) => p.seasonId === null || p.seasonId === undefined
-        )
+      // seasonId === null → basicPrices
+      const basicPrices = allPrices.find(
+        (p: any) => p.seasonId === null || p.seasonId === undefined
+      )
 
-        // Mapa sezonowa
-        const seasonMap = new Map<string, any>(
-          allPrices
-            .filter((p: any) => p.seasonId != null)
-            .map((p: any) => [p.seasonId, p])
-        )
+      // Mapa sezonowa
+      const seasonMap = new Map<string, any>(
+        allPrices
+          .filter((p: any) => p.seasonId != null)
+          .map((p: any) => [p.seasonId, p])
+      )
 
       if (selectedSeasonId === OFF_SEASON_ID) {
         if (basicPrices) {
@@ -302,14 +306,19 @@ export default function PriceSettingsForm({
     if (!selectedPropertyId) return
 
     const loadCustomPrices = async () => {
-      const prices = await getCustomPrices(selectedPropertyId)
-      setCustomPrices(prices)
-      setIsCustomDirty(false)
-      const priceMap: Record<string, number> = {}
-      prices.forEach((p) => {
-        priceMap[p.date] = p.previewPrice
-      })
-      setCalendarPrices(priceMap)
+      setIsLoadingCustomPrices(true)
+      try {
+        const prices = await getCustomPrices(selectedPropertyId)
+        setCustomPrices(prices)
+        setIsCustomDirty(false)
+        const priceMap: Record<string, number> = {}
+        prices.forEach((p) => {
+          priceMap[p.date] = p.previewPrice
+        })
+        setCalendarPrices(priceMap)
+      } finally {
+        setIsLoadingCustomPrices(false)
+      }
     }
     loadCustomPrices()
   }, [selectedPropertyId])
@@ -684,6 +693,24 @@ export default function PriceSettingsForm({
     }
   }
 
+  const handleCopyPrices = async () => {
+    if (!selectedPropertyId) return
+    setIsCopying(true)
+    try {
+      const result = await copyPricesToAllProperties(selectedPropertyId)
+      if (result.success) {
+        toast.success(result.message)
+        setCopyConfirmOpen(false)
+      } else {
+        toast.error(result.message)
+      }
+    } catch {
+      toast.error('Wystąpił błąd podczas kopiowania cen')
+    } finally {
+      setIsCopying(false)
+    }
+  }
+
   const getDayType = (dateStr: string) => {
     const day = dayjs(dateStr).day()
     return day === 0 || day === 6 ? 'weekend' : 'weekday'
@@ -692,10 +719,31 @@ export default function PriceSettingsForm({
   const selectedProperty = properties.find((p) => p._id === selectedPropertyId)
   const selectedSeason = seasons.find((s) => s._id === selectedSeasonId)
   const isAnyDirty = isSeasonDirty || isCustomDirty
+  const isPropertyDataLoading =
+    !!selectedPropertyId && (isLoadingPrices || isLoadingCustomPrices)
 
   return (
     <>
       <Toaster position="bottom-center" />
+
+      {/* ── Potwierdzenie kopiowania cen ──────────────────────────────────── */}
+      <Modal
+        isOpen={copyConfirmOpen}
+        onClose={() => setCopyConfirmOpen(false)}
+        onConfirm={handleCopyPrices}
+        confirmText="Tak, kopiuj"
+        confirmVariant="danger"
+        isLoading={isCopying}
+        loadingText="Kopiowanie..."
+        title="Potwierdź kopiowanie cen"
+      >
+        <p style={{ marginBottom: '16px' }}>
+          Czy na pewno chcesz skopiować wszystkie ceny z domku <strong>{selectedProperty?.name}</strong> do wszystkich pozostałych domków?
+        </p>
+        <p style={{ color: '#c0392b', fontSize: '0.9rem' }}>
+          Uwaga: istniejące ceny w pozostałych domkach zostaną nadpisane.
+        </p>
+      </Modal>
 
       {/* ── Wybór domku ──────────────────────────────────────────────────────── */}
       <form className="settings-card" onSubmit={(e) => e.preventDefault()}>
@@ -708,11 +756,23 @@ export default function PriceSettingsForm({
             <p className="setting-description">
               Wybierz domek, dla którego chcesz skonfigurować ceny.
             </p>
+            {selectedPropertyId && (
+              <button
+                type="button"
+                onClick={() => setCopyConfirmOpen(true)}
+                className={styles.copyLink}
+                disabled={isCopying}
+              >
+                Skopiuj ceny z tego domku do pozostałych domków
+              </button>
+            )}
           </div>
           <div className="setting-control">
             <select
               value={selectedPropertyId}
               onChange={(e) => {
+                setIsLoadingPrices(true)
+                setIsLoadingCustomPrices(true)
                 setSelectedPropertyId(e.target.value)
                 setSelectedSeasonId(OFF_SEASON_ID)
                 setIsSeasonDirty(false)
@@ -731,8 +791,17 @@ export default function PriceSettingsForm({
         </div>
       </form>
 
+      {isPropertyDataLoading && (
+        <div className="settings-card">
+          <div className={styles.propertyLoadingState}>
+            <span className={styles.propertyLoadingSpinner} aria-hidden="true"></span>
+            <span>Wczytywanie...</span>
+          </div>
+        </div>
+      )}
+
       {/* ── Konfiguracja cen (tylko gdy wybrany domek) ───────────────────────── */}
-      {selectedPropertyId && (
+      {selectedPropertyId && !isPropertyDataLoading && (
         <form className="settings-card" onSubmit={(e) => e.preventDefault()}>
           <div className="card-header">
             <h2 className="card-title">Konfiguracja cen sezonów</h2>
@@ -762,8 +831,8 @@ export default function PriceSettingsForm({
                 {isLoadingPrices
                   ? 'Ładowanie cen...'
                   : selectedSeasonId === OFF_SEASON_ID
-                  ? `Ceny podstawowe dla: ${selectedProperty?.name}`
-                  : `Ceny w sezonie "${selectedSeason?.name}" dla: ${selectedProperty?.name}`}
+                    ? `Ceny podstawowe dla: ${selectedProperty?.name}`
+                    : `Ceny w sezonie "${selectedSeason?.name}" dla: ${selectedProperty?.name}`}
               </strong>
             </div>
           </div>
@@ -783,80 +852,81 @@ export default function PriceSettingsForm({
                 {weekdayTiers.map((tier, index) => {
                   const tierError = getTierError('weekday', index)
                   return (
-                  <div key={index} className={styles.tierRowWrapper}>
-                  <div className={`${styles.tierRow} ${tierError ? styles.tierRowError : ''}`}>
-                    <label className={styles.tierField}>
-                      <span className={styles.tierFieldLabel}>Osób od</span>
-                      <input
-                        type="number"
-                        min="1"
-                        step="1"
-                        value={tier.minGuests}
-                        onChange={(e) =>
-                          handleBaseRateChange(
-                            'weekday',
-                            index,
-                            'minGuests',
-                            parseInt(e.target.value, 10) || 1
-                          )
-                        }
-                        className={`${styles.tierInput} ${tierError?.fields.includes('minGuests') ? styles.tierInputError : ''}`}
-                        disabled={isLoadingPrices}
-                      />
-                    </label>
-                    <label className={styles.tierField}>
-                      <span className={styles.tierFieldLabel}>Osób do</span>
-                      <input
-                        type="number"
-                        min="1"
-                        step="1"
-                        value={tier.maxGuests}
-                        onChange={(e) =>
-                          handleBaseRateChange(
-                            'weekday',
-                            index,
-                            'maxGuests',
-                            parseInt(e.target.value, 10) || 1
-                          )
-                        }
-                        className={`${styles.tierInput} ${tierError?.fields.includes('maxGuests') ? styles.tierInputError : ''}`}
-                        disabled={isLoadingPrices}
-                      />
-                    </label>
-                    <label className={styles.tierField}>
-                      <span className={styles.tierFieldLabel}>Cena</span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="10"
-                      value={tier.price}
-                      onChange={(e) =>
-                        handleBaseRateChange(
-                          'weekday',
-                          index,
-                          'price',
-                          parseInt(e.target.value) || 0
-                        )
-                      }
-                      className={`${styles.priceInput} ${tierError?.fields.includes('price') ? styles.tierInputError : ''}`}
-                      disabled={isLoadingPrices}
-                    />
-                    </label>
-                    <span className={styles.currency}>zł</span>
-                    {weekdayTiers.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => requestRemoveTier('weekday', index)}
-                        className={styles.removeTierBtn}
-                        disabled={isLoadingPrices}
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                  {tierError && <p className={styles.tierErrorText}>{tierError.message}</p>}
-                  </div>
-                )})}
+                    <div key={index} className={styles.tierRowWrapper}>
+                      <div className={`${styles.tierRow} ${tierError ? styles.tierRowError : ''}`}>
+                        <label className={styles.tierField}>
+                          <span className={styles.tierFieldLabel}>Osób od</span>
+                          <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            value={tier.minGuests}
+                            onChange={(e) =>
+                              handleBaseRateChange(
+                                'weekday',
+                                index,
+                                'minGuests',
+                                parseInt(e.target.value, 10) || 1
+                              )
+                            }
+                            className={`${styles.tierInput} ${tierError?.fields.includes('minGuests') ? styles.tierInputError : ''}`}
+                            disabled={isLoadingPrices}
+                          />
+                        </label>
+                        <label className={styles.tierField}>
+                          <span className={styles.tierFieldLabel}>Osób do</span>
+                          <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            value={tier.maxGuests}
+                            onChange={(e) =>
+                              handleBaseRateChange(
+                                'weekday',
+                                index,
+                                'maxGuests',
+                                parseInt(e.target.value, 10) || 1
+                              )
+                            }
+                            className={`${styles.tierInput} ${tierError?.fields.includes('maxGuests') ? styles.tierInputError : ''}`}
+                            disabled={isLoadingPrices}
+                          />
+                        </label>
+                        <label className={styles.tierField}>
+                          <span className={styles.tierFieldLabel}>Cena</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="10"
+                            value={tier.price}
+                            onChange={(e) =>
+                              handleBaseRateChange(
+                                'weekday',
+                                index,
+                                'price',
+                                parseInt(e.target.value) || 0
+                              )
+                            }
+                            className={`${styles.priceInput} ${tierError?.fields.includes('price') ? styles.tierInputError : ''}`}
+                            disabled={isLoadingPrices}
+                          />
+                        </label>
+                        <span className={styles.currency}>zł</span>
+                        {weekdayTiers.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => requestRemoveTier('weekday', index)}
+                            className={styles.removeTierBtn}
+                            disabled={isLoadingPrices}
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                      {tierError && <p className={styles.tierErrorText}>{tierError.message}</p>}
+                    </div>
+                  )
+                })}
                 <button
                   type="button"
                   onClick={() => addTier('weekday')}
@@ -884,80 +954,81 @@ export default function PriceSettingsForm({
                 {weekendTiers.map((tier, index) => {
                   const tierError = getTierError('weekend', index)
                   return (
-                  <div key={index} className={styles.tierRowWrapper}>
-                  <div className={`${styles.tierRow} ${tierError ? styles.tierRowError : ''}`}>
-                    <label className={styles.tierField}>
-                      <span className={styles.tierFieldLabel}>Osób od</span>
-                      <input
-                        type="number"
-                        min="1"
-                        step="1"
-                        value={tier.minGuests}
-                        onChange={(e) =>
-                          handleBaseRateChange(
-                            'weekend',
-                            index,
-                            'minGuests',
-                            parseInt(e.target.value, 10) || 1
-                          )
-                        }
-                        className={`${styles.tierInput} ${tierError?.fields.includes('minGuests') ? styles.tierInputError : ''}`}
-                        disabled={isLoadingPrices}
-                      />
-                    </label>
-                    <label className={styles.tierField}>
-                      <span className={styles.tierFieldLabel}>Osób do</span>
-                      <input
-                        type="number"
-                        min="1"
-                        step="1"
-                        value={tier.maxGuests}
-                        onChange={(e) =>
-                          handleBaseRateChange(
-                            'weekend',
-                            index,
-                            'maxGuests',
-                            parseInt(e.target.value, 10) || 1
-                          )
-                        }
-                        className={`${styles.tierInput} ${tierError?.fields.includes('maxGuests') ? styles.tierInputError : ''}`}
-                        disabled={isLoadingPrices}
-                      />
-                    </label>
-                    <label className={styles.tierField}>
-                      <span className={styles.tierFieldLabel}>Cena</span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="10"
-                      value={tier.price}
-                      onChange={(e) =>
-                        handleBaseRateChange(
-                          'weekend',
-                          index,
-                          'price',
-                          parseInt(e.target.value) || 0
-                        )
-                      }
-                      className={`${styles.priceInput} ${tierError?.fields.includes('price') ? styles.tierInputError : ''}`}
-                      disabled={isLoadingPrices}
-                    />
-                    </label>
-                    <span className={styles.currency}>zł</span>
-                    {weekendTiers.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => requestRemoveTier('weekend', index)}
-                        className={styles.removeTierBtn}
-                        disabled={isLoadingPrices}
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                  {tierError && <p className={styles.tierErrorText}>{tierError.message}</p>}
-                  </div>
-                )})}
+                    <div key={index} className={styles.tierRowWrapper}>
+                      <div className={`${styles.tierRow} ${tierError ? styles.tierRowError : ''}`}>
+                        <label className={styles.tierField}>
+                          <span className={styles.tierFieldLabel}>Osób od</span>
+                          <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            value={tier.minGuests}
+                            onChange={(e) =>
+                              handleBaseRateChange(
+                                'weekend',
+                                index,
+                                'minGuests',
+                                parseInt(e.target.value, 10) || 1
+                              )
+                            }
+                            className={`${styles.tierInput} ${tierError?.fields.includes('minGuests') ? styles.tierInputError : ''}`}
+                            disabled={isLoadingPrices}
+                          />
+                        </label>
+                        <label className={styles.tierField}>
+                          <span className={styles.tierFieldLabel}>Osób do</span>
+                          <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            value={tier.maxGuests}
+                            onChange={(e) =>
+                              handleBaseRateChange(
+                                'weekend',
+                                index,
+                                'maxGuests',
+                                parseInt(e.target.value, 10) || 1
+                              )
+                            }
+                            className={`${styles.tierInput} ${tierError?.fields.includes('maxGuests') ? styles.tierInputError : ''}`}
+                            disabled={isLoadingPrices}
+                          />
+                        </label>
+                        <label className={styles.tierField}>
+                          <span className={styles.tierFieldLabel}>Cena</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="10"
+                            value={tier.price}
+                            onChange={(e) =>
+                              handleBaseRateChange(
+                                'weekend',
+                                index,
+                                'price',
+                                parseInt(e.target.value) || 0
+                              )
+                            }
+                            className={`${styles.priceInput} ${tierError?.fields.includes('price') ? styles.tierInputError : ''}`}
+                            disabled={isLoadingPrices}
+                          />
+                        </label>
+                        <span className={styles.currency}>zł</span>
+                        {weekendTiers.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => requestRemoveTier('weekend', index)}
+                            className={styles.removeTierBtn}
+                            disabled={isLoadingPrices}
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                      {tierError && <p className={styles.tierErrorText}>{tierError.message}</p>}
+                    </div>
+                  )
+                })}
                 <button
                   type="button"
                   onClick={() => addTier('weekend')}
@@ -982,11 +1053,10 @@ export default function PriceSettingsForm({
                   min="0"
                   step="10"
                   value={weekdayExtraBedPrice}
-                  onChange={(e) =>
-                    {
-                      setWeekdayExtraBedPrice(parseInt(e.target.value) || 0)
-                      setIsSeasonDirty(true)
-                    }
+                  onChange={(e) => {
+                    setWeekdayExtraBedPrice(parseInt(e.target.value) || 0)
+                    setIsSeasonDirty(true)
+                  }
                   }
                   className={styles.priceInputLarge}
                   disabled={isLoadingPrices}
@@ -1008,11 +1078,10 @@ export default function PriceSettingsForm({
                   min="0"
                   step="10"
                   value={weekendExtraBedPrice}
-                  onChange={(e) =>
-                    {
-                      setWeekendExtraBedPrice(parseInt(e.target.value) || 0)
-                      setIsSeasonDirty(true)
-                    }
+                  onChange={(e) => {
+                    setWeekendExtraBedPrice(parseInt(e.target.value) || 0)
+                    setIsSeasonDirty(true)
+                  }
                   }
                   className={styles.priceInputLarge}
                   disabled={isLoadingPrices}
@@ -1026,7 +1095,7 @@ export default function PriceSettingsForm({
       )}
 
       {/* ── Ceny indywidualne (per data) ─────────────────────────────────────── */}
-      {selectedPropertyId && (
+      {selectedPropertyId && !isPropertyDataLoading && (
         <form className="settings-card" onSubmit={(e) => e.preventDefault()}>
           <div className="card-header">
             <h2 className="card-title">Ceny indywidualne</h2>
@@ -1182,11 +1251,10 @@ export default function PriceSettingsForm({
                       min="0"
                       step="10"
                       value={customExtraBedPrice}
-                      onChange={(e) =>
-                        {
-                          setCustomExtraBedPrice(parseInt(e.target.value, 10) || 0)
-                          setIsCustomDirty(true)
-                        }
+                      onChange={(e) => {
+                        setCustomExtraBedPrice(parseInt(e.target.value, 10) || 0)
+                        setIsCustomDirty(true)
+                      }
                       }
                       className={styles.priceInputLarge}
                     />
@@ -1249,8 +1317,8 @@ export default function PriceSettingsForm({
             {isSeasonDirty && isCustomDirty
               ? 'Masz niezapisane zmiany w cenach sezonowych i indywidualnych.'
               : isSeasonDirty
-              ? `Masz niezapisane zmiany w cenach dla ${selectedProperty?.name ?? 'wybranego domku'}.`
-              : 'Masz niezapisane zmiany w cenach indywidualnych.'}
+                ? `Masz niezapisane zmiany w cenach dla ${selectedProperty?.name ?? 'wybranego domku'}.`
+                : 'Masz niezapisane zmiany w cenach indywidualnych.'}
           </p>
           <div className="floating-save-actions">
             <button

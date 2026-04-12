@@ -12,6 +12,7 @@ interface ModalProps {
   children: React.ReactNode
   confirmText?: string
   cancelText?: string
+  loadingText?: string
   confirmVariant?: 'danger' | 'primary'
   isLoading?: boolean
 }
@@ -24,6 +25,7 @@ export default function Modal({
   children,
   confirmText = 'Potwierdź',
   cancelText = 'Anuluj',
+  loadingText = 'Chwileczkę...',
   confirmVariant = 'danger',
   isLoading = false
 }: ModalProps) {
@@ -87,7 +89,7 @@ export default function Modal({
               onClick={onConfirm}
               disabled={isLoading}
             >
-              {isLoading ? 'Trwa...' : confirmText}
+              {isLoading ? loadingText : confirmText}
             </button>
           )}
         </div>

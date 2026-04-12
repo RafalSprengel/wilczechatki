@@ -235,6 +235,28 @@
   border: 1px dashed #cbd5e1;
 }
 
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 20px;
+  color: #64748b;
+  background: white;
+  border-radius: 12px;
+  border: 1px dashed #cbd5e1;
+  font-weight: 600;
+}
+
+.loadingSpinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
 .paymentPaid {
   color: #16a34a;
   font-weight: 600;
@@ -280,6 +302,12 @@
 .badgePast {
   background: #f1f5f9 !important;
   color: #64748b !important;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (min-width: 768px) {

@@ -288,7 +288,7 @@ export async function searchAction(params: SearchParams) {
     });
 
     if (autoBlockOtherCabins && occupiedIds.length > 0) {
-      return [];
+      return { propertiesAvailable: [], areAllAvailable: false };
     }
 
     const availableProperties = await Property.find({
@@ -297,7 +297,7 @@ export async function searchAction(params: SearchParams) {
       baseCapacity: { $gte: baseGuests - extraBeds }
     }).select('-createdAt -updatedAt').sort({ name: 1 });
 
-    if (availableProperties.length === 0) return [];
+    if (availableProperties.length === 0) return { propertiesAvailable: [], areAllAvailable: false };
 
     const options: SearchOption[] = [];
 

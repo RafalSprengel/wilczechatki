@@ -42,7 +42,7 @@ export default async function BookingPage({
       })
     } catch (error) {
       console.error(error)
-      searchResults = []
+      searchResults = { propertiesAvailable: [], areAllAvailable: false }
     }
   }
   console.log(searchResults)

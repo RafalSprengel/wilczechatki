@@ -9,6 +9,7 @@ import { getBookingConfig } from '@/actions/bookingConfigActions'
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton'
 import CalendarPicker, { DatesData } from '@/app/_components/CalendarPicker/CalendarPicker'
 import QuantityPicker from '@/app/_components/QuantityPicker/QuantityPicker'
+import Modal from '@/app/_components/Modal/Modal'
 import { useClickOutside } from '@/hooks/useClickOutside'
 
 interface BookingDates {
@@ -41,6 +42,7 @@ export default function AddBookingPage() {
   const [state, formAction, isPending] = useActionState(createBookingByAdmin, initialState)
   const formRef = useRef<HTMLFormElement>(null)
   const [properties, setProperties] = useState<PropertyOption[]>([])
+  const [isLoadingProperties, setIsLoadingProperties] = useState(true)
   const [propertySelection, setPropertySelection] = useState('')
   const [selectedProperty, setSelectedProperty] = useState<PropertyOption | null>(null)
   const [numGuests, setNumGuests] = useState(2)
@@ -50,6 +52,8 @@ export default function AddBookingPage() {
   const [bookingDates, setBookingDates] = useState<BookingDates>({ start: null, end: null, count: 0 })
   const [isCalendarOpen, setCalendarOpen] = useState(false)
   const [calendarDates, setCalendarDates] = useState<DatesData>({})
+  const [isLoadingUnavailableDates, setIsLoadingUnavailableDates] = useState(false)
+  const [hasLoadedUnavailableDates, setHasLoadedUnavailableDates] = useState(false)
   const calendarRef = useRef<HTMLDivElement>(null)
   const [isCalculating, startPriceCalculation] = useTransition()
   const [wantsInvoice, setWantsInvoice] = useState(false)
@@ -63,19 +67,33 @@ export default function AddBookingPage() {
   const [invoiceErrors, setInvoiceErrors] = useState<Record<string, string>>({})
   const [minBookingDays, setMinBookingDays] = useState(1)
   const [maxBookingDays, setMaxBookingDays] = useState(30)
+  const [feedbackModal, setFeedbackModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+  })
 
   const isDateRangeSelected = !!(bookingDates.start && bookingDates.end)
 
   useEffect(() => {
     const loadInitialData = async () => {
-      const [props, config] = await Promise.all([
-        getAllProperties(),
-        getBookingConfig()
-      ]);
-      setProperties(props);
-      setMinBookingDays(config.minBookingDays);
-      setMaxBookingDays(config.maxBookingDays);
-    };
+      setIsLoadingProperties(true)
+      try {
+        const [props, config] = await Promise.all([
+          getAllProperties(),
+          getBookingConfig()
+        ])
+        setProperties(props)
+        setMinBookingDays(config.minBookingDays)
+        setMaxBookingDays(config.maxBookingDays)
+      } finally {
+        setIsLoadingProperties(false)
+      }
+    }
     loadInitialData();
   }, [])
 
@@ -106,10 +124,19 @@ export default function AddBookingPage() {
   }, [selectedProperty, selectedPropertyMaxGuests, selectedPropertyMaxExtraBeds, numGuests, extraBeds])
 
   useEffect(() => {
+    let isActive = true
+
     const fetchUnavailableDates = async () => {
       if (propertySelection) {
+        setIsLoadingUnavailableDates(true)
+        setHasLoadedUnavailableDates(false)
+        setCalendarOpen(false)
+        setCalendarDates({})
+
         try {
           const dates = await getUnavailableDatesForProperty(propertySelection)
+          if (!isActive) return
+
           const mappedDates: DatesData = {}
           dates.forEach((entry) => {
             if (entry.date) {
@@ -117,14 +144,30 @@ export default function AddBookingPage() {
             }
           })
           setCalendarDates(mappedDates)
+          setHasLoadedUnavailableDates(true)
         } catch (error) {
+          if (!isActive) return
           console.error('Failed to fetch unavailable dates:', error)
+          setCalendarDates({})
+          setHasLoadedUnavailableDates(true)
+        } finally {
+          if (isActive) {
+            setIsLoadingUnavailableDates(false)
+          }
         }
       } else {
+        setCalendarOpen(false)
+        setIsLoadingUnavailableDates(false)
+        setHasLoadedUnavailableDates(false)
         setCalendarDates({})
       }
     }
+
     fetchUnavailableDates()
+
+    return () => {
+      isActive = false
+    }
   }, [propertySelection])
 
   useClickOutside(calendarRef, () => {
@@ -133,7 +176,11 @@ export default function AddBookingPage() {
 
   useEffect(() => {
     if (state.success) {
-      alert(state.message)
+      setFeedbackModal({
+        isOpen: true,
+        title: 'Rezerwacja utworzona',
+        message: state.message,
+      })
       formRef.current?.reset()
       setExtraBeds(0)
       setPaidAmount(0)
@@ -152,7 +199,11 @@ export default function AddBookingPage() {
       })
       setInvoiceErrors({})
     } else if (state.message && !state.success) {
-      alert(state.message)
+      setFeedbackModal({
+        isOpen: true,
+        title: 'Nie udało się utworzyć rezerwacji',
+        message: state.message,
+      })
     }
   }, [state])
 
@@ -220,7 +271,11 @@ export default function AddBookingPage() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     if (wantsInvoice && !validateInvoiceData()) {
       e.preventDefault()
-      alert('Proszę poprawnie uzupełnić dane do faktury.')
+      setFeedbackModal({
+        isOpen: true,
+        title: 'Nieprawidłowe dane faktury',
+        message: 'Proszę poprawnie uzupełnić dane do faktury.',
+      })
       return
     }
   }
@@ -265,10 +320,11 @@ export default function AddBookingPage() {
               id="propertyId"
               name="propertyId"
               required
+              disabled={isLoadingProperties}
               onChange={(e) => setPropertySelection(e.target.value)}
               value={propertySelection}
             >
-              <option value="">Wybierz domek</option>
+              <option value="">{isLoadingProperties ? 'Wczytywanie...' : 'Wybierz domek'}</option>
               {properties.map(prop => (
                 <option key={prop._id} value={prop._id}>{prop.name}</option>
               ))}
@@ -278,17 +334,24 @@ export default function AddBookingPage() {
           <div className={styles.dateBox}>
             <label className={styles.label}>Wybierz termin</label>
             <div
-              className={`${styles.date} ${!propertySelection ? styles.dateDisabled : ''}`}
-              onClick={() => propertySelection && setCalendarOpen(!isCalendarOpen)}
+              className={`${styles.date} ${(!propertySelection || isLoadingUnavailableDates) ? styles.dateDisabled : ''}`}
+              onClick={() => propertySelection && !isLoadingUnavailableDates && hasLoadedUnavailableDates && setCalendarOpen(!isCalendarOpen)}
             >
-              <span>
-                {bookingDates.start && bookingDates.end
-                  ? `${bookingDates.start} — ${bookingDates.end}`
-                  : propertySelection ? 'Wybierz daty' : 'Najpierw wybierz obiekt'}
+              <span className={styles.dateText}>
+                <span>
+                  {bookingDates.start && bookingDates.end
+                    ? `${bookingDates.start} — ${bookingDates.end}`
+                    : !propertySelection
+                      ? 'Najpierw wybierz obiekt'
+                      : isLoadingUnavailableDates
+                        ? 'Wczytywanie kalendarza...'
+                        : 'Wybierz daty'}
+                </span>
+                {isLoadingUnavailableDates && <span className={styles.inlineSpinner} aria-hidden="true"></span>}
               </span>
               <span className={styles.dateArrow}>&#9662;</span>
             </div>
-            {isCalendarOpen && (
+            {isCalendarOpen && hasLoadedUnavailableDates && !isLoadingUnavailableDates && (
               <div ref={calendarRef} className={`${styles.setDate} ${isCalendarOpen ? styles.expandedDate : ''}`}>
                 <CalendarPicker
                   dates={calendarDates}
@@ -473,6 +536,21 @@ export default function AddBookingPage() {
           </button>
         </div>
       </form>
+
+      <Modal
+        isOpen={feedbackModal.isOpen}
+        onClose={() =>
+          setFeedbackModal({
+            isOpen: false,
+            title: '',
+            message: '',
+          })
+        }
+        title={feedbackModal.title}
+        cancelText="Zamknij"
+      >
+        <p>{feedbackModal.message}</p>
+      </Modal>
     </div>
   )
 }

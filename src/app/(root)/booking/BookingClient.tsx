@@ -40,7 +40,7 @@ interface BookingClientProps {
   maxBookingDays: number
   childrenFreeAgeLimit: number
   blockedDates: { date: string }[]
-  searchResults: SearchOption[] | null
+  searchResults: { propertiesAvailable: SearchOption[]; areAllAvailable: boolean } | null
 }
 
 export default function BookingClient({
@@ -76,7 +76,7 @@ export default function BookingClient({
 
   useEffect(() => {
     setIsSearching(false)
-  }, [searchResults?.areAllAvailable])
+  }, [searchResults])
 
   useEffect(() => {
     if (initialStart || initialEnd) {
@@ -226,8 +226,18 @@ export default function BookingClient({
     <div className={styles.container}>
       {hasDraft && (
         <div className={styles.draftLinkContainer}>
+          <button
+            className={styles.draftClearBtn}
+            onClick={() => {
+              localStorage.removeItem(STORAGE_KEY)
+              setHasDraft(false)
+            }}
+            aria-label="Usuń szkic rezerwacji"
+          >
+            ✕
+          </button>
           <Link href="/booking/details" className={styles.draftLink}>
-            <span>➡️ Masz rozpoczętą rezerwację - kliknij aby kontynuować</span>
+            <span>Kliknij aby dokończyć poprzednią rezerwację</span>
             <FontAwesomeIcon icon={faArrowRight} className={styles.draftArrow} />
           </Link>
         </div>

@@ -69,23 +69,29 @@ export default async function BookingsListPage() {
                       </div>
                       <div className={styles.detailRow}>
                         <span className={styles.label}>Cena:</span>
-                        {isFullyPaid ? (
-                          <span className={`${styles.value} ${styles.paymentPaid}`}>Opłacone</span>
-                        ) : (
-                          <div className={styles.priceBreakdown}>
-                            <span className={styles.priceTotal}>{booking.totalPrice.toFixed(2)} zł</span>
-                            <span className={styles.pricePaid}>Wpłacono: {(booking.paidAmount || 0).toFixed(2)} zł</span>
-                            <span className={styles.priceDue}>Do zapłaty: {remainingAmount.toFixed(2)} zł</span>
-                          </div>
-                        )}
+                        <span className={styles.value}>{booking.totalPrice.toFixed(2)} zł</span>
                       </div>
-                      {!isFullyPaid && (
+                      {isFullyPaid ? (
                         <div className={styles.detailRow}>
                           <span className={styles.label}>Płatność:</span>
-                          <span className={`${styles.value} ${paymentBadge.class}`}>
-                            {paymentBadge.text}
-                          </span>
+                          <span className={`${styles.value} ${styles.paymentPaid}`}>Opłacono</span>
                         </div>
+                      ) : (
+                        <>
+                          <div className={styles.detailRow}>
+                            <span className={styles.label}></span>
+                            <div className={styles.priceBreakdown}>
+                              <span className={styles.pricePaid}>Wpłacono: {(booking.paidAmount || 0).toFixed(2)} zł</span>
+                              <span className={styles.priceDue}>Do zapłaty: {remainingAmount.toFixed(2)} zł</span>
+                            </div>
+                          </div>
+                          <div className={styles.detailRow}>
+                            <span className={styles.label}>Płatność:</span>
+                            <span className={`${styles.value} ${paymentBadge.class}`}>
+                              {paymentBadge.text}
+                            </span>
+                          </div>
+                        </>
                       )}
                     </div>
 
@@ -135,23 +141,29 @@ export default async function BookingsListPage() {
                       </div>
                       <div className={styles.detailRow}>
                         <span className={styles.label}>Cena:</span>
-                        {isFullyPaid ? (
-                          <span className={`${styles.value} ${styles.paymentPaid}`}>Opłacone</span>
-                        ) : (
-                          <div className={styles.priceBreakdown}>
-                            <span className={styles.priceTotal}>{booking.totalPrice.toFixed(2)} zł</span>
-                            <span className={styles.pricePaid}>Wpłacono: {(booking.paidAmount || 0).toFixed(2)} zł</span>
-                            <span className={styles.priceDue}>Do zapłaty: {remainingAmount.toFixed(2)} zł</span>
-                          </div>
-                        )}
+                        <span className={styles.value}>{booking.totalPrice.toFixed(2)} zł</span>
                       </div>
-                      {!isFullyPaid && (
+                      {isFullyPaid ? (
                         <div className={styles.detailRow}>
                           <span className={styles.label}>Płatność:</span>
-                          <span className={`${styles.value} ${paymentBadge.class}`}>
-                            {paymentBadge.text}
-                          </span>
+                          <span className={`${styles.value} ${styles.paymentPaid}`}>Opłacono</span>
                         </div>
+                      ) : (
+                        <>
+                          <div className={styles.detailRow}>
+                            <span className={styles.label}></span>
+                            <div className={styles.priceBreakdown}>
+                              <span className={styles.pricePaid}>Wpłacono: {(booking.paidAmount || 0).toFixed(2)} zł</span>
+                              <span className={styles.priceDue}>Do zapłaty: {remainingAmount.toFixed(2)} zł</span>
+                            </div>
+                          </div>
+                          <div className={styles.detailRow}>
+                            <span className={styles.label}>Płatność:</span>
+                            <span className={`${styles.value} ${paymentBadge.class}`}>
+                              {paymentBadge.text}
+                            </span>
+                          </div>
+                        </>
                       )}
                     </div>
 

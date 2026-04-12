@@ -56,6 +56,7 @@ export default function DeletePropertyButton({
         onConfirm={handleDelete}
         title="Potwierdź usunięcie"
         confirmText="Tak, usuń"
+        loadingText="Usuwanie"
         cancelText="Anuluj"
         confirmVariant="danger"
         isLoading={isDeleting}

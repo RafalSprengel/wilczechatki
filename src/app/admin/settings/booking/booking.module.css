@@ -392,6 +392,41 @@
     max-width: 300px;
 }
 
+.loadingText {
+    margin: 8px 0 0;
+    font-size: 0.85rem;
+    color: #64748b;
+    font-style: italic;
+}
+
+.loadingState {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 28px 20px;
+    color: #64748b;
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.loadingSpinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #e2e8f0;
+    border-top-color: #3498db;
+    border-radius: 50%;
+    animation: loadingSpin 0.9s linear infinite;
+}
+
+@keyframes loadingSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 @media (min-width: 601px) {
     .floatingSaveContent {
         flex-direction: row;

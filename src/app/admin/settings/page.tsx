@@ -1,6 +1,5 @@
 import { getSystemConfig } from '@/actions/adminConfigActions';
 import ToggleSwitch from './ToggleSwitchClient';
-import './settings.css';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
 
 export default async function SettingsPage() {

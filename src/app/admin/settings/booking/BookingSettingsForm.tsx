@@ -370,12 +370,21 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
               disabled={isUpdatingSeason || isLoadingSeasons}
               className={`${styles.dateInput} ${styles.seasonSelectFull}`}
             >
-              {seasons.map((season) => (
-                <option key={season._id} value={season._id}>
-                  {season.name} {!season.isActive && '(nieaktywny)'}
-                </option>
-              ))}
+              {isLoadingSeasons ? (
+                <option value="">Wczytywanie sezonów...</option>
+              ) : (
+                seasons.map((season) => (
+                  <option key={season._id} value={season._id}>
+                    {season.name} {!season.isActive && '(nieaktywny)'}
+                  </option>
+                ))
+              )}
             </select>
+            {isLoadingSeasons && (
+              <p className={styles.loadingText}>
+                Wczytywanie...
+              </p>
+            )}
           </div>
         </div>
 

@@ -197,6 +197,12 @@
   box-sizing: border-box;
 }
 
+.dateText {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .dateDisabled {
   cursor: not-allowed;
   opacity: 0.6;
@@ -298,6 +304,16 @@
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-left: 10px;
+}
+
+.inlineSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #c9b363;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  flex-shrink: 0;
 }
 
 @keyframes spin {
