@@ -64,11 +64,11 @@
 }
 
 .icon {
-    display: inline-block;  /* Dodane: niezbędne, aby transform (translateX) zadziałał na spanie */
+    display: inline-block;
     transition: transform var(--transition);
     line-height: 1; 
     font-size: 18px; 
-    text-decoration: none;       /* Poprawia pozycjonowanie optyczne encji HTML */
+    text-decoration: none; 
 }
 
 .backButton:hover .icon {
