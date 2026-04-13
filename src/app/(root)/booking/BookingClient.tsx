@@ -10,7 +10,7 @@ import { useClickOutside } from '@/hooks/useClickOutside'
 import ResultCard from './ResultCard'
 import styles from './page.module.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUsers, faSpinner, faExclamationCircle, faArrowRight } from '@fortawesome/free-solid-svg-icons'
+import { faUsers, faSpinner, faExclamationCircle, faArrowRight, faHome } from '@fortawesome/free-solid-svg-icons'
 import AllPropertiesCard from './AllPropertiesCard'
 
 interface BookingDates {
@@ -25,7 +25,15 @@ interface BookingDraft {
   adults: number
   children: number
   extraBeds: number
-  selectedOption: SearchOption | null
+  selectedOption: (SearchOption & {
+    propertyAllocations?: Array<{
+      propertyId: string
+      displayName: string
+      guests: number
+      extraBeds: number
+      totalPrice: number
+    }>
+  }) | null
 }
 
 const STORAGE_KEY = 'wilczechatki_booking_draft'
@@ -70,6 +78,7 @@ export default function BookingClient({
   const [extraBedsMap, setExtraBedsMap] = useState<Record<string, number>>({})
   const [guestsMap, setGuestsMap] = useState<Record<string, number>>({})
   const [hasDraft, setHasDraft] = useState(false)
+  const [bookingMode, setBookingMode] = useState<'single' | 'double' | null>(null)
 
   const guestsRef = useRef<HTMLDivElement>(null)
   const datesRef = useRef<HTMLDivElement>(null)
@@ -77,6 +86,10 @@ export default function BookingClient({
   useEffect(() => {
     setIsSearching(false)
   }, [searchResults])
+
+  useEffect(() => {
+    setBookingMode(null)
+  }, [searchResults, initialStart, initialEnd, initialAdults, initialChildren])
 
   useEffect(() => {
     if (initialStart || initialEnd) {
@@ -160,7 +173,7 @@ export default function BookingClient({
   const handleGuestsChange = (optionDisplayName: string, value: number) => {
     setGuestsMap(prev => ({
       ...prev,
-      [optionDisplayName]: value
+      [optionDisplayName]: Math.max(1, value)
     }))
   }
 
@@ -191,6 +204,14 @@ export default function BookingClient({
   }
 
   const handleSelectAllProperties = (combinedTotalPrice: number) => {
+    const propertyAllocations = (searchResults?.propertiesAvailable || []).map((option) => ({
+      propertyId: option.propertyId,
+      displayName: option.displayName,
+      guests: Math.max(1, guestsMap[option.displayName] || 1),
+      extraBeds: extraBedsMap[option.displayName] || 0,
+      totalPrice: 0,
+    }))
+
     const extraBeds = Object.values(extraBedsMap).reduce((sum, value) => sum + value, 0)
 
     const draft: BookingDraft = {
@@ -206,7 +227,8 @@ export default function BookingClient({
         extraBedPrice: 0,
         maxGuests: 0,
         maxExtraBeds: 0,
-        description: 'Rezerwacja łączona'
+        description: 'Rezerwacja łączona',
+        propertyAllocations,
       }
     }
 
@@ -361,7 +383,47 @@ export default function BookingClient({
                   <h3 className={styles.resultsTitle}>
                     Dostępne opcje ({searchResults.propertiesAvailable.length})
                   </h3>
-                  {searchResults.propertiesAvailable.map((option) => (
+
+                  <div className={styles.modeSelector} role="radiogroup" aria-label="Tryb rezerwacji">
+                    <label className={`${styles.modeOption} ${bookingMode === 'single' ? styles.modeOptionActive : ''}`}>
+                      <input
+                        type="radio"
+                        name="bookingMode"
+                        checked={bookingMode === 'single'}
+                        onChange={() => setBookingMode('single')}
+                      />
+                      <span className={styles.modeLabel}>Jeden domek</span>
+                      <span className={styles.modeIconSingle} aria-hidden="true">
+                        <FontAwesomeIcon icon={faHome} />
+                      </span>
+                    </label>
+
+                    <label className={`${styles.modeOption} ${bookingMode === 'double' ? styles.modeOptionActive : ''}`}>
+                      <input
+                        type="radio"
+                        name="bookingMode"
+                        checked={bookingMode === 'double'}
+                        onChange={() => {
+                          setBookingMode('double')
+                          setGuestsMap((prev) => {
+                            const next = { ...prev }
+                            searchResults.propertiesAvailable.forEach((option) => {
+                              const current = next[option.displayName]
+                              next[option.displayName] = current && current > 0 ? current : 1
+                            })
+                            return next
+                          })
+                        }}
+                      />
+                      <span className={styles.modeLabel}>Dwa domki</span>
+                      <span className={styles.modeIconDouble} aria-hidden="true">
+                        <span className={styles.modeHomeBack}><FontAwesomeIcon icon={faHome} /></span>
+                        <span className={styles.modeHomeFront}><FontAwesomeIcon icon={faHome} /></span>
+                      </span>
+                    </label>
+                  </div>
+
+                  {bookingMode === 'single' && searchResults.propertiesAvailable.map((option) => (
                     <ResultCard
                       key={option.displayName}
                       option={option}
@@ -370,20 +432,28 @@ export default function BookingClient({
                       onSelect={handleSelectOption}
                     />
                   ))}
-                  {searchResults.areAllAvailable && (
-                    <div className={styles.allAvailableNote}>
-                      <h3>Zarezerwuj {searchResults.propertiesAvailable.length} domki teraz</h3>
-                      <AllPropertiesCard
-                        searchResults={searchResults}
-                        extraBedsMap={extraBedsMap}
-                        onExtraBedsChange={handleExtraBedsChange}
-                        guestsMap={guestsMap}
-                        onGuestsChange={handleGuestsChange}
-                        startDate={bookingDates.start}
-                        endDate={bookingDates.end}
-                        onSelectAll={handleSelectAllProperties}
-                      />
-                    </div>
+
+                  {bookingMode === 'double' && (
+                    searchResults.areAllAvailable ? (
+                      <div className={styles.allAvailableNote}>
+                        <h3>Zarezerwuj {searchResults.propertiesAvailable.length} domki teraz</h3>
+                        <AllPropertiesCard
+                          searchResults={searchResults}
+                          extraBedsMap={extraBedsMap}
+                          onExtraBedsChange={handleExtraBedsChange}
+                          guestsMap={guestsMap}
+                          onGuestsChange={handleGuestsChange}
+                          totalGuestsLimit={totalGuests}
+                          startDate={bookingDates.start}
+                          endDate={bookingDates.end}
+                          onSelectAll={handleSelectAllProperties}
+                        />
+                      </div>
+                    ) : (
+                      <div className={styles.emptyState}>
+                        <p>W wybranym terminie nie da się zarezerwować dwóch domków jednocześnie.</p>
+                      </div>
+                    )
                   )}
 
                 </div>

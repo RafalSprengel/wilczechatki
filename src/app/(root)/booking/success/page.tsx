@@ -1,10 +1,15 @@
 'use client';
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import styles from './page.module.css';
 import { SITE_CONFIG } from '@/config/site';
 
 export default function BookingSuccessPage() {
+  const searchParams = useSearchParams();
+  const bookingsCount = Number(searchParams.get('bookings') || '1');
+  const isMultiBooking = bookingsCount > 1;
+
   useEffect(() => {
     sessionStorage.setItem('booking_confirmed', 'true');
   }, []);
@@ -21,6 +26,12 @@ export default function BookingSuccessPage() {
         <p className={styles.message}>
           Dziękujemy za dokonanie rezerwacji w Wilczych Chatkach.
         </p>
+
+        {isMultiBooking && (
+          <p className={styles.details}>
+            Utworzono <strong>{bookingsCount}</strong> rezerwacje (po jednej dla każdego wybranego domku).
+          </p>
+        )}
         
         <p className={styles.details}>
           Szczegóły Twojej rezerwacji zostały wysłane na adres e-mail podany w formularzu.

@@ -36,8 +36,16 @@ interface GuestData {
 }
 
 interface SelectedOption {
+  propertyId?: string;
   displayName: string;
   totalPrice: number;
+  propertyAllocations?: Array<{
+    propertyId: string;
+    displayName: string;
+    guests: number;
+    extraBeds: number;
+    totalPrice: number;
+  }>;
 }
 
 interface BookingDraftData {
@@ -67,46 +75,106 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
     }
 
     const numberOfGuests = adults + children;
-    const bookings = [];
+    const bookings: any[] = [];
 
-    const property = await Property.findOne({ name: selectedOption.displayName, isActive: true }).select('_id');
-
-    if (!property) {
-      console.error('Nie znaleziono domku w bazie');
-      return { success: false, error: 'Nie można znaleźć domku w bazie' };
-    }
-
-    const recalculatedPrice = await calculateTotalPrice({
-      startDate,
-      endDate,
-      baseGuests: numberOfGuests,
-      extraBeds,
-      propertySelection: property._id.toString(),
-    });
-    if (recalculatedPrice <= 0) {
-      return { success: false, error: 'Nie udało się poprawnie wyliczyć ceny rezerwacji.' };
-    }
-
-    bookings.push({
-      propertyId: new Types.ObjectId(property._id.toString()),
+    const baseBookingData = {
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       guestName: `${guestData.firstName} ${guestData.lastName}`,
       guestEmail: guestData.email,
       guestPhone: guestData.phone,
       guestAddress: guestData.address,
-      numberOfGuests,
-      extraBedsCount: extraBeds,
-      totalPrice: recalculatedPrice,
-      paidAmount: recalculatedPrice,
-      status: 'confirmed',
+      status: 'confirmed' as const,
       invoice: guestData.invoice,
       invoiceData: guestData.invoiceData,
       customerNotes: '',
       source: 'customer',
       createdAt: new Date(),
-      updatedAt: new Date()
-    });
+      updatedAt: new Date(),
+    };
+
+    if (selectedOption.propertyId === 'ALL_PROPERTIES') {
+      const allocations = selectedOption.propertyAllocations || [];
+      if (allocations.length === 0) {
+        return { success: false, error: 'Brak podziału rezerwacji na domki.' };
+      }
+
+      for (const allocation of allocations) {
+        if (!Types.ObjectId.isValid(allocation.propertyId)) {
+          return { success: false, error: `Nieprawidłowe ID domku: ${allocation.displayName}` };
+        }
+
+        const property = await Property.findOne({
+          _id: allocation.propertyId,
+          isActive: true,
+        }).select('_id');
+
+        if (!property) {
+          return { success: false, error: `Nie można znaleźć domku w bazie: ${allocation.displayName}` };
+        }
+
+        const recalculatedPrice = await calculateTotalPrice({
+          startDate,
+          endDate,
+          baseGuests: allocation.guests,
+          extraBeds: allocation.extraBeds,
+          propertySelection: allocation.propertyId,
+        });
+
+        if (recalculatedPrice <= 0) {
+          return {
+            success: false,
+            error: `Nie udało się wyliczyć ceny dla domku: ${allocation.displayName}`,
+          };
+        }
+
+        bookings.push({
+          ...baseBookingData,
+          propertyId: new Types.ObjectId(allocation.propertyId),
+          numberOfGuests: allocation.guests,
+          extraBedsCount: allocation.extraBeds,
+          totalPrice: recalculatedPrice,
+          paidAmount: recalculatedPrice,
+        });
+      }
+    } else {
+      let property = null;
+      if (selectedOption.propertyId && Types.ObjectId.isValid(selectedOption.propertyId)) {
+        property = await Property.findOne({
+          _id: selectedOption.propertyId,
+          isActive: true,
+        }).select('_id');
+      }
+
+      if (!property) {
+        property = await Property.findOne({ name: selectedOption.displayName, isActive: true }).select('_id');
+      }
+
+      if (!property) {
+        console.error('Nie znaleziono domku w bazie');
+        return { success: false, error: 'Nie można znaleźć domku w bazie' };
+      }
+
+      const recalculatedPrice = await calculateTotalPrice({
+        startDate,
+        endDate,
+        baseGuests: numberOfGuests,
+        extraBeds,
+        propertySelection: property._id.toString(),
+      });
+      if (recalculatedPrice <= 0) {
+        return { success: false, error: 'Nie udało się poprawnie wyliczyć ceny rezerwacji.' };
+      }
+
+      bookings.push({
+        ...baseBookingData,
+        propertyId: new Types.ObjectId(property._id.toString()),
+        numberOfGuests,
+        extraBedsCount: extraBeds,
+        totalPrice: recalculatedPrice,
+        paidAmount: recalculatedPrice,
+      });
+    }
 
     const savedBookings = await Booking.insertMany(bookings);
 

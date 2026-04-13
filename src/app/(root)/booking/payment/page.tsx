@@ -186,7 +186,8 @@ export default function PaymentPage() {
           // Wyczyść localStorage
           localStorage.removeItem(STORAGE_KEY);
           // Przekieruj na stronę sukcesu
-          router.push('/booking/success');
+          const bookingsCount = result.bookingIds?.length || 1;
+          router.push(`/booking/success?bookings=${bookingsCount}`);
         } else {
           console.error('Błąd zapisu rezerwacji:', result.error);
           router.push('/booking/fail');

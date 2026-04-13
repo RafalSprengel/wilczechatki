@@ -11,6 +11,7 @@ export default function AllPropertiesCard({
   onExtraBedsChange,
   guestsMap,
   onGuestsChange,
+  totalGuestsLimit,
   startDate,
   endDate,
   onSelectAll
@@ -20,11 +21,13 @@ export default function AllPropertiesCard({
   onExtraBedsChange: (displayName: string, value: number) => void,
   guestsMap: Record<string, number>,
   onGuestsChange: (displayName: string, value: number) => void,
+  totalGuestsLimit: number,
   startDate: string | null,
   endDate: string | null,
   onSelectAll: (totalPrice: number) => void
 }) {
   const [priceMap, setPriceMap] = useState<Record<string, number>>({})
+  const [showGuestsValidation, setShowGuestsValidation] = useState(false)
 
   useEffect(() => {
     if (!startDate || !endDate || !searchResults?.propertiesAvailable?.length) {
@@ -37,7 +40,7 @@ export default function AllPropertiesCard({
     const recalculatePrices = async () => {
       const nextPriceEntries = await Promise.all(
         searchResults.propertiesAvailable.map(async (option: any) => {
-          const guests = guestsMap[option.displayName] || 0
+          const guests = Math.max(1, guestsMap[option.displayName] || 1)
           const extraBeds = extraBedsMap[option.displayName] || 0
 
           if (guests <= 0) {
@@ -77,13 +80,38 @@ export default function AllPropertiesCard({
     [priceMap]
   )
 
+  const totalAssignedGuests = useMemo(
+    () => searchResults.propertiesAvailable.reduce(
+      (sum: number, option: any) => sum + Math.max(1, guestsMap[option.displayName] || 1),
+      0
+    ),
+    [searchResults, guestsMap]
+  )
+
+  const canSelectAll = totalAssignedGuests === totalGuestsLimit && totalGuestsLimit > 0
+
+  useEffect(() => {
+    if (canSelectAll) {
+      setShowGuestsValidation(false)
+    }
+  }, [canSelectAll])
+
+  const handleSelectAllClick = () => {
+    if (!canSelectAll) {
+      setShowGuestsValidation(true)
+      return
+    }
+    onSelectAll(combinedTotalPrice)
+  }
+
   return (
     <div>
       <h2 className={styles.resultsTitle}>Rozdziel liczbę gości na poszczególne domki:</h2>
       <div className={`${styles.resultsGrid} ${styles.allPropertiesGridCard}`}>
         {searchResults.propertiesAvailable.map((option: any) => {
           const extraBeds = extraBedsMap[option.displayName] || 0
-          const guests = guestsMap[option.displayName] || 0
+          const guests = Math.max(1, guestsMap[option.displayName] || 1)
+          const canIncrementGuests = totalAssignedGuests < totalGuestsLimit
 
           return (
             <div key={option.displayName} className={`${styles.resultCard} ${styles.allPropertiesResultCard}`}>
@@ -114,6 +142,7 @@ export default function AllPropertiesCard({
                   onDecrement={() => onGuestsChange(option.displayName, guests - 1)}
                   min={1}
                   max={option.maxGuests}
+                  disableIncrement={!canIncrementGuests}
                 />
               </div>
 
@@ -140,10 +169,19 @@ export default function AllPropertiesCard({
           <span className={styles.priceValue}>{combinedTotalPrice} zł</span>
         </div>
 
+        <div className={`${styles.extraBedsNote} ${showGuestsValidation && !canSelectAll ? styles.extraBedsNoteError : ''}`}>
+          Przydzielono gości: <strong>{totalAssignedGuests}</strong> / {totalGuestsLimit}
+        </div>
+
+        {showGuestsValidation && !canSelectAll && (
+          <div className={styles.allocationErrorText}>Najpierw rozdziel wszystkich gości</div>
+        )}
+
         <button
           type="button"
-          className={styles.btnSelect}
-          onClick={() => onSelectAll(combinedTotalPrice)}
+          className={`${styles.btnSelect} ${!canSelectAll ? styles.btnSelectDisabledLook : ''}`}
+          onClick={handleSelectAllClick}
+          aria-disabled={!canSelectAll}
         >
           Wybieram tę opcję
         </button>

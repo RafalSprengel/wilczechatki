@@ -22,6 +22,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
+  width: 110px;
 }
 
 .bedIcon,
@@ -284,6 +285,69 @@
   font-family: var(--font-heading);
 }
 
+.modeSelector {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.modeOption {
+  border: 1px solid #d6dee6;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.modeOption input {
+  accent-color: var(--accent-color);
+}
+
+.modeOptionActive {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(201, 179, 99, 0.2);
+}
+
+.modeLabel {
+  font-weight: 600;
+  color: #334155;
+  min-width: 110px;
+}
+
+.modeIconSingle {
+  margin-left: auto;
+  font-size: 1.6rem;
+  color: var(--accent-color);
+}
+
+.modeIconDouble {
+  margin-left: auto;
+  width: 34px;
+  height: 28px;
+  position: relative;
+  color: var(--accent-color);
+}
+
+.modeHomeBack {
+  position: absolute;
+  left: 0;
+  top: 6px;
+  font-size: 1.2rem;
+  opacity: 0.75;
+}
+
+.modeHomeFront {
+  position: absolute;
+  left: 12px;
+  top: 0;
+  font-size: 1.4rem;
+}
+
 .resultCard {
   background: var(--bg-white);
   border: 1px solid #eef2f5;
@@ -430,6 +494,20 @@
   text-align: center;
 }
 
+.extraBedsNoteError {
+  border: 1px solid #dc2626;
+  background: #fef2f2;
+}
+
+.allocationErrorText {
+  margin-top: -2px;
+  margin-bottom: 6px;
+  color: #dc2626;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
 /* Price section */
 .cardPrice {
   display: flex;
@@ -466,8 +544,17 @@
   font-family: var(--font-body);
 }
 
+.btnSelectDisabledLook {
+  background: #b8c0cc;
+  color: #eef2f7;
+}
+
 .btnSelect:hover {
   background: #34495e;
+}
+
+.btnSelectDisabledLook:hover {
+  background: #b8c0cc;
 }
 
 .spinIcon {
@@ -527,6 +614,10 @@
   .resultsGrid {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 25px;
+  }
+
+  .modeSelector {
+    grid-template-columns: 1fr 1fr;
   }
 
   .cardTitle {
@@ -602,6 +693,26 @@
 @media (min-width: 900px) {
   .container {
     padding: 50px 30px;
+  }
+}
+
+@media (min-width: 850px) {
+  .allPropertiesResultCard {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    align-items: start;
+  }
+
+  .allPropertiesResultCard > .cardHeader,
+  .allPropertiesResultCard > .cardTitle,
+  .allPropertiesResultCard > .cardDesc,
+  .allPropertiesResultCard > .cardDetails {
+    grid-column: 1 / -1;
+  }
+
+  .allPropertiesResultCard > .extraBedsSection {
+    margin: 0;
   }
 }
 
