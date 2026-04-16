@@ -5,14 +5,14 @@ import Link from 'next/link';
 import styles from './page.module.css';
 import { SITE_CONFIG } from '@/config/site';
 
-export default function BookingFailPage() {
+export default function BookingCancelPage() {
   const router = useRouter();
   const [isRetrying, setIsRetrying] = useState(false);
 
   const handleRetry = () => {
     setIsRetrying(true);
     setTimeout(() => {
-      router.push('/booking/summary');
+      router.push('/booking/payment');
     }, 500);
   };
 
@@ -20,33 +20,30 @@ export default function BookingFailPage() {
     <div className={styles.container}>
       <div className={styles.card}>
         <div className={styles.iconWrapper}>
-          <span className={styles.failIcon}>✗</span>
+          <span className={styles.cancelIcon}>✗</span>
         </div>
         
-        <h1 className={styles.title}>Płatność nieudana</h1>
+        <h1 className={styles.title}>Płatność anulowana</h1>
         
         <p className={styles.message}>
-          Niestety nie udało się przetworzyć Twojej płatności.
+          Nie dokonano płatności. Twoja rezerwacja nie została potwierdzona.
         </p>
         
         <p className={styles.details}>
-          Przyczyną może być: brak środków na karcie, błędny kod CVC lub tymczasowy problem z systemem płatności.
+          Możesz wrócić do płatności lub edytować dane rezerwacji.
         </p>
         
         <div className={styles.infoBox}>
           <p className={styles.infoText}>
-            💳 Sprawdź czy dane karty są poprawne
-          </p>
-          <p className={styles.infoText}>
-            📞 W razie problemów: <a href={`tel:${SITE_CONFIG.phoneHref}`} className={styles.phoneLink}>{SITE_CONFIG.phoneDisplay}</a>
+            📞 W razie pytań: <a href={`tel:${SITE_CONFIG.phoneHref}`} className={styles.phoneLink}>{SITE_CONFIG.phoneDisplay}</a>
           </p>
         </div>
         
         <div className={styles.actions}>
           <button onClick={handleRetry} className={styles.btnPrimary} disabled={isRetrying}>
-            {isRetrying ? 'Przekierowywanie...' : 'Spróbuj ponownie'}
+            {isRetrying ? 'Przekierowywanie...' : 'Wróć do płatności'}
           </button>
-          <Link href="/booking/details" className={styles.btnSecondary}>
+          <Link href="/booking/summary" className={styles.btnSecondary}>
             Edytuj dane
           </Link>
           <Link href="/" className={styles.btnTertiary}>

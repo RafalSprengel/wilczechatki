@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './page.module.css';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
+import { createCheckoutSession } from '@/actions/stripe';
 
 interface InvoiceData {
   companyName: string;
@@ -38,12 +39,12 @@ interface BookingData {
   guestData: GuestData;
 }
 
-const STORAGE_KEY = 'wilczechatki_booking_draft';
+const STORAGE_KEY = 'wilczechatki_booking_draft'; //local storage name for booking data draft
 
 export default function BookingSummaryPage() {
   const router = useRouter();
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -64,10 +65,24 @@ export default function BookingSummaryPage() {
     }
   }, [router]);
 
-  const handleConfirm = async () => {
-    setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
-    router.push('/booking/success');
+  const handleStripePayment = async () => {
+    console.log('Inicjowanie płatności Stripe z danymi:', bookingData);
+    if (!bookingData) return;
+    
+    setIsProcessing(true);
+    try {
+     const result =  await createCheckoutSession(bookingData);
+     if (result?.url) {
+       window.location.href = result.url;
+     } else {
+       throw new Error("Nie można uzyskać URL sesji płatności");
+     }
+    
+    } catch (error) {
+      console.error('Błąd podczas inicjowania płatności:', error);
+      setIsProcessing(false);
+      alert('Wystąpił błąd podczas inicjowania płatności. Spróbuj ponownie:'+error );
+    }
   };
 
   if (!bookingData) {
@@ -174,14 +189,18 @@ export default function BookingSummaryPage() {
         </div>
       </div>
 
-      <div className={styles.actions}>
-        <Link href="/booking/details" className={styles.btnBack}>
-          ← Edytuj dane
-        </Link>
-        <Link href="/booking/payment" className={styles.btnConfirm}>
-          Przejdź do płatności →
-        </Link>
-      </div>
+        <div className={styles.actions}>
+          <Link href="/booking/details" className={styles.btnBack}>
+            ← Edytuj dane
+          </Link>
+          <button 
+            onClick={handleStripePayment}
+            className={styles.btnConfirm}
+            disabled={isProcessing}
+          >
+            {isProcessing ? 'Przekierowywanie do płatności...' : 'Przejdź do płatności →'}
+          </button>
+        </div>
     </div>
   );
 }

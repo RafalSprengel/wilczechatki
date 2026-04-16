@@ -1,0 +1,150 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: #fef2f2;
+}
+
+.card {
+  max-width: 500px;
+  width: 100%;
+  background: white;
+  border-radius: 20px;
+  padding: 40px 30px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.iconWrapper {
+  width: 80px;
+  height: 80px;
+  background: #ef4444;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 30px;
+}
+
+.cancelIcon {
+  color: white;
+  font-size: 40px;
+  font-weight: bold;
+}
+
+.title {
+  font-size: 2rem;
+  color: #991b1b;
+  margin-bottom: 20px;
+  font-family: var(--font-heading);
+}
+
+.message {
+  font-size: 1.1rem;
+  color: #334155;
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+
+.details {
+  font-size: 1rem;
+  color: #64748b;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.infoBox {
+  background: #fef2f2;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+  text-align: left;
+  border: 1px solid #fecaca;
+}
+
+.infoText {
+  color: #991b1b;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.infoText:last-child {
+  margin-bottom: 0;
+}
+
+.phoneLink {
+  color: #c9b363;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.phoneLink:hover {
+  text-decoration: underline;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btnPrimary,
+.btnSecondary,
+.btnTertiary {
+  display: block;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnPrimary {
+  background: #ef4444;
+  color: white;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.btnSecondary:hover {
+  background: #e2e8f0;
+}
+
+.btnTertiary {
+  background: transparent;
+  color: #64748b;
+  text-decoration: underline;
+}
+
+.btnTertiary:hover {
+  color: #334155;
+}
+
+@media (min-width: 600px) {
+  .card {
+    padding: 50px 40px;
+  }
+
+  .title {
+    font-size: 2.2rem;
+  }
+}
