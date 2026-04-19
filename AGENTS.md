@@ -28,3 +28,15 @@ description: Agent odpowiedzialny za logikę biznesową i precyzyjną refaktoryz
 -to jest projekt w fazie budowania, nie ma tu waznych danych nie potrzeba migracji, wszystkie dane skazuje a nowe sobie dodam\
 
 <!-- - **PRECYZJA**: Poprawiaj błędy, zachowując 100% otoczenia kodu. Nie upraszczaj struktury danych ani logiki. -->
+
+- Nigdy nie używaj operatorów typu `|| "Domyślna wartość"` (np. `displayName || "Domek"`) dla kluczowych danych biznesowych.
+   - Jeśli brakuje wymaganych danych (ID, nazwa obiektu, cena, daty), skrypt musi zostać przerwany, a system powinien wyrzucić jawny błąd (Error).
+   - Logika aplikacji ma opierać się na zasadzie **Fail-Fast**: lepiej zatrzymać proces rezerwacji, niż pozwolić na zapisanie niekompletnych lub błędnych informacji w bazie danych.
+
+2. **Ścisła walidacja przed procesami zewnętrznymi:**
+   - Każda rezerwacja musi zostać w pełni zwalidowana (sprawdzenie istnienia obiektu w bazie, dostępność terminów, poprawność kwoty) **zanim** użytkownik zostanie przekierowany do Stripe.
+   - Dane wejściowe z formularzy muszą być weryfikowane pod kątem typów i obowiązkowych pól.
+
+3. **TypeScript jako standard prawdy:**
+   - Nie ignoruj błędów TypeScript (zakaz używania `any` i `@ts-ignore`). 
+   - Typy muszą dokładnie odzwierciedlać strukturę danych. Jeśli pole jest wymagane w bazie, musi być wymagane w kodzie.
