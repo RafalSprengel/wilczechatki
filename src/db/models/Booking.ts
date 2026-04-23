@@ -1,9 +1,20 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import {
+  BOOKING_STATUSES,
+  PAYMENT_METHODS,
+  PAYMENT_STATUSES,
+  STRIPE_SESSION_STATUSES,
+  type BookingStatus,
+  type PaymentMethod,
+  type PaymentStatus,
+  type StripeSessionStatus,
+} from '@/types/bookingStatus';
 
 export interface IBooking extends Document {
   propertyId: mongoose.Types.ObjectId;
   startDate: Date;
   endDate: Date;
+  orderId?: string;
   guestName: string;
   guestEmail: string;
   guestPhone: string;
@@ -14,9 +25,11 @@ export interface IBooking extends Document {
   totalPrice: number;
   depositAmount: number;
   paidAmount: number;
-  paymentStatus: 'unpaid' | 'partial_paid' | 'paid' | 'refunded';
-  paymentMethod: 'online' | 'cash' | 'transfer';
-  status: 'pending' | 'confirmed' | 'cancelled' | 'blocked';
+  stripeSessionId?: string;
+  stripeSessionStatus?: StripeSessionStatus;
+  paymentStatus: PaymentStatus;
+  paymentMethod: PaymentMethod;
+  status: BookingStatus;
   invoice?: boolean;
   invoiceData?: {
     companyName?: string;
@@ -45,6 +58,11 @@ const BookingSchema = new Schema({
   endDate: {
     type: Date,
     required: true
+  },
+  orderId: {
+    type: String,
+    trim: true,
+    index: true
   },
   guestName: {
     type: String,
@@ -96,14 +114,23 @@ const BookingSchema = new Schema({
     default: 0,
     min: 0
   },
+  stripeSessionId: {
+    type: String,
+    trim: true
+  },
+  stripeSessionStatus: {
+    type: String,
+    enum: STRIPE_SESSION_STATUSES,
+    trim: true
+  },
   paymentStatus: {
     type: String,
-    enum: ['unpaid', 'partial_paid', 'paid', 'refunded'],
+    enum: PAYMENT_STATUSES,
     default: 'unpaid'
   },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'cancelled', 'blocked'],
+    enum: BOOKING_STATUSES,
     default: 'pending'
   },
   invoice: {
@@ -133,7 +160,7 @@ const BookingSchema = new Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['online', 'cash', 'transfer'],
+    enum: PAYMENT_METHODS,
     default: 'online'
   }
 }, {
@@ -146,10 +173,9 @@ BookingSchema.index({ status: 1 });
 BookingSchema.index(
   { createdAt: 1 },
   {
-    expireAfterSeconds: 86400,
+    expireAfterSeconds: 2592000,
     partialFilterExpression: {
-      paymentStatus: 'unpaid',
-      status: 'pending',
+      status: 'failed',
       source: 'online'
     }
   }

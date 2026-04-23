@@ -181,6 +181,11 @@
   color: #475569;
 }
 
+.badgeFailed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
 .badgePending {
   background: #fef3c7;
   color: #92400e;

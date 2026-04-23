@@ -13,15 +13,20 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const [isBookingsOpen, setIsBookingsOpen] = useState(false);
+  const [isPaymentsOpen, setIsPaymentsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isBookingsActive = pathname?.startsWith('/admin/bookings');
   const isPropertiesActive = pathname === '/admin/properties' || pathname?.startsWith('/admin/properties/');
   const isPricesActive = pathname === '/admin/prices' || pathname?.startsWith('/admin/prices/');
+  const isPaymentsActive = pathname === '/admin/payments' || pathname?.startsWith('/admin/payments/');
+  const isPaymentsOnlineActive = pathname === '/admin/payments/online';
+  const isPaymentsOfflineActive = pathname === '/admin/payments/offline';
   const isSettingsActive = pathname === '/admin/settings';
   const isDevActive = pathname === '/admin/dev';
 
   const toggleBookings = () => setIsBookingsOpen(!isBookingsOpen);
+  const togglePayments = () => setIsPaymentsOpen(!isPaymentsOpen);
 
   const handleMenuLinkClick = () => {
     if (isMobileMenuOpen) {
@@ -43,10 +48,13 @@ export default function AdminLayout({
     if (isBookingsActive) {
       setIsBookingsOpen(true);
     }
+    if (isPaymentsActive) {
+      setIsPaymentsOpen(true);
+    }
     return () => {
       document.body.classList.remove('mobile-menu-open');
     };
-  }, [isBookingsActive]);
+  }, [isBookingsActive, isPaymentsActive]);
 
   return (
     <>
@@ -135,6 +143,37 @@ export default function AdminLayout({
               <span className={styles.navIcon}>💰</span>
               <span>Ceny</span>
             </Link>
+
+            <div>
+              <div
+                className={`${styles.navLink} ${isPaymentsActive ? styles.active : ''}`}
+                onClick={togglePayments}
+                style={{ justifyContent: 'space-between', cursor: 'pointer' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span className={styles.navIcon}>💳</span>
+                  <span>Płatności</span>
+                </div>
+                <span>{isPaymentsOpen ? '▲' : '▼'}</span>
+              </div>
+
+              <div className={`${styles.submenu} ${isPaymentsOpen ? styles.open : ''}`}>
+                <Link
+                  href="/admin/payments/online"
+                  className={`${styles.subLink} ${isPaymentsOnlineActive ? styles.active : ''}`}
+                  onClick={handleMenuLinkClick}
+                >
+                  💳 Płatności Online
+                </Link>
+                <Link
+                  href="/admin/payments/offline"
+                  className={`${styles.subLink} ${isPaymentsOfflineActive ? styles.active : ''}`}
+                  onClick={handleMenuLinkClick}
+                >
+                  💵 Gotówka/Przelew
+                </Link>
+              </div>
+            </div>
           </div>
 
           <div>

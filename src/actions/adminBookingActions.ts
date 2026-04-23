@@ -7,7 +7,10 @@ import BookingConfig from '@/db/models/BookingConfig'
 import { revalidatePath } from 'next/cache'
 import { calculateTotalPrice } from './searchActions'
 import { buildBookingOverlapFilter } from '@/utils/bookingOverlap'
+import { resolveOccupiedPropertyIdsFromBookings } from '@/utils/lazyAvailabilityCleanup'
+import { calculatePaymentStatus } from '@/utils/getPaymentStatus'
 import { Types } from 'mongoose'
+import { generateOrderId } from '@/utils/generateOrderId'
 
 interface UnavailableDate {
   date: string | null
@@ -36,6 +39,7 @@ const AVAILABILITY_STATUS_FILTER = {
   $or: [
     { status: 'blocked' },
     { status: 'confirmed' },
+    { status: 'pending' },
   ],
 }
 
@@ -51,18 +55,6 @@ async function getAllowCheckinOnDepartureDay(): Promise<boolean> {
   return bookingConfig.allowCheckinOnDepartureDay
 }
 
-function resolvePaymentStatus(totalPrice: number, paidAmount: number): 'unpaid' | 'partial_paid' | 'paid' {
-  if (paidAmount <= 0) {
-    return 'unpaid'
-  }
-
-  if (paidAmount < totalPrice) {
-    return 'partial_paid'
-  }
-
-  return 'paid'
-}
-
 export async function getUnavailableDatesForProperty(propertyId: string): Promise<UnavailableDate[]> {
   await dbConnect()
   const config = await SystemConfig.findById('main')
@@ -76,9 +68,17 @@ export async function getUnavailableDatesForProperty(propertyId: string): Promis
     query.propertyId = new Types.ObjectId(propertyId)
   }
 
-  const bookings = await Booking.find(query)
-    .select('startDate endDate')
+  const bookingsForCleanup = await Booking.find(query)
+    .select('_id propertyId status createdAt stripeSessionId source adminNotes startDate endDate')
     .lean()
+
+  const { didMutateBookings } = await resolveOccupiedPropertyIdsFromBookings(bookingsForCleanup)
+
+  const bookings = didMutateBookings
+    ? await Booking.find(query)
+        .select('startDate endDate')
+        .lean()
+    : bookingsForCleanup
   const unavailableDates = new Set<string>()
   for (const booking of bookings) {
     const start = new Date(booking.startDate)
@@ -136,7 +136,7 @@ export async function getAdminBookingsList() {
     const propertyId = property?._id ? String(property._id) : String(property || '')
     const paidAmount = Number(booking.paidAmount)
     const totalPrice = Number(booking.totalPrice)
-    const paymentStatus = booking.paymentStatus || resolvePaymentStatus(totalPrice, paidAmount)
+    const paymentStatus = booking.paymentStatus || calculatePaymentStatus(totalPrice, paidAmount)
 
     return {
       ...booking,
@@ -163,7 +163,7 @@ export async function getBookingById(bookingId: string) {
   const property = (booking as any).propertyId
   const paidAmount = Number((booking as any).paidAmount)
   const totalPrice = Number((booking as any).totalPrice)
-  const paymentStatus = (booking as any).paymentStatus || resolvePaymentStatus(totalPrice, paidAmount)
+  const paymentStatus = (booking as any).paymentStatus || calculatePaymentStatus(totalPrice, paidAmount)
 
   const normalizedBooking = {
     ...booking,
@@ -193,7 +193,7 @@ export async function createBookingByAdmin(prevState: any, formData: FormData) {
     } : undefined
     const totalPrice = Number(rawData.totalPrice)
     const paidAmount = Number(rawData.paidAmount)
-    const paymentStatus = resolvePaymentStatus(totalPrice, paidAmount)
+    const paymentStatus = calculatePaymentStatus(totalPrice, paidAmount)
     const allowCheckinOnDepartureDay = ADMIN_ALLOW_CHECKIN_ON_DEPARTURE_DAY
     const propertyId = rawData.propertyId as string
     const startDate = new Date(rawData.startDate as string)
@@ -205,17 +205,24 @@ export async function createBookingByAdmin(prevState: any, formData: FormData) {
 
     const overlapFilter = buildBookingOverlapFilter(startDate, endDate, allowCheckinOnDepartureDay)
 
-    const existingConflict = await Booking.findOne({
+    const overlappingBookings = await Booking.find({
       propertyId: new Types.ObjectId(propertyId),
       ...AVAILABILITY_STATUS_FILTER,
       ...overlapFilter,
-    }).select('_id').lean()
+    })
+      .select('_id propertyId status createdAt stripeSessionId source adminNotes')
+      .lean()
+
+    const { occupiedPropertyIds } = await resolveOccupiedPropertyIdsFromBookings(overlappingBookings)
+
+    const existingConflict = occupiedPropertyIds.size > 0
 
     if (existingConflict) {
       return { message: 'Wybrany termin koliduje z istniejącą rezerwacją lub blokadą.', success: false }
     }
 
     const newBooking = new Booking({
+      orderId: await generateOrderId(),
       propertyId,
       startDate,
       endDate,
@@ -264,7 +271,7 @@ export async function updateBookingAction(prevState: any, formData: FormData) {
     } : undefined
     const totalPrice = Number(rawData.totalPrice)
     const paidAmount = Number(rawData.paidAmount)
-    const paymentStatus = resolvePaymentStatus(totalPrice, paidAmount)
+    const paymentStatus = calculatePaymentStatus(totalPrice, paidAmount)
     const allowCheckinOnDepartureDay = ADMIN_ALLOW_CHECKIN_ON_DEPARTURE_DAY
     const propertyId = rawData.propertyId as string
     const startDate = new Date(rawData.startDate as string)
@@ -278,12 +285,18 @@ export async function updateBookingAction(prevState: any, formData: FormData) {
     if (status === 'confirmed' || status === 'blocked') {
       const overlapFilter = buildBookingOverlapFilter(startDate, endDate, allowCheckinOnDepartureDay)
 
-      const existingConflict = await Booking.findOne({
+      const overlappingBookings = await Booking.find({
         _id: { $ne: bookingId },
         propertyId: new Types.ObjectId(propertyId),
         ...AVAILABILITY_STATUS_FILTER,
         ...overlapFilter,
-      }).select('_id').lean()
+      })
+        .select('_id propertyId status createdAt stripeSessionId source adminNotes')
+        .lean()
+
+      const { occupiedPropertyIds } = await resolveOccupiedPropertyIdsFromBookings(overlappingBookings)
+
+      const existingConflict = occupiedPropertyIds.size > 0
 
       if (existingConflict) {
         return { message: 'Wybrany termin koliduje z istniejącą rezerwacją lub blokadą.', success: false }
@@ -377,9 +390,17 @@ export async function getUnavailableDatesForBlocking(propertyId: string): Promis
     query.propertyId = new Types.ObjectId(propertyId)
   }
 
-  const bookings = await Booking.find(query)
-    .select('startDate endDate')
+  const bookingsForCleanup = await Booking.find(query)
+    .select('_id propertyId status createdAt stripeSessionId source adminNotes startDate endDate')
     .lean()
+
+  const { didMutateBookings } = await resolveOccupiedPropertyIdsFromBookings(bookingsForCleanup)
+
+  const bookings = didMutateBookings
+    ? await Booking.find(query)
+        .select('startDate endDate')
+        .lean()
+    : bookingsForCleanup
 
   const unavailableDates = new Set<string>()
 
@@ -478,11 +499,17 @@ export async function createBlockedBookingByAdmin(data: BlockCreateInput) {
     const overlapFilter = buildBookingOverlapFilter(startDate, endDate, allowCheckinOnDepartureDay)
 
     for (const property of targetProperties) {
-      const conflict = await Booking.findOne({
+      const overlapBookings = await Booking.find({
         propertyId: property._id,
         ...AVAILABILITY_STATUS_FILTER,
         ...overlapFilter,
-      }).select('_id').lean()
+      })
+        .select('_id propertyId status createdAt stripeSessionId source adminNotes')
+        .lean()
+
+      const { occupiedPropertyIds } = await resolveOccupiedPropertyIdsFromBookings(overlapBookings)
+
+      const conflict = occupiedPropertyIds.size > 0
 
       if (conflict) conflictedProperties.push(property.name)
     }

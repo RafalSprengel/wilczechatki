@@ -3,6 +3,7 @@ import mongoose, { Schema, Document, Types } from 'mongoose';
 interface ISystemConfigDoc extends Omit<Document, '_id'> {
   _id: string;
   autoBlockOtherCabins: boolean;
+  lastOrderNumber: number;
 }
 
 export type ISystemConfig = ISystemConfigDoc;
@@ -16,6 +17,10 @@ const SystemConfigSchema = new Schema<ISystemConfig>(
     autoBlockOtherCabins: {
       type: Boolean,
       default: true
+    },
+    lastOrderNumber: {
+      type: Number,
+      default: 0
     }
   },
   {

@@ -46,7 +46,15 @@ export default async function BookingsListPage() {
                 const end = new Date(booking.endDate);
                 const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
                 const statusKey = booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
-                const statusLabel = booking.status === 'confirmed' ? 'Potwierdzona' : booking.status === 'blocked' ? 'Zablokowana' : booking.status === 'cancelled' ? 'Anulowana' : 'Oczekująca';
+                const statusLabel = booking.status === 'confirmed'
+                  ? 'Potwierdzona'
+                  : booking.status === 'blocked'
+                    ? 'Zablokowana'
+                    : booking.status === 'cancelled'
+                      ? 'Anulowana'
+                      : booking.status === 'failed'
+                        ? 'Odrzucona'
+                        : 'Oczekująca';
                 const paidAmount = Number(booking.paidAmount);
                 const totalPrice = Number(booking.totalPrice);
                 const remainingAmount = totalPrice - paidAmount;
@@ -120,7 +128,15 @@ export default async function BookingsListPage() {
                 const end = new Date(booking.endDate);
                 const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
                 const statusKey = booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
-                const statusLabel = booking.status === 'confirmed' ? 'Potwierdzona' : booking.status === 'blocked' ? 'Zablokowana' : booking.status === 'cancelled' ? 'Anulowana' : 'Oczekująca';
+                const statusLabel = booking.status === 'confirmed'
+                  ? 'Potwierdzona'
+                  : booking.status === 'blocked'
+                    ? 'Zablokowana'
+                    : booking.status === 'cancelled'
+                      ? 'Anulowana'
+                      : booking.status === 'failed'
+                        ? 'Odrzucona'
+                        : 'Oczekująca';
                 const paidAmount = Number(booking.paidAmount);
                 const totalPrice = Number(booking.totalPrice);
                 const remainingAmount = totalPrice - paidAmount;

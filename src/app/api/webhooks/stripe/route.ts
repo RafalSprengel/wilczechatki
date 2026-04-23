@@ -83,6 +83,7 @@ export async function POST(request: Request) {
           $set: {
             status: "confirmed",
             paymentStatus: "paid",
+            stripeSessionId: session.id,
           },
         }
       );
@@ -105,14 +106,15 @@ export async function POST(request: Request) {
       },
       {
         $set: {
-          status: "cancelled",
+          status: "failed",
+          stripeSessionId: session.id,
         },
       }
     );
 
     if (cancelResult.matchedCount !== objectIds.length) {
       return NextResponse.json(
-        { error: "Nie znaleziono wszystkich rezerwacji do anulowania po nieudanej platnosci." },
+        { error: "Nie znaleziono wszystkich rezerwacji do oznaczenia jako nieudane po nieudanej platnosci." },
         { status: 404 }
       );
     }

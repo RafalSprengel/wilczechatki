@@ -30,6 +30,42 @@
   border: 1px solid #dcfce7;
 }
 
+.loaderWrapper {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 4px solid #e2e8f0;
+  border-top-color: #c9b363;
+  animation: spin 0.9s linear infinite;
+}
+
+.errorIconWrapper {
+  width: 72px;
+  height: 72px;
+  background: #fee2e2;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  border: 1px solid #fecaca;
+}
+
+.errorIcon {
+  color: #b91c1c;
+  font-size: 36px;
+  font-weight: bold;
+}
+
 .successIcon {
   color: #ececec;
   font-size: 36px;
@@ -112,6 +148,12 @@
   background: #b39b4a;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(201, 179, 99, 0.2);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (min-width: 600px) {

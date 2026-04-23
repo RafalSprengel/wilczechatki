@@ -11,6 +11,7 @@ import SystemConfig from '@/db/models/SystemConfig';
 import BookingConfig from '@/db/models/BookingConfig';
 import { buildBookingOverlapFilter } from '@/utils/bookingOverlap';
 import { Types } from 'mongoose';
+import { resolveOccupiedPropertyIdsFromBookings } from '@/utils/lazyAvailabilityCleanup';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import isBetween from 'dayjs/plugin/isBetween';
@@ -295,13 +296,27 @@ export async function searchAction(params: SearchParams) {
     const allowCheckinOnDepartureDay = bookingConfig?.allowCheckinOnDepartureDay ?? true;
     const overlapCondition = buildBookingOverlapFilter(start.toDate(), end.toDate(), allowCheckinOnDepartureDay);
 
-    const occupiedIds = await Booking.distinct('propertyId', {
+    const overlappingBookings = await Booking.find({  //return list of bookings reservations (not overy single day)  that overlap with searched date range
       $or: [
         { status: 'blocked' },
         { status: 'confirmed' },
+        { status: 'pending' },
       ],
       ...overlapCondition,
-    });
+    })
+      .select('_id propertyId status createdAt stripeSessionId source adminNotes')
+      .lean();
+    //console.log(overlappingBookings);
+    const { occupiedPropertyIds } = await resolveOccupiedPropertyIdsFromBookings(overlappingBookings);
+
+    const occupiedIds = Array.from(occupiedPropertyIds)
+      .map((id) => {
+        if (!Types.ObjectId.isValid(id)) {
+          throw new Error('Nieprawidłowe propertyId podczas przygotowania listy zajętych domków.');
+        }
+
+        return new Types.ObjectId(id);
+      });
 
     if (autoBlockOtherCabins && occupiedIds.length > 0) {
       return { propertiesAvailable: [], areAllAvailable: false };
@@ -362,7 +377,7 @@ export async function searchAction(params: SearchParams) {
     }
     const result = options.sort((a, b) => a.totalPrice - b.totalPrice);
 
-   return { propertiesAvailable: result, areAllAvailable: result.length === totalActiveProperties };
+    return { propertiesAvailable: result, areAllAvailable: result.length === totalActiveProperties };
   } catch (error) {
     console.error('Błąd wyszukiwania dostępności:', error);
     throw new Error('Nie udało się pobrać dostępnych terminów.');

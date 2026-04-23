@@ -2,6 +2,8 @@
 import dbConnect from '@/db/connection';
 import Booking from '@/db/models/Booking';
 import Property from '@/db/models/Property';
+import { resolveOccupiedPropertyIdsFromBookings } from '@/utils/lazyAvailabilityCleanup';
+import type { PaymentStatus } from '@/types/bookingStatus';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
@@ -22,7 +24,7 @@ export interface BookingDetails {
   extraBeds: number;
   totalPrice: number;
   paidAmount: number;
-  paymentStatus: 'unpaid' | 'partial_paid' | 'paid' | 'refunded';
+  paymentStatus: PaymentStatus;
   status: string;
   startDate: string;
   endDate: string;
@@ -59,14 +61,29 @@ export async function getCalendarData(daysInMonth: number, startDateStr: string)
   const endDate = startDate.add(daysInMonth, 'day').endOf('day');
 
   const properties = await Property.find({ isActive: true }).lean();
-  const bookings = await Booking.find({
+  const bookingsForCleanup = await Booking.find({
     $or: [
       { status: 'blocked' },
       { status: 'confirmed' },
+      { status: 'pending' },
     ],
     startDate: { $lt: endDate.toDate() },
     endDate: { $gt: startDate.toDate() }
   }).lean();
+
+  const { didMutateBookings } = await resolveOccupiedPropertyIdsFromBookings(bookingsForCleanup);
+
+  const bookings = didMutateBookings
+    ? await Booking.find({
+        $or: [
+          { status: 'blocked' },
+          { status: 'confirmed' },
+          { status: 'pending' },
+        ],
+        startDate: { $lt: endDate.toDate() },
+        endDate: { $gt: startDate.toDate() }
+      }).lean()
+    : bookingsForCleanup;
 
   const mapBookingDetails = (b: any): BookingDetails => {
     const id = b._id.toString();

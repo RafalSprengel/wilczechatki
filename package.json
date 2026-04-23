@@ -18,6 +18,9 @@
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
     "@fortawesome/react-fontawesome": "^3.1.1",
     "@stripe/stripe-js": "^5.10.0",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "better-auth": "^1.6.5",
     "dayjs": "^1.11.20",
     "glightbox": "^3.3.1",
     "mongoose": "^9.2.1",
@@ -30,6 +33,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

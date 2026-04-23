@@ -251,6 +251,7 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
             <option value="confirmed">Potwierdzona</option>
             <option value="blocked">Zablokowana</option>
             <option value="cancelled">Anulowana</option>
+            <option value="failed">Odrzucona (failed)</option>
           </select>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { stripe } from "@/lib/stripe";
 import { headers } from "next/headers";
 import { BookingData } from "@/types/booking";
 import { Types } from "mongoose";
+import { generateOrderId } from "@/utils/generateOrderId";
 
 export async function createCheckoutSession(bookingData: BookingData) {
   if (!bookingData) throw new Error("Brak danych rezerwacji.");
@@ -86,6 +87,8 @@ export async function createCheckoutSession(bookingData: BookingData) {
     throw new Error("Brak nagłówka origin potrzebnego do utworzenia sesji Stripe.");
   }
 
+  const orderId = await generateOrderId();
+
   const bookingDocs = orders.map((order) => ({
     propertyId: new Types.ObjectId(order.propertyId),
     startDate: new Date(startDate),
@@ -100,6 +103,7 @@ export async function createCheckoutSession(bookingData: BookingData) {
     totalPrice: order.price,
     depositAmount: order.price,
     paidAmount: 0,
+    orderId,
     paymentStatus: "unpaid" as const,
     status: "pending" as const,
     paymentMethod: "online" as const,
@@ -108,6 +112,7 @@ export async function createCheckoutSession(bookingData: BookingData) {
 
   const insertedBookings = await Booking.insertMany(bookingDocs);
   const bookingIds = insertedBookings.map((booking) => booking._id.toString());
+  const bookingObjectIds = bookingIds.map((id) => new Types.ObjectId(id));
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -128,6 +133,7 @@ export async function createCheckoutSession(bookingData: BookingData) {
       mode: "payment",
       customer_email: clientData.email,
       metadata: {
+        orderId,
         startDate: startDate,
         endDate: endDate,
         propertyIds,
@@ -140,9 +146,23 @@ export async function createCheckoutSession(bookingData: BookingData) {
       cancel_url: `${origin}/booking/summary`,
     });
 
+    const updatedBookings = await Booking.updateMany(
+      { _id: { $in: bookingObjectIds } },
+      {
+        $set: {
+          stripeSessionId: session.id,
+          stripeSessionStatus: session.status === 'open' ? 'open' : 'unknown',
+        },
+      }
+    );
+
+    if (updatedBookings.matchedCount !== bookingObjectIds.length) {
+      throw new Error('Nie udało się przypisać identyfikatora sesji Stripe do wszystkich rezerwacji.');
+    }
+
     return { url: session.url };
   } catch (error) {
-    await Booking.deleteMany({ _id: { $in: bookingIds.map((id) => new Types.ObjectId(id)) } });
+    await Booking.deleteMany({ _id: { $in: bookingObjectIds } });
     console.error("Błąd podczas tworzenia sesji checkout:", error);
     throw new Error("Wystąpił błąd podczas inicjowania płatności Stripe.");
   }

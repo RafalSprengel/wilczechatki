@@ -1,4 +1,4 @@
-export type PaymentStatus = 'unpaid' | 'partial_paid' | 'paid' | 'refunded';
+import type { PaymentStatus } from '@/types/bookingStatus';
 
 export function calculatePaymentStatus(totalPrice: number, paidAmount: number): PaymentStatus {
   if (paidAmount >= totalPrice) return 'paid';

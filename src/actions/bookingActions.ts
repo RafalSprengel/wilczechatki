@@ -5,6 +5,8 @@ import Booking from '@/db/models/Booking';
 import Property from '@/db/models/Property';
 import SystemConfig from '@/db/models/SystemConfig';
 import BookingConfig from '@/db/models/BookingConfig';
+import { resolveOccupiedPropertyIdsFromBookings } from '@/utils/lazyAvailabilityCleanup';
+import { calculatePaymentStatus } from '@/utils/getPaymentStatus';
 import {
   calculateTotalPrice,
 } from '@/actions/searchActions';
@@ -56,18 +58,6 @@ interface BookingDraftData {
   extraBeds: number;
   selectedOption: SelectedOption | null;
   guestData: GuestData;
-}
-
-function resolvePaymentStatus(totalPrice: number, paidAmount: number): 'unpaid' | 'partial_paid' | 'paid' {
-  if (paidAmount <= 0) {
-    return 'unpaid';
-  }
-
-  if (paidAmount < totalPrice) {
-    return 'partial_paid';
-  }
-
-  return 'paid';
 }
 
 export async function createBookingFromDraft(draftData: BookingDraftData) {
@@ -149,7 +139,7 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
           totalPrice: recalculatedPrice,
           depositAmount: recalculatedPrice,
           paidAmount: 0,
-          paymentStatus: resolvePaymentStatus(recalculatedPrice, 0),
+          paymentStatus: calculatePaymentStatus(recalculatedPrice, 0),
         });
       }
     } else {
@@ -189,7 +179,7 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
         totalPrice: recalculatedPrice,
         depositAmount: recalculatedPrice,
         paidAmount: 0,
-        paymentStatus: resolvePaymentStatus(recalculatedPrice, 0),
+        paymentStatus: calculatePaymentStatus(recalculatedPrice, 0),
       });
     }
 
@@ -233,12 +223,29 @@ export async function getBlockedDates(): Promise<{ date: string }[]> {
 
     const allowCheckinOnDepartureDay = bookingConfig?.allowCheckinOnDepartureDay ?? true;
 
-    const bookings = await Booking.find({
+    const bookingsForCleanup = await Booking.find({
       $or: [
         { status: 'blocked' },
         { status: 'confirmed' },
+        { status: 'pending' },
       ],
-    }).select('startDate endDate').lean();
+    })
+      .select('_id propertyId status createdAt stripeSessionId source adminNotes startDate endDate')
+      .lean();
+
+    const { didMutateBookings } = await resolveOccupiedPropertyIdsFromBookings(bookingsForCleanup);
+
+    const bookings = didMutateBookings
+      ? await Booking.find({
+          $or: [
+            { status: 'blocked' },
+            { status: 'confirmed' },
+            { status: 'pending' },
+          ],
+        })
+          .select('startDate endDate')
+          .lean()
+      : bookingsForCleanup;
 
     const blockedSet = new Set<string>();
 
