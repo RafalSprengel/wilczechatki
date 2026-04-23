@@ -26,7 +26,6 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
       </header>
       <div className={styles.grid}>
         <div className={styles.mainCard}>
-          <h2 className={styles.cardTitle}>Edycja Danych</h2>
           <EditBookingForm initialData={booking} />
         </div>
         <div className={styles.sideCard}>

@@ -15,6 +15,7 @@ dayjs.extend(isSameOrAfter);
 
 export interface BookingDetails {
   id: string;
+  orderId?: string;
   guestName: string;
   guestEmail: string;
   guestPhone: string;
@@ -93,6 +94,7 @@ export async function getCalendarData(daysInMonth: number, startDateStr: string)
 
     return {
       id,
+      orderId: typeof b.orderId === 'string' && b.orderId.trim().length > 0 ? b.orderId : undefined,
       guestName: b.guestName || 'Gość',
       guestEmail: b.guestEmail || '',
       guestPhone: b.guestPhone || '',

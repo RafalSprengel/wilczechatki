@@ -39,15 +39,33 @@ function formatMethod(method: 'online' | 'cash' | 'transfer'): string {
 export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps) {
   const router = useRouter()
   const [statusFilter, setStatusFilter] = useState<AdminPaymentStatus>('confirmed')
+  const [orderSearch, setOrderSearch] = useState('')
   const [syncingId, setSyncingId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const rows = mode === 'online' ? initialData.online : initialData.offline
 
-  const filteredRows = useMemo(
-    () => (mode === 'online' ? rows.filter((row) => row.status === statusFilter) : rows),
-    [rows, statusFilter, mode]
-  )
+  const filteredRows = useMemo(() => {
+    const rowsByMode = mode === 'online' ? rows.filter((row) => row.status === statusFilter) : rows
+
+    if (mode !== 'online') {
+      return rowsByMode
+    }
+
+    const normalizedQuery = orderSearch.trim().toLowerCase()
+
+    if (normalizedQuery.length === 0) {
+      return rowsByMode
+    }
+
+    return rowsByMode.filter((row) => {
+      if (typeof row.orderId !== 'string') {
+        return false
+      }
+
+      return row.orderId.toLowerCase().includes(normalizedQuery)
+    })
+  }, [rows, statusFilter, mode, orderSearch])
 
   const onSync = (bookingId: string) => {
     setSyncingId(bookingId)
@@ -77,34 +95,47 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
       <h2 className={styles.sectionTitle}>{mode === 'online' ? 'Płatności Online' : 'Gotówka/Przelew'}</h2>
 
       {mode === 'online' ? (
-        <div className={styles.filters} role="radiogroup" aria-label="Filtr statusu">
-          <button
-            type="button"
-            role="radio"
-            aria-checked={statusFilter === 'confirmed'}
-            className={`${styles.filterBtn} ${statusFilter === 'confirmed' ? styles.filterBtnActive : ''}`}
-            onClick={() => setStatusFilter('confirmed')}
-          >
-            Potwierdzone
-          </button>
-          <button
-            type="button"
-            role="radio"
-            aria-checked={statusFilter === 'failed'}
-            className={`${styles.filterBtn} ${statusFilter === 'failed' ? styles.filterBtnActive : ''}`}
-            onClick={() => setStatusFilter('failed')}
-          >
-            Odrzucone (failed)
-          </button>
-          <button
-            type="button"
-            role="radio"
-            aria-checked={statusFilter === 'pending'}
-            className={`${styles.filterBtn} ${statusFilter === 'pending' ? styles.filterBtnActive : ''}`}
-            onClick={() => setStatusFilter('pending')}
-          >
-            Oczekujące (pending)
-          </button>
+        <div className={styles.filtersWrap}>
+          <div className={styles.filters} role="radiogroup" aria-label="Filtr statusu">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={statusFilter === 'confirmed'}
+              className={`${styles.filterBtn} ${statusFilter === 'confirmed' ? styles.filterBtnActive : ''}`}
+              onClick={() => setStatusFilter('confirmed')}
+            >
+              Potwierdzone
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={statusFilter === 'failed'}
+              className={`${styles.filterBtn} ${statusFilter === 'failed' ? styles.filterBtnActive : ''}`}
+              onClick={() => setStatusFilter('failed')}
+            >
+              Odrzucone (failed)
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={statusFilter === 'pending'}
+              className={`${styles.filterBtn} ${statusFilter === 'pending' ? styles.filterBtnActive : ''}`}
+              onClick={() => setStatusFilter('pending')}
+            >
+              Oczekujące (pending)
+            </button>
+          </div>
+          <div className={styles.orderSearchWrap}>
+            <label htmlFor="orderSearch" className={styles.orderSearchLabel}>Szukaj po numerze zamówienia</label>
+            <input
+              id="orderSearch"
+              type="text"
+              value={orderSearch}
+              onChange={(event) => setOrderSearch(event.target.value)}
+              placeholder="Np. ORD-000123"
+              className={styles.orderSearchInput}
+            />
+          </div>
         </div>
       ) : null}
 
@@ -112,6 +143,7 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
         <table className={styles.table}>
           <thead>
             <tr>
+              {mode === 'online' ? <th>Zamówienie nr.</th> : null}
               <th>Data</th>
               <th>Klient</th>
               <th>Kwota</th>
@@ -123,7 +155,7 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
           <tbody>
             {filteredRows.length === 0 ? (
               <tr>
-                <td colSpan={mode === 'online' ? 6 : 4} className={styles.emptyRow}>
+                <td colSpan={mode === 'online' ? 7 : 4} className={styles.emptyRow}>
                   Brak płatności dla wybranego filtra.
                 </td>
               </tr>
@@ -136,6 +168,7 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
 
                 return (
                   <tr key={row.id}>
+                    {mode === 'online' ? <td>{row.orderId ? row.orderId : 'Brak numeru'}</td> : null}
                     <td>{createdAt.toLocaleString('pl-PL')}</td>
                     <td>{row.guestName}</td>
                     <td>{row.totalPrice.toFixed(2)} zł</td>

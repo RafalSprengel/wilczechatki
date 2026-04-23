@@ -28,6 +28,10 @@ const BookingTooltip = ({ details }: { details: BookingDetails }) => {
           <span className={styles.badge}>ZABLOKOWANA</span>
         </div>
         <div className={styles.tooltipRow}>
+          <span className={styles.label}>🧾 Zamówienie nr.:</span>
+          <span className={styles.valueText}>{details.orderId ? details.orderId : '-'}</span>
+        </div>
+        <div className={styles.tooltipRow}>
           <span className={styles.label}>🗓️ Termin:</span>
           <span className={styles.valueText}>{details.startDate} do {details.endDate}</span>
         </div>
@@ -50,6 +54,10 @@ const BookingTooltip = ({ details }: { details: BookingDetails }) => {
       <div className={styles.tooltipHeader}>
         <h4 className={styles.guestNameText}>{details.guestName}</h4>
         <span className={styles.badge}>{details.status === 'confirmed' ? 'POTWIERDZONA' : 'ZABLOKOWANA'}</span>
+      </div>
+      <div className={styles.tooltipRow}>
+        <span className={styles.label}>🧾 Zamówienie nr.:</span>
+        <span className={styles.valueText}>{details.orderId ? details.orderId : '-'}</span>
       </div>
       <div className={styles.tooltipRow}>
         <span className={styles.label}>🗓️ Termin:</span>

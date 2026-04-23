@@ -2,7 +2,7 @@ import Booking from '@/db/models/Booking';
 import { stripe } from '@/lib/stripe';
 import type { StripeSessionStatus } from '@/types/bookingStatus';
 
-const PENDING_MAX_AGE_MS = 30 * 60 * 1000; //30 minutes block for pending bookings without recent activity (creation or stripe session updates)
+const PENDING_MAX_AGE_MS = 15 * 60 * 1000; //15 minutes block for pending bookings without recent activity (creation or stripe session updates)
 
 type SessionDecision = 'occupied' | 'free' | 'unknown';
 

@@ -13,6 +13,7 @@ export type AdminPaymentTab = 'online' | 'offline'
 
 export interface AdminPaymentRow {
   id: string
+  orderId?: string
   createdAt: string
   guestName: string
   totalPrice: number
@@ -61,6 +62,10 @@ function normalizePaymentRow(row: any): AdminPaymentRow {
     status: row.status,
   }
 
+  if (typeof row.orderId === 'string' && row.orderId.trim().length > 0) {
+    mapped.orderId = row.orderId
+  }
+
   if (typeof row.stripeSessionId === 'string' && row.stripeSessionId.trim().length > 0) {
     mapped.stripeSessionId = row.stripeSessionId
   }
@@ -78,7 +83,7 @@ export async function getAdminPaymentsData(): Promise<AdminPaymentsData> {
       source: 'online',
       status: { $in: ['pending', 'confirmed', 'failed'] },
     })
-      .select('createdAt guestName totalPrice paymentMethod status stripeSessionId')
+      .select('orderId createdAt guestName totalPrice paymentMethod status stripeSessionId')
       .sort({ createdAt: -1 })
       .lean(),
     Booking.find({

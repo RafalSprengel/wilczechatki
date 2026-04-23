@@ -10,16 +10,33 @@ function getPaymentBadge(paymentStatus: string, paidAmount: number, totalPrice: 
   return { text: 'Nieopłacone', class: styles.paymentUnpaid };
 }
 
-export default async function BookingsListPage() {
+interface BookingsListPageProps {
+  searchParams?: Promise<{ q?: string }>;
+}
+
+export default async function BookingsListPage({ searchParams }: BookingsListPageProps) {
   const bookings = await getAdminBookingsList();
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const orderQuery = typeof resolvedSearchParams?.q === 'string' ? resolvedSearchParams.q.trim() : '';
+  const normalizedOrderQuery = orderQuery.toLowerCase();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const upcomingBookings = bookings
+  const filteredBookings = normalizedOrderQuery.length === 0
+    ? bookings
+    : bookings.filter((booking: any) => {
+        if (typeof booking.orderId !== 'string') {
+          return false;
+        }
+
+        return booking.orderId.toLowerCase().includes(normalizedOrderQuery);
+      });
+
+  const upcomingBookings = filteredBookings
     .filter((b: any) => new Date(b.endDate) >= today)
     .sort((a: any, b: any) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
-  const pastBookings = bookings
+  const pastBookings = filteredBookings
     .filter((b: any) => new Date(b.endDate) < today)
     .sort((a: any, b: any) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
 
@@ -31,11 +48,22 @@ export default async function BookingsListPage() {
           <h1>Lista Rezerwacji</h1>
         </div>
         <p>Przeglądaj, edytuj lub usuwaj istniejące rezerwacje.</p>
+        <form method="get" className={styles.searchForm}>
+          <input
+            type="text"
+            name="q"
+            defaultValue={orderQuery}
+            placeholder="Szukaj po numerze zamówienia, np. ORD-000123"
+            className={styles.searchInput}
+          />
+          <button type="submit" className={styles.searchButton}>Szukaj</button>
+          {orderQuery.length > 0 ? <Link href="/admin/bookings/list" className={styles.clearSearch}>Wyczyść</Link> : null}
+        </form>
       </header>
 
-      {bookings.length === 0 ? (
+      {filteredBookings.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>Brak rezerwacji w systemie.</p>
+          <p>{orderQuery.length > 0 ? 'Brak rezerwacji dla podanego numeru zamówienia.' : 'Brak rezerwacji w systemie.'}</p>
         </div>
       ) : (
         <>
@@ -72,6 +100,10 @@ export default async function BookingsListPage() {
                     <h3 className={styles.guestName}>{booking.guestName || 'Gość'}</h3>
                     <div className={styles.guestEmail}>{booking.guestEmail || '-'}</div>
                     <div className={styles.propertyName}>{booking.propertyName || 'Domek'}</div>
+                    <div className={styles.detailRow}>
+                      <span className={styles.label}>Zamówienie nr.:</span>
+                      <span className={styles.value}>{booking.orderId ? booking.orderId : 'Brak numeru'}</span>
+                    </div>
 
                     <div className={styles.detailsGrid}>
                       <div className={styles.detailRow}>
@@ -154,6 +186,10 @@ export default async function BookingsListPage() {
                     <h3 className={styles.guestName}>{booking.guestName || 'Gość'}</h3>
                     <div className={styles.guestEmail}>{booking.guestEmail || '-'}</div>
                     <div className={styles.propertyName}>{booking.propertyName || 'Domek'}</div>
+                    <div className={styles.detailRow}>
+                      <span className={styles.label}>Zamówienie nr.:</span>
+                      <span className={styles.value}>{booking.orderId ? booking.orderId : 'Brak numeru'}</span>
+                    </div>
 
                     <div className={styles.detailsGrid}>
                       <div className={styles.detailRow}>

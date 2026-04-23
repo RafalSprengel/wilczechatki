@@ -72,6 +72,35 @@
   margin-bottom: 14px;
 }
 
+.filtersWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.orderSearchWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 320px;
+}
+
+.orderSearchLabel {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.orderSearchInput {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 0.9rem;
+  padding: 8px 10px;
+}
+
 .filterBtn {
   border: 1px solid #cbd5e1;
   border-radius: 8px;

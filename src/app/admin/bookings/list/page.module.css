@@ -27,6 +27,45 @@
   font-size: 0.95rem;
 }
 
+.searchForm {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 240px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 0.9rem;
+  padding: 9px 11px;
+}
+
+.searchButton {
+  border: 1px solid #2563eb;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 9px 14px;
+  cursor: pointer;
+}
+
+.clearSearch {
+  display: inline-flex;
+  align-items: center;
+  color: #1d4ed8;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 9px 4px;
+}
+
 .cardsList {
   display: flex;
   flex-direction: column;

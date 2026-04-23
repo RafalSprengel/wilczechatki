@@ -30,6 +30,7 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
   const initialGuestPhone = initialData.guestPhone ?? initialData.guestInfo?.phone ?? '';
   const initialNumGuests = initialData.adults;
   const initialExtraBeds = initialData.extraBedsCount ?? initialData.extraBeds ?? 0;
+  const orderId = typeof initialData.orderId === 'string' ? initialData.orderId.trim() : '';
 
   const [form, setForm] = useState<FormData>({
     guestName: initialGuestName,
@@ -129,7 +130,10 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
       )}
 
       <div className={styles.formHeader}>
-        <h2 className={styles.formTitle}>Dane rezerwacji</h2>
+        <div className={styles.formTitleWrap}>
+          <h2 className={styles.formTitle}>Dane rezerwacji</h2>
+          <span className={styles.orderIdBadge}>{orderId.length > 0 ? orderId : 'Brak numeru zamówienia'}</span>
+        </div>
         <button
           type="button"
           className={`${styles.editToggleBtn} ${isEditing ? styles.editing : ''}`}
