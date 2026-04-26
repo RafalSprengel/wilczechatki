@@ -18,6 +18,7 @@ export async function GET(request: Request) {
       {
         status: session.status,
         paymentStatus: session.payment_status,
+        customerEmail: session.customer_email ?? null,
       },
       { status: 200 }
     );

@@ -14,6 +14,7 @@ type VerificationState = 'loading' | 'success' | 'error';
 type CheckoutStatusResponse = {
   status?: string;
   paymentStatus?: string;
+  customerEmail?: string | null;
   error?: string;
 };
 
@@ -21,6 +22,7 @@ export default function BookingSuccessPage() {
   const searchParams = useSearchParams();
   const [verificationState, setVerificationState] = useState<VerificationState>('loading');
   const [attempts, setAttempts] = useState(0);
+  const [customerEmail, setCustomerEmail] = useState<string | null>(null);
 
   const bookingsParam = searchParams.get('bookings');
   const bookingsCount = useMemo(() => {
@@ -81,6 +83,7 @@ export default function BookingSuccessPage() {
 
           if (data.status === 'complete') {
             localStorage.removeItem(STORAGE_KEY);
+            setCustomerEmail(data.customerEmail ?? null);
             setVerificationState('success');
             return;
           }
@@ -155,7 +158,12 @@ export default function BookingSuccessPage() {
             )}
 
             <p className={styles.details}>
-              Szczegóły Twojej rezerwacji zostały wysłane na adres e-mail podany w formularzu.
+              Szczegóły Twojej rezerwacji zostały wysłane na adres e-mail:
+              {customerEmail ? (
+                <strong> {customerEmail}</strong>
+              ) : (
+                ' podany w formularzu.'
+              )}
             </p>
 
             <div className={styles.infoBox}>
