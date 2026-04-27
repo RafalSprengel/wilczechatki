@@ -35,6 +35,12 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
             <div className={styles.infoRow}><span className={styles.label}>Utworzono:</span><span>{new Date(booking.createdAt).toLocaleString('pl-PL')}</span></div>
             <div className={styles.infoRow}><span className={styles.label}>Domek:</span><span className={styles.value}>{propertyName}</span></div>
             <div className={styles.infoRow}><span className={styles.label}>Typ:</span><span className={styles.value}>{bookingTypeLabel}</span></div>
+            <div className={styles.infoRow}><span className={styles.label}>Rodzaj płatności:</span><span className={styles.value}>{booking.paymentMethod === 'online' ? 'Online' : booking.paymentMethod === 'cash' ? 'Gotówka' : booking.paymentMethod === 'transfer' ? 'Przelew' : booking.paymentMethod}</span></div>
+            {booking.source === 'admin' && (
+              <div className={styles.adminBubble} style={{marginTop: 12, fontSize: '0.92em', background: '#f1f5f9', color: '#334155', borderRadius: 8, padding: '6px 12px', display: 'inline-block'}}>
+                Rezerwacja dokonana przez panel admina
+              </div>
+            )}
           </div>
           <div className={styles.actionsBlock}>
             <h3 className={styles.cardTitle}>Strefa niebezpieczna</h3>

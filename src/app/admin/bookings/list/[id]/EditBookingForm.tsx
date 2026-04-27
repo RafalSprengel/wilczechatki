@@ -4,11 +4,14 @@ import { updateBookingAction } from '@/actions/adminBookingActions';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 
+
 interface FormData {
   guestName: string;
   guestEmail: string;
   guestPhone: string;
   numGuests: number;
+  children: number;
+  extraBedsCount: number;
   totalPrice: number;
   paidAmount: number;
   status: string;
@@ -29,6 +32,7 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
   const initialGuestEmail = initialData.guestEmail ?? initialData.guestInfo?.email ?? '';
   const initialGuestPhone = initialData.guestPhone ?? initialData.guestInfo?.phone ?? '';
   const initialNumGuests = initialData.adults;
+  const initialChildren = initialData.children ?? 0;
   const initialExtraBeds = initialData.extraBedsCount ?? initialData.extraBeds ?? 0;
   const orderId = typeof initialData.orderId === 'string' ? initialData.orderId.trim() : '';
 
@@ -37,6 +41,8 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
     guestEmail: initialGuestEmail,
     guestPhone: initialGuestPhone,
     numGuests: initialNumGuests,
+    children: initialChildren,
+    extraBedsCount: initialExtraBeds,
     totalPrice: initialData.totalPrice || 0,
     paidAmount: initialData.paidAmount || 0,
     status: initialData.status || 'pending',
@@ -57,7 +63,7 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: name === 'numGuests' || name === 'totalPrice' || name === 'paidAmount' ? Number(value) : value,
+      [name]: ['numGuests', 'children', 'extraBedsCount', 'totalPrice', 'paidAmount'].includes(name) ? Number(value) : value,
     }));
     if (isSaved) setIsSaved(false);
   };
@@ -88,7 +94,8 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
     const formData = new FormData();
     formData.append('bookingId', initialData._id);
     formData.append('propertyId', initialData.propertyId);
-    formData.append('extraBeds', String(initialExtraBeds));
+    formData.append('extraBeds', String(form.extraBedsCount));
+    formData.append('children', String(form.children));
     formData.append('guestName', form.guestName);
     formData.append('guestEmail', form.guestEmail);
     formData.append('guestPhone', form.guestPhone);
@@ -181,12 +188,36 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
           />
         </div>
         <div className={styles.inputGroup}>
-          <label>Liczba Gości</label>
+          <label>Dorośli</label>
           <input
             name="numGuests"
             type="number"
             min="1"
             value={form.numGuests}
+            onChange={handleChange}
+            readOnly={!isEditing}
+            className={!isEditing ? styles.readOnly : ''}
+          />
+        </div>
+        <div className={styles.inputGroup}>
+          <label>Dzieci</label>
+          <input
+            name="children"
+            type="number"
+            min="0"
+            value={form.children}
+            onChange={handleChange}
+            readOnly={!isEditing}
+            className={!isEditing ? styles.readOnly : ''}
+          />
+        </div>
+        <div className={styles.inputGroup}>
+          <label>Dostawki</label>
+          <input
+            name="extraBedsCount"
+            type="number"
+            min="0"
+            value={form.extraBedsCount}
             onChange={handleChange}
             readOnly={!isEditing}
             className={!isEditing ? styles.readOnly : ''}

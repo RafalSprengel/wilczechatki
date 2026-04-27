@@ -105,14 +105,31 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
                       <span className={styles.value}>{booking.orderId ? booking.orderId : 'Brak numeru'}</span>
                     </div>
 
+
                     <div className={styles.detailsGrid}>
                       <div className={styles.detailRow}>
                         <span className={styles.label}>Nocy:</span>
                         <span className={styles.value}>{nights}</span>
                       </div>
                       <div className={styles.detailRow}>
+                        <span className={styles.label}>Dorośli:</span>
+                        <span className={styles.value}>{booking.adults}</span>
+                      </div>
+                      <div className={styles.detailRow}>
+                        <span className={styles.label}>Dzieci:</span>
+                        <span className={styles.value}>{booking.children}</span>
+                      </div>
+                      <div className={styles.detailRow}>
+                        <span className={styles.label}>Dostawki:</span>
+                        <span className={styles.value}>{booking.extraBedsCount}</span>
+                      </div>
+                      <div className={styles.detailRow}>
                         <span className={styles.label}>Cena:</span>
                         <span className={styles.value}>{booking.totalPrice.toFixed(2)} zł</span>
+                      </div>
+                      <div className={styles.detailRow}>
+                        <span className={styles.label}>Rodzaj płatności:</span>
+                        <span className={styles.value}>{booking.paymentMethod === 'online' ? 'Online' : booking.paymentMethod === 'cash' ? 'Gotówka' : booking.paymentMethod === 'transfer' ? 'Przelew' : booking.paymentMethod}</span>
                       </div>
                       {isFullyPaid ? (
                         <div className={styles.detailRow}>
@@ -143,6 +160,9 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
                       <span className={styles.addedDate}>dodano: {new Date(booking.createdAt).toLocaleDateString('pl-PL')}</span>
                       <Link href={`/admin/bookings/list/${booking._id}`} className={styles.editBtn}>Edytuj</Link>
                     </div>
+                    {booking.source === 'admin' && (
+                      <div className={styles.adminBubble}>Rezerwacja dokonana przez panel admina</div>
+                    )}
                   </article>
                 );
               })}
