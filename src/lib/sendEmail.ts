@@ -1,26 +1,43 @@
-import { Resend } from 'resend';
+import type { ReactNode } from "react";
+import { Resend } from "resend";
 
 if (!process.env.RESEND_API_KEY) {
-  throw new Error('Brak klucza API Resend w zmiennych środowiskowych.');
+  throw new Error("Brak klucza API Resend w zmiennych środowiskowych.");
 }
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-interface SendEmailProps {
+interface SendEmailBaseProps {
   to: string;
   subject: string;
-  html: string;
+  replyTo?: string;
 }
 
-export async function sendBookingEmail({
+type SendEmailProps =
+  | (SendEmailBaseProps & {
+      html: string;
+      react?: never;
+    })
+  | (SendEmailBaseProps & {
+      react: ReactNode;
+      html?: never;
+    });
+
+export async function sendEmail({
   to,
   subject,
-  html,
+  replyTo,
+  ...content
 }: SendEmailProps) {
   return resend.emails.send({
-    from: 'Wilcze Chatki <rezerwacje@rafalsprengel.com>',
+    from: "Wilcze Chatki <rezerwacje@rafalsprengel.com>",
     to,
     subject,
-    html,
+    replyTo,
+    ...content,
   });
+}
+
+export async function sendBookingEmail(props: SendEmailProps) {
+  return sendEmail(props);
 }

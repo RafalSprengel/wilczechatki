@@ -1,16 +1,13 @@
 "use server";
 
+import { Types } from "mongoose";
+import { headers } from "next/headers";
 import dbConnect from "@/db/connection";
 import Booking from "@/db/models/Booking";
 import Property from "@/db/models/Property";
 import { stripe } from "@/lib/stripe";
-import { headers } from "next/headers";
-import { BookingData } from "@/types/booking";
-import { Types } from "mongoose";
+import type { BookingData } from "@/types/booking";
 import { generateOrderId } from "@/utils/generateOrderId";
-import { sendBookingEmail } from "@/lib/sendEmail";
-import BookingConfirmation from '@/emails/BookingConfirmation';
-import { render } from '@react-email/render';
 
 export async function createCheckoutSession(bookingData: BookingData) {
   if (!bookingData) throw new Error("Brak danych rezerwacji.");

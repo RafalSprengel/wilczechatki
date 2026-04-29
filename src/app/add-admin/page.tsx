@@ -1,6 +1,7 @@
 "use client";
 import { authClient } from "@/lib/auth-client";
 import { useEffect, useState } from "react";
+import styles from "./page.module.css";
 
 export default function AddAdminPage() {
     const [status, setStatus] = useState("Inicjowanie tworzenia admina...");
@@ -12,9 +13,9 @@ export default function AddAdminPage() {
                     email: "admin@admin.pl",
                     password: "admin",
                     name: "Rafał",
-                    role: "admin", // To pole zostanie zapisane dzięki Twojej konfiguracji w auth.js
+                    role: "admin", // To pole zostanie zapisane dzięki Twojej konfiguracji w auth.ts
                     callbackURL: "/admin"
-                });
+                } as any);
 
                 if (error) {
                     setStatus(`Błąd: ${error.message}`);
@@ -31,8 +32,8 @@ export default function AddAdminPage() {
     }, []);
 
     return (
-        <div style={{ padding: "20px", fontFamily: "sans-serif" }}>
-            <h1>Generator Administratora</h1>
+        <div className={styles.container}>
+            <h1 className={styles.title}>Generator Administratora</h1>
             <p>{status}</p>
         </div>
     );

@@ -1,82 +1,170 @@
 <img width="1898" height="1665" alt="Zrzut ekranu 2026-01-31 233105" src="https://github.com/user-attachments/assets/f382cc75-d156-43e1-8208-890d539aa009" />
 
- ## Wilcze Chatki – Accommodation Website
+# Wilcze Chatki - Booking and Admin System
 
-A web application for **Wilcze Chatki**, a rental facility located in Szumleś Królewski, Kaszuby.
+A Next.js application for the Wilcze Chatki accommodation property (Szumles Krolewski, Kaszuby).
 
-🌐 **Live Website:** [wilczehatki.vercel.app](https://wilczehatki.vercel.app)
+Project scope:
+- public website with availability search and booking flow,
+- online payments via Stripe,
+- transactional and contact emails via Resend,
+- admin panel for bookings, pricing, and settings,
+- backend powered by MongoDB + Mongoose.
 
----
+## 🛠️ Tech Stack
 
-## 🏗️ Project Status: In Progress
+- Next.js 16 (App Router)
+- React 19 + TypeScript
+- MongoDB + Mongoose
+- Better Auth (MongoDB adapter)
+- Stripe (Checkout + webhook)
+- Resend + React Email Components
+- CSS Modules + global CSS
+- Biome (lint + format)
 
-This project is currently in the development phase. While the informational sections are active, the application is being expanded to include full commercial functionality.
+## ✨ Core Features
 
-**Planned features:**
-- **Booking System:** Implementation of an availability calendar and reservation management.
-- **Payment Gateway:** Integration of online payment processing for bookings.
-- **Notification System:** Automated email confirmations for reservation status.
+### Public Website
+- Landing page (hero, about, services, gallery, attractions, contact).
+- Contact form that sends:
+   - an admin notification,
+   - an automatic reply to the customer.
+- Booking flow:
+   - date and guest selection,
+   - validation and availability search,
+   - summary and Stripe Checkout redirect,
+   - success/cancel/failure pages.
 
----
+### Admin Panel
+- Booking management:
+   - add bookings,
+   - list and detail view,
+   - date blocking,
+   - calendar view.
+- Property and pricing management.
+- Payment management (online/offline).
+- System settings and booking settings.
+- Dev/debug section.
 
-## 📋 Overview
+### Backend and Security
+- Admin route protection via proxy + Better Auth session:
+   - unauthenticated user -> redirect to /admin-login,
+   - non-admin user -> redirect to /.
+- Input validation with Zod in API endpoints.
+- Booking status updates based on Stripe webhooks.
 
-The application serves as an information hub for two rental cabins. It provides details regarding technical specifications, pricing structures, and regional points of interest.
+## 📁 Project Structure (Short)
 
-### Current Functionalities:
-- **Landing Page:** A modular layout containing information about the facility.
-- **Hero Slider:** An image-based introduction to the property and its surroundings.
-- **Pricing Module:** A breakdown of rates for weekdays and weekends.
-- **Attractions Guide:** A list of local sites with external links to official resources.
-- **Contact Form:** A validated form for user inquiries (handled via Formspree).
-- **Responsive Design:** Optimized for mobile, tablet, and desktop viewports.
+- src/app/(root) - public website and booking routes
+- src/app/admin - admin panel
+- src/app/api - API endpoints
+- src/actions - server actions
+- src/db - MongoDB connection and Mongoose models
+- src/emails - email templates
+- src/lib - integrations (auth, stripe, email)
+- src/scripts - seed scripts
 
----
+## 🔌 API Endpoints
 
-## 🛠️ Technical Stack
+- GET/POST /api/auth/[...all] - Better Auth
+- GET /api/checkout-status - Stripe session status by session_id
+- POST /api/webhooks/stripe - Stripe webhook for booking updates and transactional emails
+- POST /api/contact - contact form handler using Resend
 
-- **Framework:** Next.js (App Router)
-- **Language:** TypeScript
-- **Styling:** CSS Modules (Global and Component-level)
-- **Icons:** FontAwesome
-- **Deployment:** Vercel
+## ✅ Local Requirements
 
----
+- Node.js 20+
+- MongoDB access
+- Stripe and Resend keys
 
-## 📂 Structure
+## ⚙️ Environment Setup
 
-- `src/app/components/`: Modular React components (Navbar, Contact, Services, etc.).
-- `src/app/gallery/`: Placeholder for the upcoming image gallery.
-- `src/app/globals.css`: Definition of CSS variables and global typography.
+Copy .env.example to .env.local and fill in your values:
 
----
+```bash
+cp .env.example .env.local
+```
 
-## 🚀 Local Installation
+Required variables:
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/username/repository-name.git
+```env
+# Stripe
+NEXT_PUBLIC_STRIPE_PUBLIC_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
 
-## Initial Database Seed
+# MongoDB
+MONGODB_URI=
 
-After setting MONGODB_URI in your environment, run a non-destructive initial seed:
+# Resend
+RESEND_API_KEY=
+
+# Better Auth
+BETTER_AUTH_SECRET=
+BETTER_AUTH_URL=http://localhost:3000
+```
+
+Note: the contact form no longer uses Formspree.
+
+## 🚀 Local Run
+
+```bash
+npm install
+npm run dev
+```
+
+The app starts on http://localhost:3000 by default.
+
+## 📜 NPM Scripts
+
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+npm run format
+npm run seed:initial
+npm run seed:reset
+```
+
+## 🌱 Database Seeding
+
+### seed:initial (non-destructive)
 
 ```bash
 npm run seed:initial
 ```
 
-What this seed does:
-- Creates missing system and booking configuration documents.
-- Creates default seasons if they do not exist.
-- Creates default cabins if they do not exist.
-- Creates missing base and seasonal PropertyPrices records for each cabin.
+Creates missing starter data without clearing existing collections:
+- system configuration,
+- seasons,
+- properties,
+- base and seasonal pricing records.
 
-This command does not clear existing collections.
-
-If you need a full destructive reset (development only):
+### seed:reset (destructive, dev only)
 
 ```bash
 npm run seed:reset
 ```
 
-This command clears core collections and seeds sample data from scratch.
+Clears core collections and rebuilds data from scratch.
+
+## 💳 Payment Flow (Short)
+
+1. A server action creates bookings with pending and unpaid statuses.
+2. Stripe Checkout session is created with metadata (bookingIds, orderId, etc.).
+3. Stripe webhook confirms payment or marks it as failed.
+4. Booking records are updated in MongoDB.
+5. Transactional emails are sent via Resend.
+
+## 🧪 Code Quality
+
+- Lint: Biome (npm run lint)
+- Format: Biome (npm run format)
+- Type safety: TypeScript
+
+## 🧭 Developer Notes
+
+- When you change models, verify related server actions and API endpoints.
+- For payment flow changes, always test Stripe webhook handling locally.
+- For email changes, test both admin notifications and customer autoresponder emails.

@@ -40,10 +40,11 @@
     background: white;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
 }
 
 .calendarTable {
-    width: 100%;
+    min-width: max-content;
     border-collapse: separate;
     border-spacing: 0;
     table-layout: fixed;
@@ -56,16 +57,15 @@
     text-align: center;
     border-bottom: 1px solid #eee;
     border-right: 1px solid #eee;
-    position: relative;
     height: 55px;
     overflow: visible !important;
 }
 
 .calendarTable th {
     background-color: var(--cal-color-header-bg);
-    z-index: 30;
+    /* z-index: 30;
     position: sticky;
-    top: 0;
+    top: 0; */
 }
 
 .stickyCol {

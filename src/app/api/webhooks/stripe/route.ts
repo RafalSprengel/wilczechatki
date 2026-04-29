@@ -1,14 +1,12 @@
-
-import dbConnect from "@/db/connection";
-import Booking from "@/db/models/Booking";
-import { stripe } from "@/lib/stripe";
 import { Types } from "mongoose";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { sendBookingEmail } from '@/lib/sendEmail';
-import BookingConfirmation from '@/emails/BookingConfirmation';
-import BookingFailure from '@/emails/BookingFailure';
-import { render } from '@react-email/render';
+import dbConnect from "@/db/connection";
+import Booking from "@/db/models/Booking";
+import BookingConfirmation from "@/emails/BookingConfirmation";
+import BookingFailure from "@/emails/BookingFailure";
+import { sendBookingEmail } from "@/lib/sendEmail";
+import { stripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
@@ -120,19 +118,16 @@ export async function POST(request: Request) {
       if (booking) {
         try {
           console.log("[WEBHOOK] Wysyłam maila potwierdzającego rezerwację do:", booking.guestEmail, booking.orderId);
-          const html = await render(
-            BookingConfirmation({
+          await sendBookingEmail({
+            to: booking.guestEmail,
+            subject: "Potwierdzenie rezerwacji w Wilcze Chatki",
+            react: BookingConfirmation({
               customerName: booking.guestName,
               orderNumber: booking.orderId ?? '',
               checkIn: booking.startDate.toISOString().split('T')[0],
               checkOut: booking.endDate.toISOString().split('T')[0],
-              totalPrice: booking.totalPrice
-            })
-          );
-          await sendBookingEmail({
-            to: booking.guestEmail,
-            subject: "Potwierdzenie rezerwacji w Wilcze Chatki",
-            html,
+              totalPrice: booking.totalPrice,
+            }),
           });
           console.log("[WEBHOOK] Mail potwierdzający wysłany");
         } catch (mailError) {
@@ -172,18 +167,15 @@ export async function POST(request: Request) {
     if (booking) {
       try {
         console.log("[WEBHOOK] Wysyłam maila o nieudanej płatności do:", booking.guestEmail, booking.orderId);
-        const html = await render(
-          BookingFailure({
+        await sendBookingEmail({
+          to: booking.guestEmail,
+          subject: "Nieudana płatność za rezerwację w Wilcze Chatki",
+          react: BookingFailure({
             customerName: booking.guestName,
             orderNumber: booking.orderId ?? '',
             checkIn: booking.startDate.toISOString().split('T')[0],
             checkOut: booking.endDate.toISOString().split('T')[0],
-          })
-        );
-        await sendBookingEmail({
-          to: booking.guestEmail,
-          subject: "Nieudana płatność za rezerwację w Wilcze Chatki",
-          html,
+          }),
         });
         console.log("[WEBHOOK] Mail o nieudanej płatności wysłany");
       } catch (mailError) {

@@ -40,3 +40,4 @@ description: Agent odpowiedzialny za logikę biznesową i precyzyjną refaktoryz
 3. **TypeScript jako standard prawdy:**
    - Nie ignoruj błędów TypeScript (zakaz używania `any` i `@ts-ignore`). 
    - Typy muszą dokładnie odzwierciedlać strukturę danych. Jeśli pole jest wymagane w bazie, musi być wymagane w kodzie.
+ Używaj języka poslkiego
