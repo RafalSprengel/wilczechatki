@@ -8,23 +8,54 @@
   animation: fadeInSlider 1s ease-out forwards;
 }
 
-.sliderMain,
-.slide {
+.sliderMain {
   position: absolute;
   inset: 0;
+  perspective: 2000px;
+  transform-style: preserve-3d;
 }
 
 .slide {
+  position: absolute;
+  inset: 0;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 1.2s ease-in-out;
+  transition: transform 1.2s cubic-bezier(0.7, 0, 0.3, 1), opacity 1.2s;
+  transform-origin: center center -50vw;
+  backface-visibility: hidden;
   z-index: 1;
+  transform-style: preserve-3d;
 }
 
 .slide.active {
   opacity: 1;
   visibility: visible;
-  z-index: 2;
+  transform: rotateY(0deg);
+  z-index: 10;
+}
+
+.slide.exitNext {
+  transform: rotateY(-90deg);
+  opacity: 0;
+  visibility: visible;
+  z-index: 5;
+}
+
+.slide.enterNext {
+  transform: rotateY(90deg);
+  opacity: 0;
+}
+
+.slide.exitPrev {
+  transform: rotateY(90deg);
+  opacity: 0;
+  visibility: visible;
+  z-index: 5;
+}
+
+.slide.enterPrev {
+  transform: rotateY(-90deg);
+  opacity: 0;
 }
 
 .overlay {

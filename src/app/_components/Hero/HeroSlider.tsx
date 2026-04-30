@@ -53,23 +53,29 @@ const items: SliderItem[] = [
 
 export default function HeroSlider() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [prevIndex, setPrevIndex] = useState(-1);
+  const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [isAnimating, setIsAnimating] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleNext = useCallback(() => {
     if (isAnimating) return;
+    setDirection('next');
+    setPrevIndex(activeIndex);
     setIsAnimating(true);
     setActiveIndex((prev) => (prev + 1) % items.length);
-    setTimeout(() => setIsAnimating(false), 500);
-  }, [isAnimating]);
+    setTimeout(() => setIsAnimating(false), 1000); // Matching CSS transition duration
+  }, [isAnimating, activeIndex]);
 
   const handlePrev = useCallback(() => {
     if (isAnimating) return;
+    setDirection('prev');
+    setPrevIndex(activeIndex);
     setIsAnimating(true);
     setActiveIndex((prev) => (prev - 1 + items.length) % items.length);
-    setTimeout(() => setIsAnimating(false), 500);
-  }, [isAnimating]);
+    setTimeout(() => setIsAnimating(false), 1000);
+  }, [isAnimating, activeIndex]);
 
   const startTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -81,11 +87,13 @@ export default function HeroSlider() {
   const changeSlide = useCallback((newIndex: number) => {
     if (isAnimating || newIndex === activeIndex) return;
 
+    setDirection(newIndex > activeIndex ? 'next' : 'prev');
+    setPrevIndex(activeIndex);
     setIsAnimating(true);
     setActiveIndex(newIndex);
     startTimer();
 
-    setTimeout(() => setIsAnimating(false), 500);
+    setTimeout(() => setIsAnimating(false), 1000);
   }, [isAnimating, activeIndex, startTimer]);
 
   useEffect(() => {
@@ -99,26 +107,36 @@ export default function HeroSlider() {
   return (
     <section className={styles.heroSlider}>
       <div className={styles.sliderMain}>
-        {items.map((item, index) => (
-          <div
-            key={item.id}
-            className={`${styles.slide} ${isMounted && index === activeIndex ? styles.active : ''}`}
-          >
-            <div className={styles.overlay}></div>
-            <img src={item.image} alt={item.title} className={styles.slideImg} />
+        {items.map((item, index) => {
+          const isActive = index === activeIndex;
+          const isPrev = index === prevIndex;
+          
+          let statusClass = '';
+          if (isActive) statusClass = styles.active;
+          else if (isPrev) statusClass = direction === 'next' ? styles.exitNext : styles.exitPrev;
+          else statusClass = direction === 'next' ? styles.enterNext : styles.enterPrev;
 
-            <div className={styles.slideContent}>
-              <span className={styles.slideSubtitle}>SZUMLEŚ KRÓLEWSKI</span>
-              <h1 className={styles.slideTitle}>{item.title}</h1>
-              <h2 className={styles.slideTopic}>{item.topic}</h2>
-              <p className={styles.slideDesc}>{item.description}</p>
-              <div className={styles.slideActions}>
-                <Link href="/booking" className={styles.btnPrimary}>REZERWACJE</Link>
-                <Link href="/gallery" className={styles.btnOutline}>GALERIA</Link>
+          return (
+            <div
+              key={item.id}
+              className={`${styles.slide} ${isMounted ? statusClass : ''}`}
+            >
+              <div className={styles.overlay}></div>
+              <img src={item.image} alt={item.title} className={styles.slideImg} />
+
+              <div className={styles.slideContent}>
+                <span className={styles.slideSubtitle}>SZUMLEŚ KRÓLEWSKI</span>
+                <h1 className={styles.slideTitle}>{item.title}</h1>
+                <h2 className={styles.slideTopic}>{item.topic}</h2>
+                <p className={styles.slideDesc}>{item.description}</p>
+                <div className={styles.slideActions}>
+                  <Link href="/booking" className={styles.btnPrimary}>REZERWACJE</Link>
+                  <Link href="/gallery" className={styles.btnOutline}>GALERIA</Link>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className={styles.sliderControls}>
