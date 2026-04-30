@@ -67,7 +67,9 @@ h1 {
     margin: 0;
 }
 
-h2, h3, h4 {
+h2,
+h3,
+h4 {
     font-family: var(--font-heading);
     font-weight: 400;
     letter-spacing: normal;
@@ -96,13 +98,16 @@ p {
     margin-bottom: 1rem;
 }
 
-li, label {
+li,
+label {
     font-family: var(--font-body);
     font-weight: 300;
     line-height: 1.6;
 }
 
-button, a, nav {
+button,
+a,
+nav {
     font-family: var(--font-body);
     text-decoration: none;
 }

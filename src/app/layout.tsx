@@ -7,21 +7,21 @@ import { config } from '@fortawesome/fontawesome-svg-core';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 config.autoAddCss = false;
 
-const sansita = Sansita({ 
+const sansita = Sansita({
     subsets: ["latin", "latin-ext"],
     variable: "--font-sansita",
     weight: '400'
 });
 
-const ptSerif = PT_Serif({ 
-    subsets: ["latin", "latin-ext"], 
+const ptSerif = PT_Serif({
+    subsets: ["latin", "latin-ext"],
     variable: "--font-pt-serif",
     weight: ['400', '700'],
     style: ['normal', 'italic']
 });
 
-const mulish = Mulish({ 
-    subsets: ["latin", "latin-ext"], 
+const mulish = Mulish({
+    subsets: ["latin", "latin-ext"],
     variable: "--font-mulish",
     weight: ['300', '400', '600', '700']
 });
