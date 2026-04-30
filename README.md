@@ -104,7 +104,7 @@ BETTER_AUTH_SECRET=
 BETTER_AUTH_URL=http://localhost:3000
 ```
 
-Note: the contact form no longer uses Formspree.
+
 
 ## 🚀 Local Run
 
