@@ -98,7 +98,7 @@ export default function AdminAccountSettings() {
 
       <div className="account-form">
         <div className="account-input-group">
-          <label htmlFor="admin-username">Login (Nazwa użytkownika)</label>
+          <label htmlFor="admin-username">Login (Nazwa użytkownika):</label>
           <input
             id="admin-username"
             type="text"
@@ -112,7 +112,7 @@ export default function AdminAccountSettings() {
 
         {isEditing && (
           <div className="account-input-group">
-            <label htmlFor="current-password" style={{ color: 'var(--color-danger)' }}>Aktualne hasło</label>
+            <label htmlFor="current-password">Aktualne hasło:</label>
             <input
               id="current-password"
               type="password"
@@ -125,7 +125,7 @@ export default function AdminAccountSettings() {
         )}
 
         <div className="account-input-group">
-          <label htmlFor="admin-password">{isEditing ? 'Nowe Hasło' : 'Hasło'}</label>
+          <label htmlFor="admin-password">{isEditing ? 'Nowe hasło:' : 'Hasło:'}</label>
           <input
             id="admin-password"
             type="password"
@@ -139,7 +139,7 @@ export default function AdminAccountSettings() {
 
         {isEditing && (
           <div className="account-input-group">
-            <label htmlFor="confirm-password">Powtórz Nowe Hasło</label>
+            <label htmlFor="confirm-password">Powtórz nowe hasło:</label>
             <input
               id="confirm-password"
               type="password"
