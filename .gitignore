@@ -45,3 +45,5 @@ yarn-error.log*
 /coverage/
 
 .windsurfrules
+.local-rules.md
+.dependencygraph/
