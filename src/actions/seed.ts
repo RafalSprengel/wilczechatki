@@ -12,6 +12,7 @@ import CustomPrice from '@/db/models/CustomPrice';
 import { Types } from 'mongoose';
 import mongoose from 'mongoose';
 import { SITE_CONFIG } from '@/config/site';
+import { getAuth } from '@/lib/auth';
 
 function toPlainObject(doc: any) {
   return JSON.parse(JSON.stringify(doc));
@@ -32,7 +33,16 @@ export async function clearAllData() {
     await PriceConfig.deleteMany({});
     await Season.deleteMany({});
     await CustomPrice.deleteMany({});
-    return { success: true, message: 'Wszystkie dane zostały usunięte' };
+
+    const db = mongoose.connection.db;
+    if (db) {
+      await db.collection('user').deleteMany({});
+      await db.collection('account').deleteMany({});
+      await db.collection('session').deleteMany({});
+      await db.collection('verification').deleteMany({});
+    }
+
+    return { success: true, message: 'Wszystkie dane zostały usunięte (w tym użytkownicy)' };
   } catch (error) {
     console.error('Błąd podczas czyszczenia danych:', error);
     return { success: false, error: 'Nie udało się usunąć danych' };
@@ -430,7 +440,7 @@ export async function seedAllData() {
     const props = await seedProperties();
     if (!props.success) throw new Error(props.error);
 
-    const prices = await seedPropertyPrices(); // ← nowy krok
+    const prices = await seedPropertyPrices();
     if (!prices.success) throw new Error(prices.error);
 
     const priceConfig = await seedPriceConfigDefaults();
@@ -476,43 +486,33 @@ export async function seedAdmin() {
 
   try {
     await dbConnect();
+    const auth = await getAuth();
 
     const db = mongoose.connection.db;
     if (!db) throw new Error('Brak połączenia z MongoDB');
 
-    const usersCol = db.collection('user');
-    const accountsCol = db.collection('account');
+    // Usuwamy istniejących użytkowników o tych samych emailach/username'ach, aby uniknąć konfliktów
+    const emails = admins.map(a => a.email);
+    const usernames = admins.map(a => a.username);
+
+    await db.collection('user').deleteMany({
+      $or: [{ email: { $in: emails } }, { username: { $in: usernames } }]
+    });
+    // Czyścimy powiązane konta (Better Auth dla credentials trzyma hasło bezpośrednio w 'user')
+    await db.collection('account').deleteMany({});
 
     let createdCount = 0;
-    const { hash } = await import('bcryptjs');
-    const now = new Date();
 
     for (const admin of admins) {
-      const existing = await usersCol.findOne({ email: admin.email });
-      if (existing) continue;
-
-      const hashedPassword = await hash(admin.password, 10);
-      const userId = crypto.randomUUID();
-
-      await usersCol.insertOne({
-        id: userId,
-        name: admin.name,
-        email: admin.email,
-        username: admin.username,
-        emailVerified: true,
-        role: 'admin',
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      await accountsCol.insertOne({
-        id: crypto.randomUUID(),
-        accountId: userId,
-        providerId: 'credential',
-        userId: userId,
-        password: hashedPassword,
-        createdAt: now,
-        updatedAt: now,
+      // Używamy Better Auth API do rejestracji - to zapewni poprawne haszowanie (scrypt) i strukturę
+      await auth.api.signUpEmail({
+        body: {
+          email: admin.email,
+          password: admin.password,
+          name: admin.name,
+          username: admin.username,
+          role: 'admin',
+        },
       });
 
       createdCount++;
@@ -520,11 +520,11 @@ export async function seedAdmin() {
 
     return {
       success: true,
-      message: `Utworzono ${createdCount} nowych administratorów.`,
+      message: `Utworzono ${createdCount} administratorów za pomocą Better Auth.`,
     };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Nieznany błąd';
     console.error('seedAdmin error:', error);
     return { success: false, error: message };
   }
-}
+}

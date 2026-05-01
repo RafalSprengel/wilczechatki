@@ -6,7 +6,7 @@ import styles from './login.module.css';
 
 export default function AdminLoginPage() {
     const router = useRouter();
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -16,14 +16,15 @@ export default function AdminLoginPage() {
         setError(null);
         setIsLoading(true);
         try {
-            const { error: signInError } = await authClient.signIn.email({
-                email,
+            const { error: signInError } = await (authClient.signIn as any).username({
+                username,
                 password,
                 callbackURL: '/admin',
             });
             if (signInError) {
                 if (
-                    signInError.message === 'Invalid email' ||
+                    signInError.message === 'Invalid username' ||
+                    signInError.message === 'Invalid username or password' ||
                     signInError.message === 'Invalid email or password'
                 ) {
                     setError('Błędny login lub hasło');
@@ -50,18 +51,19 @@ export default function AdminLoginPage() {
 
                 {error && <p className={styles.error}>{error}</p>}
 
-                <label className={styles.label} htmlFor="email">
-                    Email
+                <label className={styles.label} htmlFor="username">
+                    Login
                 </label>
                 <input
-                    id="email"
+                    id="username"
                     className={styles.input}
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     required
-                    autoComplete="email"
+                    autoComplete="username"
                     disabled={isLoading}
+                    placeholder="Wpisz login"
                 />
 
                 <label className={styles.label} htmlFor="password">
@@ -76,6 +78,7 @@ export default function AdminLoginPage() {
                     required
                     autoComplete="current-password"
                     disabled={isLoading}
+                    placeholder="Wpisz hasło"
                 />
 
                 <button className={styles.button} type="submit" disabled={isLoading}>
