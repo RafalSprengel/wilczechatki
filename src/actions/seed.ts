@@ -504,7 +504,7 @@ export async function seedAdmin() {
     let createdCount = 0;
 
     for (const admin of admins) {
-      // Używamy Better Auth API do rejestracji - to zapewni poprawne haszowanie (scrypt) i strukturę
+      // Używamy Better Auth API do rejestracji
       await auth.api.signUpEmail({
         body: {
           email: admin.email,
@@ -514,6 +514,18 @@ export async function seedAdmin() {
           role: 'admin',
         },
       });
+
+      // Wymuszamy weryfikację adresu email, aby uniknąć blokad logowania
+      // oraz upewniamy się, że rola jest poprawnie ustawiona (signUpEmail czasem ignoruje dodatkowe pola w body jeśli nie są w schemacie wejściowym)
+      await db.collection('user').updateOne(
+        { email: admin.email },
+        { 
+          $set: { 
+            emailVerified: true,
+            role: 'admin'
+          } 
+        }
+      );
 
       createdCount++;
     }
