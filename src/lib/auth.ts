@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
+import { username } from "better-auth/plugins";
 import mongoose from "mongoose";
 import dbConnect from "@/db/connection";
 
@@ -32,9 +33,13 @@ export async function getAuth() {
             }
         },
 
+        plugins: [
+            username()
+        ],
+
         secret: process.env.BETTER_AUTH_SECRET,
         trustedOrigins: [process.env.BETTER_AUTH_URL ?? "http://localhost:3000"],
     });
 
     return _auth;
-}
+}

@@ -25,7 +25,6 @@ export interface AdminPaymentRow {
 export interface AdminPaymentsData {
   online: AdminPaymentRow[]
   offline: AdminPaymentRow[]
-  stalePendingCount: number
 }
 
 function normalizePaymentRow(row: any): AdminPaymentRow {
@@ -76,9 +75,7 @@ function normalizePaymentRow(row: any): AdminPaymentRow {
 export async function getAdminPaymentsData(): Promise<AdminPaymentsData> {
   await dbConnect()
 
-  const staleDateThreshold = new Date(Date.now() - 15 * 60 * 1000)
-
-  const [onlineRows, offlineRows, stalePendingCount] = await Promise.all([
+  const [onlineRows, offlineRows] = await Promise.all([
     Booking.find({
       source: 'online',
       status: { $in: ['pending', 'confirmed', 'failed'] },
@@ -93,17 +90,11 @@ export async function getAdminPaymentsData(): Promise<AdminPaymentsData> {
       .select('createdAt guestName totalPrice paymentMethod status')
       .sort({ createdAt: -1 })
       .lean(),
-    Booking.countDocuments({
-      source: 'online',
-      status: 'pending',
-      createdAt: { $lte: staleDateThreshold },
-    }),
   ])
 
   return {
     online: onlineRows.map(normalizePaymentRow),
     offline: offlineRows.map(normalizePaymentRow),
-    stalePendingCount,
   }
 }
 

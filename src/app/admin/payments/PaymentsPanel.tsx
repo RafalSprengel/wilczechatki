@@ -220,11 +220,7 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
         </table>
       </div>
 
-      {mode === 'online' && initialData.stalePendingCount > 0 ? (
-        <div className={styles.alertBox}>
-          Masz {initialData.stalePendingCount} płatności online oczekujących. Może to wskazywać na problemy z komunikacją Webhook. Zweryfikuj je ręcznie w panelu Stripe.
-        </div>
-      ) : null}
+
     </section>
   )
 }

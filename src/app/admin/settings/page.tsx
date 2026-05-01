@@ -1,6 +1,7 @@
 import { getSystemConfig } from '@/actions/adminConfigActions';
 import ToggleSwitch from './ToggleSwitchClient';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
+import AdminAccountSettings from './AdminAccountSettings';
 
 export default async function SettingsPage() {
   const config = await getSystemConfig();
@@ -11,6 +12,7 @@ export default async function SettingsPage() {
         <h1 className="admin-title">Ustawienia Systemu</h1>
         <p className="admin-subtitle">Zarządzaj globalną polityką wynajmu obiektu</p>
       </header>
+      
       <section className="settings-card">
         <div className="card-header">
           <h2 className="card-title">Polityka Wynajmu</h2>
@@ -29,6 +31,8 @@ export default async function SettingsPage() {
           </div>
         </div>
       </section>
+
+      <AdminAccountSettings />
     </div>
   );
-}
+}

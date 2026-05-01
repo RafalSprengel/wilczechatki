@@ -1,4 +1,4 @@
-﻿/* Variables */
+/* Variables */
 
 :root {
   --color-primary: #2c3e50;
@@ -606,6 +606,85 @@
   .setting-label {
     min-width: 200px;
   }
+}
+
+/* Admin Account Settings Styles */
+.account-settings-card {
+  margin-top: 30px;
+}
+
+.account-edit-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 20px 0;
+}
+
+.account-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.account-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.account-input-group label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-primary);
+}
+
+.account-input {
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.account-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.account-input:disabled {
+  background-color: #f9f9f9;
+  color: #7f8c8d;
+  cursor: not-allowed;
+}
+
+.account-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.account-save-btn {
+  padding: 10px 25px;
+  background-color: var(--color-success);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.account-save-btn:hover:not(:disabled) {
+  background-color: #27ae60;
+}
+
+.account-save-btn:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 @media (min-width: 982px) {

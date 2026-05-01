@@ -24,6 +24,7 @@ description: Agent odpowiedzialny za logikę biznesową i precyzyjną refaktoryz
 - **LAYOUT STABILITY**: Upewnij się, że element ładowania (spinner) nie powoduje "skakania" layoutu – powinien zajmować tyle samo miejsca, co docelowa treść, lub być wyśrodkowany w odpowiednim kontenerze.
 
 - Nie usuwaj mi komentarzy
+- Nie dodawaj komentarzy z informacją co w danym kodzie robisz
 
 -to jest projekt w fazie budowania, nie ma tu waznych danych nie potrzeba migracji, wszystkie dane skazuje a nowe sobie dodam\
 
