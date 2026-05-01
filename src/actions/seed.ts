@@ -522,7 +522,8 @@ export async function seedAdmin() {
         { 
           $set: { 
             emailVerified: true,
-            role: 'admin'
+            role: 'admin',
+            displayUsername: admin.username
           } 
         }
       );

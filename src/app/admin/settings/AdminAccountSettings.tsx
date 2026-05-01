@@ -7,19 +7,51 @@ import { toast } from 'react-hot-toast'
 export default function AdminAccountSettings() {
   const { data: session, isPending: sessionPending } = authClient.useSession()
   const [isEditing, setIsEditing] = useState(false)
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [currentPassword, setCurrentPassword] = useState('')
+  const [username, setUsername] = useState<string | null>(null)
+  const [password, setPassword] = useState<string>('')
+  const [confirmPassword, setConfirmPassword] = useState<string>('')
+  const [currentPassword, setCurrentPassword] = useState<string>('')
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
-    const currentUsername = (session?.user as any)?.username || ''
-    setUsername(currentUsername)
+    if (session?.user) {
+      const user = session.user as any
+      const u = user.displayUsername !== undefined && user.displayUsername !== null 
+        ? user.displayUsername 
+        : user.username
+
+      if (u !== undefined && u !== null) {
+        setUsername(u)
+      } else {
+        throw new Error('Błąd integralności danych: Profil użytkownika nie posiada nazwy użytkownika.')
+      }
+    }
   }, [session])
 
-  const currentUsername = (session?.user as any)?.username || ''
-  const hasChanges = (username !== currentUsername && username.length > 0) || password.length > 0
+  if (sessionPending || username === null) {
+    return (
+      <section className="settings-card account-settings-card">
+        <div className="card-header">
+          <h2 className="card-title">Dane Administratora</h2>
+        </div>
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p className="loading-text">Loading...</p>
+        </div>
+      </section>
+    )
+  }
+
+  if (!session?.user) {
+    throw new Error('Brak aktywnej sesji administratora.')
+  }
+
+  const user = session.user as any
+  const dbDisplayUsername = user.displayUsername !== undefined && user.displayUsername !== null 
+    ? user.displayUsername 
+    : user.username
+
+  const hasChanges = (username !== dbDisplayUsername && username.length > 0) || password.length > 0
   const passwordsMatch = password === confirmPassword
   const canSave = hasChanges && currentPassword.length > 0 && (password.length > 0 ? passwordsMatch : true)
 
@@ -28,11 +60,18 @@ export default function AdminAccountSettings() {
     setIsSaving(true)
 
     try {
-      if (username !== currentUsername) {
+      if (username !== dbDisplayUsername) {
+        // Aktualizacja systemowego username (Better Auth znormalizuje do małych liter)
         const { error: userError } = await (authClient as any).username.updateUsername({
           newUsername: username,
         })
         if (userError) throw new Error(userError.message)
+
+        // Aktualizacja displayUsername dla zachowania wielkości liter
+        const { error: updateError } = await authClient.updateUser({
+          displayUsername: username,
+        })
+        if (updateError) throw new Error(updateError.message)
       }
 
       if (password.length > 0) {
@@ -48,9 +87,10 @@ export default function AdminAccountSettings() {
       setPassword('')
       setConfirmPassword('')
       setCurrentPassword('')
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Wystąpił nieoczekiwany błąd podczas zapisywania zmian.'
       console.error('Błąd podczas aktualizacji danych admina:', error)
-      toast.error(error.message || 'Wystąpił błąd podczas zapisywania zmian.')
+      toast.error(errorMessage)
     } finally {
       setIsSaving(false)
     }
@@ -58,25 +98,19 @@ export default function AdminAccountSettings() {
 
   const handleToggleEdit = () => {
     if (isEditing) {
-      setUsername((session?.user as any)?.username || '')
+      const user = session.user as any
+      const u = user.displayUsername !== undefined && user.displayUsername !== null 
+        ? user.displayUsername 
+        : user.username
+
+      if (u !== undefined && u !== null) {
+        setUsername(u)
+      }
       setPassword('')
       setConfirmPassword('')
       setCurrentPassword('')
     }
     setIsEditing(!isEditing)
-  }
-
-  if (sessionPending) {
-    return (
-      <section className="settings-card account-settings-card">
-        <div className="card-header">
-          <h2 className="card-title">Dane Administratora</h2>
-        </div>
-        <div className="account-form">
-          <p className="loading-spinner">Ładowanie danych sesji...</p>
-        </div>
-      </section>
-    )
   }
 
   return (

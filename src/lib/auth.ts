@@ -29,6 +29,11 @@ export async function getAuth() {
                     required: true,
                     defaultValue: "user",
                     input: true,
+                },
+                displayUsername: {
+                    type: "string",
+                    required: false,
+                    input: true,
                 }
             }
         },
