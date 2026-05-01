@@ -119,7 +119,7 @@ export default function DevPage() {
               {/* ── Auth / Admin ─────────────────────────────────────────────── */}
               <button
                 className={styles.btnSecondary}
-                onClick={() => runAction('Seed Admin (admin@wilczechatki.pl)', seedAdmin)}
+                onClick={() => runAction('Seed Admin (kontakt@wilczechatki.pl)', seedAdmin)}
               >
                 Seed Admin User
               </button>

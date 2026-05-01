@@ -11,6 +11,7 @@ import Season from '@/db/models/Season';
 import CustomPrice from '@/db/models/CustomPrice';
 import { Types } from 'mongoose';
 import mongoose from 'mongoose';
+import { SITE_CONFIG } from '@/config/site';
 
 function toPlainObject(doc: any) {
   return JSON.parse(JSON.stringify(doc));
@@ -458,9 +459,20 @@ export async function seedAllData() {
 }
 
 export async function seedAdmin() {
-  const ADMIN_EMAIL = 'admin@wilczechatki.pl';
-  const ADMIN_PASSWORD = 'Admin2026!';
-  const ADMIN_NAME = 'Admin';
+  const admins = [
+    {
+      email: SITE_CONFIG.email,
+      password: 'wilczki',
+      name: 'Marika',
+      username: 'Marika',
+    },
+    {
+      email: 'sprengel.rafal@gmail.com',
+      password: 'wilczki',
+      name: 'Rafał',
+      username: 'Rafal',
+    },
+  ];
 
   try {
     await dbConnect();
@@ -471,43 +483,48 @@ export async function seedAdmin() {
     const usersCol = db.collection('user');
     const accountsCol = db.collection('account');
 
-    const existing = await usersCol.findOne({ email: ADMIN_EMAIL });
-    if (existing) {
-      return { success: false, error: `Admin ${ADMIN_EMAIL} już istnieje w bazie` };
-    }
-
+    let createdCount = 0;
     const { hash } = await import('bcryptjs');
-    const hashedPassword = await hash(ADMIN_PASSWORD, 10);
-    const userId = crypto.randomUUID();
     const now = new Date();
 
-    await usersCol.insertOne({
-      id: userId,
-      name: ADMIN_NAME,
-      email: ADMIN_EMAIL,
-      emailVerified: true,
-      role: 'admin',
-      createdAt: now,
-      updatedAt: now,
-    });
+    for (const admin of admins) {
+      const existing = await usersCol.findOne({ email: admin.email });
+      if (existing) continue;
 
-    await accountsCol.insertOne({
-      id: crypto.randomUUID(),
-      accountId: userId,
-      providerId: 'credential',
-      userId: userId,
-      password: hashedPassword,
-      createdAt: now,
-      updatedAt: now,
-    });
+      const hashedPassword = await hash(admin.password, 10);
+      const userId = crypto.randomUUID();
+
+      await usersCol.insertOne({
+        id: userId,
+        name: admin.name,
+        email: admin.email,
+        username: admin.username,
+        emailVerified: true,
+        role: 'admin',
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      await accountsCol.insertOne({
+        id: crypto.randomUUID(),
+        accountId: userId,
+        providerId: 'credential',
+        userId: userId,
+        password: hashedPassword,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      createdCount++;
+    }
 
     return {
       success: true,
-      message: `Admin utworzony. Email: ${ADMIN_EMAIL} | Hasło: ${ADMIN_PASSWORD}`,
+      message: `Utworzono ${createdCount} nowych administratorów.`,
     };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Nieznany błąd';
     console.error('seedAdmin error:', error);
     return { success: false, error: message };
   }
-}
+}
