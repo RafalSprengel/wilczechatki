@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
+import { requestPasswordResetByUsername } from '@/actions/resetAdminPasswordAction';
 import styles from './login.module.css';
 
 export default function AdminLoginPage() {
@@ -10,13 +11,41 @@ export default function AdminLoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isForgotPasswordFieldVisible, setIsForgotPasswordFieldVisible] = useState(false);
+
+    const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+    const handleResetPassword = async () => {
+        if (username.trim() === '') {
+            setError('Najpierw wpisz login');
+            setSuccessMsg(null);
+            return;
+        }
+        setError(null);
+        setSuccessMsg(null);
+        
+        setIsLoading(true);
+        try {
+            const res = await requestPasswordResetByUsername(username);
+            if (res.error) {
+                setError(res.error);
+            } else {
+                setSuccessMsg('Jeśli podany login istnieje, na powiązany e-mail został wysłany link do zmiany hasła.');
+                setIsForgotPasswordFieldVisible(false);
+            }
+        } catch (err) {
+            setError('Wystąpił błąd podczas wysyłania linku.');
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setIsLoading(true);
         try {
-            const { error: signInError } = await (authClient.signIn as any).username({
+            const { error: signInError } = await authClient.signIn.username({
                 username,
                 password,
                 callbackURL: '/admin',
@@ -31,7 +60,7 @@ export default function AdminLoginPage() {
                     return;
                 }
 
-                setError(signInError.message);
+                setError(signInError.message || 'Wystąpił błąd podczas logowania');
                 return;
             }
             router.push('/admin');
@@ -50,6 +79,7 @@ export default function AdminLoginPage() {
                 <p className={styles.subtitle}>Zaloguj się, aby kontynuować</p>
 
                 {error && <p className={styles.error}>{error}</p>}
+                {successMsg && <p className={styles.success}>{successMsg}</p>}
 
                 <label className={styles.label} htmlFor="username">
                     Login
@@ -80,8 +110,21 @@ export default function AdminLoginPage() {
                     disabled={isLoading}
                     placeholder="Wpisz hasło"
                 />
+                <div
+                    onClick={() => setIsForgotPasswordFieldVisible(!isForgotPasswordFieldVisible)}
+                    className={styles.forgotPassword}
+                >
+                    Nie pamiętam hasła
+                </div>
+                {isForgotPasswordFieldVisible && (
+                    <div
+                        onClick={handleResetPassword}
+                        className={styles.forgotPasswordInfo}>
+                        Kliknij tu, aby otrzymać link do zmiany hasła na e-mail powiązany z kontem
+                    </div>
+                )}
 
-                <button className={styles.button} type="submit" disabled={isLoading}>
+                <button className={styles.button} type={isForgotPasswordFieldVisible ? 'button' : 'submit'} disabled={isLoading}>
                     {isLoading ? (
                         <span className={styles.loadingWrapper}>
                             <span className={styles.spinner} />

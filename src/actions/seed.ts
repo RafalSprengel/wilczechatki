@@ -510,8 +510,6 @@ export async function seedAdmin() {
           email: admin.email,
           password: admin.password,
           name: admin.name,
-          username: admin.username,
-          role: 'admin',
         },
       });
 
@@ -523,6 +521,7 @@ export async function seedAdmin() {
           $set: { 
             emailVerified: true,
             role: 'admin',
+            username: admin.username.toLowerCase(),
             displayUsername: admin.username
           } 
         }

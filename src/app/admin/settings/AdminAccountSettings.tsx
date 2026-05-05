@@ -12,12 +12,14 @@ export default function AdminAccountSettings() {
   const [confirmPassword, setConfirmPassword] = useState<string>('')
   const [currentPassword, setCurrentPassword] = useState<string>('')
   const [isSaving, setIsSaving] = useState(false)
+  const [currentPasswordError, setCurrentPasswordError] = useState<string>('')
+  const [newPasswordError, setNewPasswordError] = useState<string>('')
 
   useEffect(() => {
     if (session?.user) {
       const user = session.user as any
-      const u = user.displayUsername !== undefined && user.displayUsername !== null 
-        ? user.displayUsername 
+      const u = user.displayUsername !== undefined && user.displayUsername !== null
+        ? user.displayUsername
         : user.username
 
       if (u !== undefined && u !== null) {
@@ -47,8 +49,8 @@ export default function AdminAccountSettings() {
   }
 
   const user = session.user as any
-  const dbDisplayUsername = user.displayUsername !== undefined && user.displayUsername !== null 
-    ? user.displayUsername 
+  const dbDisplayUsername = user.displayUsername !== undefined && user.displayUsername !== null
+    ? user.displayUsername
     : user.username
 
   const hasChanges = (username !== dbDisplayUsername && username.length > 0) || password.length > 0
@@ -61,25 +63,44 @@ export default function AdminAccountSettings() {
 
     try {
       if (username !== dbDisplayUsername) {
-        // Aktualizacja systemowego username (Better Auth znormalizuje do małych liter)
         const { error: userError } = await (authClient as any).username.updateUsername({
           newUsername: username,
         })
-        if (userError) throw new Error(userError.message)
+        if (userError) {
+          toast.error(userError.message)
+          return
+        }
 
-        // Aktualizacja displayUsername dla zachowania wielkości liter
         const { error: updateError } = await authClient.updateUser({
           displayUsername: username,
         })
-        if (updateError) throw new Error(updateError.message)
+        if (updateError) {
+          toast.error(updateError.message)
+          return
+        }
       }
 
       if (password.length > 0) {
+        if (!passwordsMatch) {
+          return // Blokowane przez disabled na przycisku, ale dla pewności zostawiamy early return
+        }
+
         const { error: passwordError } = await authClient.changePassword({
           newPassword: password,
           currentPassword: currentPassword,
         })
-        if (passwordError) throw new Error(passwordError.message)
+
+        if (passwordError) {
+          const msg = passwordError.message?.toLowerCase() || ''
+          if (msg.includes('invalid password') || msg.includes('incorrect') || msg.includes('wrong') || msg.includes('current password')) {
+            setCurrentPasswordError('Aktualne hasło jest nieprawidłowe.')
+          } else if (msg.includes('character') || msg.includes('short') || msg.includes('length')) {
+            setNewPasswordError('Nowe hasło musi mieć co najmniej 5 znaków.')
+          } else {
+            setNewPasswordError(passwordError.message || 'Wystąpił błąd podczas zmiany hasła.')
+          }
+          return
+        }
       }
 
       toast.success('Dane administratora zostały pomyślnie zaktualizowane.')
@@ -87,6 +108,8 @@ export default function AdminAccountSettings() {
       setPassword('')
       setConfirmPassword('')
       setCurrentPassword('')
+      setCurrentPasswordError('')
+      setNewPasswordError('')
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Wystąpił nieoczekiwany błąd podczas zapisywania zmian.'
       console.error('Błąd podczas aktualizacji danych admina:', error)
@@ -99,8 +122,8 @@ export default function AdminAccountSettings() {
   const handleToggleEdit = () => {
     if (isEditing) {
       const user = session.user as any
-      const u = user.displayUsername !== undefined && user.displayUsername !== null 
-        ? user.displayUsername 
+      const u = user.displayUsername !== undefined && user.displayUsername !== null
+        ? user.displayUsername
         : user.username
 
       if (u !== undefined && u !== null) {
@@ -109,6 +132,8 @@ export default function AdminAccountSettings() {
       setPassword('')
       setConfirmPassword('')
       setCurrentPassword('')
+      setCurrentPasswordError('')
+      setNewPasswordError('')
     }
     setIsEditing(!isEditing)
   }
@@ -121,9 +146,9 @@ export default function AdminAccountSettings() {
       </div>
 
       <div className="account-edit-header">
-        <button 
-          type="button" 
-          className="btn-toggle-edit" 
+        <button
+          type="button"
+          className="btn-toggle-edit"
           onClick={handleToggleEdit}
         >
           {isEditing ? 'Anuluj' : 'Edytuj'}
@@ -150,11 +175,17 @@ export default function AdminAccountSettings() {
             <input
               id="current-password"
               type="password"
-              className="account-input"
+              className={`account-input ${currentPasswordError ? 'input-error' : ''}`}
               value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
+              onChange={(e) => {
+                setCurrentPassword(e.target.value)
+                setCurrentPasswordError('')
+              }}
               placeholder="Wpisz aktualne hasło"
             />
+            {currentPasswordError && (
+              <span style={{ color: 'var(--color-danger)', fontSize: '0.8rem' }}>{currentPasswordError}</span>
+            )}
           </div>
         )}
 
@@ -163,12 +194,18 @@ export default function AdminAccountSettings() {
           <input
             id="admin-password"
             type="password"
-            className={`account-input ${password.length > 0 && confirmPassword.length > 0 && !passwordsMatch ? 'input-error' : ''}`}
+            className={`account-input ${newPasswordError ? 'input-error' : ''} ${password.length > 0 && confirmPassword.length > 0 && !passwordsMatch ? 'input-error' : ''}`}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value)
+              setNewPasswordError('')
+            }}
             disabled={!isEditing}
             placeholder={isEditing ? 'Wpisz nowe hasło' : '••••••••'}
           />
+          {newPasswordError && (
+            <span style={{ color: 'var(--color-danger)', fontSize: '0.8rem' }}>{newPasswordError}</span>
+          )}
         </div>
 
         {isEditing && (

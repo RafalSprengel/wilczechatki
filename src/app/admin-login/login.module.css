@@ -41,6 +41,16 @@
     margin-bottom: 16px;
 }
 
+.success {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #4ade80;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    margin-bottom: 16px;
+}
+
 .label {
     display: block;
     color: #94a3b8;
@@ -120,4 +130,36 @@
     to {
         transform: rotate(360deg);
     }
+}
+
+.forgotPassword {
+    font-size: 0.875rem;
+    color: #94a3b8;
+    cursor: pointer;
+    text-decoration: underline;
+    margin-bottom: 16px;
+    margin-top: -8px;
+    display: inline-block;
+    transition: color 0.2s;
+}
+
+.forgotPassword:hover {
+    color: #f1f5f9;
+}
+
+.forgotPasswordInfo {
+    font-size: 0.875rem;
+    color: #818cf8;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    line-height: 1.5;
+    text-align: center;
+    cursor: pointer;
+}
+
+.forgotPasswordInfo:hover {
+    text-decoration: underline;
 }

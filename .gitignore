@@ -40,3 +40,4 @@ yarn-error.log*
 # --- SYSTEM & TESTS ---
 .DS_Store
 /coverage/
+AGENTS.md
