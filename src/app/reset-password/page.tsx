@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
-import styles from './reset.module.scss';
+import styles from './reset.module.css';
 
 function ResetPasswordForm() {
     const searchParams = useSearchParams();

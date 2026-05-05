@@ -1,0 +1,119 @@
+.reset-page {
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0f172a;
+    padding: 20px;
+}
+
+.reset-page__form {
+    background: #1e293b;
+    padding: 40px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-sizing: border-box;
+}
+
+.reset-page__title {
+    color: #f1f5f9;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 8px;
+    text-align: center;
+}
+
+.reset-page__subtitle {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    text-align: center;
+    margin: 0 0 28px;
+}
+
+.reset-page__error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    margin-bottom: 16px;
+}
+
+.reset-page__success {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #4ade80;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    margin-bottom: 16px;
+}
+
+.reset-page__field {
+    margin-bottom: 20px;
+}
+
+.reset-page__label {
+    display: block;
+    color: #94a3b8;
+    font-size: 0.875rem;
+    margin-bottom: 6px;
+}
+
+.reset-page__input {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: #f1f5f9;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.reset-page__input:focus {
+    border-color: rgba(99, 102, 241, 0.6);
+}
+
+.reset-page__input--error {
+    border-color: #ef4444;
+}
+
+.reset-page__error-text {
+    color: #ef4444;
+    font-size: 0.75rem;
+    margin-top: 4px;
+}
+
+.reset-page__button {
+    width: 100%;
+    min-height: 44px;
+    padding: 12px;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.reset-page__button:hover:not(:disabled) {
+    background: #4f46e5;
+}
+
+.reset-page__button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
