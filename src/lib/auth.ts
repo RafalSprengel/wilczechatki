@@ -4,8 +4,9 @@ import { username } from "better-auth/plugins";
 import mongoose from "mongoose";
 import dbConnect from "@/db/connection";
 import { sendEmail } from "@/lib/sendEmail";
+import {Db} from "mongodb";
 
-function createAuth(db: NonNullable<typeof mongoose.connection.db>) {
+function createAuth(db: Db) {
     return betterAuth({
         database: mongodbAdapter(db),
 

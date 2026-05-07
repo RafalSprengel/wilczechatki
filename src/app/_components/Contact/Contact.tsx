@@ -20,26 +20,26 @@ export default function Contact() {
         <div className={styles.flexWrapper}>
           <div className={styles.infoColumn}>
             <div className={styles.details}>
-              <p style={{ fontWeight: 700, marginBottom: '10px' }}>Wilcze Chatki</p>
-              
-              <a 
+              <div className={styles.companyName}>Wilcze Chatki</div>
+             
+                <div>83-424 Szumleś Królewski 9A</div>
+                <div>Kaszuby, woj. pomorskie</div>
+                 <a 
                 href={mapsUrl}
                 target="_blank" 
                 rel="noopener noreferrer"
                 className={styles.addressLink}
               >
-                <p>83-424 Szumleś Królewski 9A</p>
-                <p>Kaszuby, woj. pomorskie</p>
                 <div className={styles.mapHintWrapper}>
                   <FontAwesomeIcon icon={faMapMarkerAlt} className={styles.mapIcon} />
-                  <small className={styles.mapHint}>Kliknij, aby otworzyć mapę</small>
+                  <span className={styles.mapHint}>Kliknij, aby otworzyć mapę</span>
                 </div>
               </a>
 
-              <p className={styles.contactItem}>
+              <div className={styles.contactItem}>
                 <FontAwesomeIcon icon={faPhone} className={styles.detailIcon} />
-                <span>tel: <a href={`tel:${SITE_CONFIG.phoneHref}`} className={styles.contactLink}>{SITE_CONFIG.phoneDisplay}</a></span>
-              </p>
+                <span><a href={`tel:${SITE_CONFIG.phoneHref}`} className={styles.contactLink}>{SITE_CONFIG.phoneDisplay}</a></span>
+              </div>
               
               {/* <p className={styles.contactItem}>
                 <FontAwesomeIcon icon={faEnvelope} className={styles.detailIcon} />
@@ -48,9 +48,9 @@ export default function Contact() {
             </div>
 
             <div className={styles.payment}>
-              <h3>Dane do przelewu:</h3>
-              <p>Numer konta (PKO BP):</p>
-              <p style={{ fontWeight: 600 }}>{SITE_CONFIG.bankAccountNumber}</p>
+              <div className={styles.paymentTitle} >Dane do przelewu:</div>
+              <div>Numer konta PKO BP</div>
+              <div className={styles.bankAccountNumber}>{SITE_CONFIG.bankAccountNumber}</div>
             </div>
           </div>
 
