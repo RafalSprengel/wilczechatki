@@ -147,7 +147,7 @@ export default async function Services() {
                     <div className={styles.card}>
                         <h3>Cennik za dobę:</h3>
                         <div className={styles.priceGroup}>
-                            <h4>W tygodniu:</h4>
+                            <h4>W tygodniu</h4>
                             {weekdayRates.map((rate, index) => (
                                 <div key={index} className={styles.priceRow}>
                                     <span>{rate.description}</span>
@@ -156,7 +156,7 @@ export default async function Services() {
                             ))}
                         </div>
                         <div className={styles.priceGroup}>
-                            <h4>Weekendy:</h4>
+                            <h4>Weekendy</h4>
                             {weekendRates.map((rate, index) => (
                                 <div key={index} className={styles.priceRow}>
                                     <span>{rate.description}</span>
