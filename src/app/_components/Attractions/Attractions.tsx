@@ -60,7 +60,7 @@ export default function Attractions() {
             title: 'Kaszubski Park Krajobrazowy',
             description: 'Niezliczone jeziora i morenowe wzgórza zwane "Szwajcarią Kaszubską".',
             distance: 'ok. 33 km',
-            url: 'https://kpk.pomorskie.eu/'
+            url: 'https://kpk.org.pl/o-parku/'
         }
     ];
     return (
