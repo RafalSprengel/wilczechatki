@@ -46,7 +46,7 @@ export default function Attractions() {
         },
         {
             title: 'Stok narciarski Wieżyca',
-            description: 'Największy ośrodek narciarski na Kaszubach. Osada Koszałkowo to Centrum Aktywnego Wypoczynku nie tylko na nartach',
+            description: 'Największy ośrodek narciarski na Kaszubach. Osada Koszałkowo to Centrum Aktywnego Wypoczynku nie tylko na nartach.',
             distance: 'ok. 25 km',
             url: 'https://www.wiezyca.pl/'
         },
