@@ -2,7 +2,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
-import { requestPasswordResetByUsername } from '@/actions/resetAdminPasswordAction';
+import {
+    requestPasswordResetByUsername,
+    requestUsernameReminderByEmail,
+} from '@/actions/resetAdminPasswordAction';
 import styles from './login.module.css';
 
 export default function AdminLoginPage() {
@@ -10,8 +13,11 @@ export default function AdminLoginPage() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
+    const [isResetLoading, setIsResetLoading] = useState(false);
+    const [isUsernameReminderLoading, setIsUsernameReminderLoading] = useState(false);
     const [isForgotPasswordFieldVisible, setIsForgotPasswordFieldVisible] = useState(false);
+    const [recoveryEmail, setRecoveryEmail] = useState('');
 
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
@@ -24,7 +30,9 @@ export default function AdminLoginPage() {
         setError(null);
         setSuccessMsg(null);
         
-        setIsLoading(true);
+        if (isResetLoading) return;
+
+        setIsResetLoading(true);
         try {
             const res = await requestPasswordResetByUsername(username);
             if (res.error) {
@@ -36,14 +44,43 @@ export default function AdminLoginPage() {
         } catch (err) {
             setError('Wystąpił błąd podczas wysyłania linku.');
         } finally {
-            setIsLoading(false);
+            setIsResetLoading(false);
         }
     }
 
+    const handleUsernameReminder = async () => {
+        if (recoveryEmail.trim() === '') {
+            setError('Najpierw wpisz adres e-mail');
+            setSuccessMsg(null);
+            return;
+        }
+        setError(null);
+        setSuccessMsg(null);
+
+        if (isUsernameReminderLoading) return;
+
+        setIsUsernameReminderLoading(true);
+        try {
+            const res = await requestUsernameReminderByEmail(recoveryEmail);
+            if (res.error) {
+                setError(res.error);
+            } else {
+                setSuccessMsg('Jeśli podany adres e-mail istnieje, login został wysłany na powiązaną skrzynkę.');
+                setIsForgotPasswordFieldVisible(false);
+            }
+        } catch (err) {
+            setError('Wystąpił błąd podczas wysyłania loginu.');
+        } finally {
+            setIsUsernameReminderLoading(false);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isLoggingIn) return;
+
         setError(null);
-        setIsLoading(true);
+        setIsLoggingIn(true);
         try {
             const { error: signInError } = await authClient.signIn.username({
                 username,
@@ -68,7 +105,7 @@ export default function AdminLoginPage() {
             setError('Wystąpił nieoczekiwany błąd. Spróbuj ponownie.');
             console.error(err);
         } finally {
-            setIsLoading(false);
+            setIsLoggingIn(false);
         }
     };
 
@@ -92,7 +129,7 @@ export default function AdminLoginPage() {
                     onChange={(e) => setUsername(e.target.value)}
                     required
                     autoComplete="username"
-                    disabled={isLoading}
+                    disabled={isLoggingIn}
                     placeholder="Wpisz login"
                 />
 
@@ -107,25 +144,48 @@ export default function AdminLoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     autoComplete="current-password"
-                    disabled={isLoading}
+                    disabled={isLoggingIn}
                     placeholder="Wpisz hasło"
                 />
                 <div
                     onClick={() => setIsForgotPasswordFieldVisible(!isForgotPasswordFieldVisible)}
                     className={styles.forgotPassword}
                 >
-                    Nie pamiętam hasła
+                    Nie pamiętam loginu lub hasła
                 </div>
                 {isForgotPasswordFieldVisible && (
-                    <div
-                        onClick={handleResetPassword}
-                        className={styles.forgotPasswordInfo}>
-                        Kliknij tu, aby otrzymać link do zmiany hasła na e-mail powiązany z kontem
-                    </div>
+                    <>
+                        <div
+                            onClick={handleResetPassword}
+                            aria-disabled={isResetLoading}
+                            className={styles.forgotPasswordInfo}>
+                            {isResetLoading
+                                ? 'Wysyłanie linku...'
+                                : 'Kliknij tu, aby otrzymać link do zmiany hasła na e-mail powiązany z kontem'}
+                        </div>
+                        <input
+                            id="recovery-email"
+                            className={styles.input}
+                            type="email"
+                            value={recoveryEmail}
+                            onChange={(e) => setRecoveryEmail(e.target.value)}
+                            autoComplete="email"
+                            placeholder="Wpisz adres e-mail powiązany z kontem"
+                            disabled={isLoggingIn || isUsernameReminderLoading}
+                        />
+                        <div
+                            onClick={handleUsernameReminder}
+                            aria-disabled={isUsernameReminderLoading}
+                            className={styles.forgotPasswordInfo}>
+                            {isUsernameReminderLoading
+                                ? 'Wysyłanie loginu...'
+                                : 'Wyslij login na adres email powiazany z kontem'}
+                        </div>
+                    </>
                 )}
 
-                <button className={styles.button} type={isForgotPasswordFieldVisible ? 'button' : 'submit'} disabled={isLoading}>
-                    {isLoading ? (
+                <button className={styles.button} type="submit" disabled={isLoggingIn}>
+                    {isLoggingIn ? (
                         <span className={styles.loadingWrapper}>
                             <span className={styles.spinner} />
                             Logowanie...

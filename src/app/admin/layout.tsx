@@ -102,7 +102,7 @@ export default function AdminLayout({
                   className={`${styles.subLink} ${pathname === '/admin/bookings/add' ? styles.active : ''}`}
                   onClick={handleMenuLinkClick}
                 >
-                  ➕ Dodaj Nową
+                  ➕ Dodaj nową
                 </Link>
                 <Link
                   href="/admin/bookings/calendar"
@@ -116,7 +116,7 @@ export default function AdminLayout({
                   className={`${styles.subLink} ${pathname === '/admin/bookings/list' ? styles.active : ''}`}
                   onClick={handleMenuLinkClick}
                 >
-                  📋 Lista Rezerwacji
+                  📋 Lista rezerwacji
                 </Link>
                 <Link
                   href="/admin/bookings/block"
@@ -165,14 +165,14 @@ export default function AdminLayout({
                   className={`${styles.subLink} ${isPaymentsOnlineActive ? styles.active : ''}`}
                   onClick={handleMenuLinkClick}
                 >
-                  💳 Płatności Online
+                  💳 Płatności online
                 </Link>
                 <Link
                   href="/admin/payments/offline"
                   className={`${styles.subLink} ${isPaymentsOfflineActive ? styles.active : ''}`}
                   onClick={handleMenuLinkClick}
                 >
-                  💵 Gotówka/Przelew
+                  💵 Gotówka / przelew
                 </Link>
               </div>
             </div>
@@ -186,7 +186,7 @@ export default function AdminLayout({
               onClick={handleMenuLinkClick}
             >
               <span className={styles.navIcon}>⚙️</span>
-              Ustawienia Systemu
+              Ustawienia systemu
             </Link>
             <Link
               href="/admin/settings/booking"
@@ -206,7 +206,7 @@ export default function AdminLayout({
               onClick={handleMenuLinkClick}
             >
               <span className={styles.navIcon}>💻</span>
-              Dev / Debug
+              Dev
             </Link>
           </div>
         </nav>

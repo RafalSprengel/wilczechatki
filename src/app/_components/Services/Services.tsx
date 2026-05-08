@@ -81,7 +81,7 @@ export default async function Services() {
             }
         }
     } catch {
-        
+
     }
 
     const weekdayRates = basicPricesData
@@ -132,7 +132,7 @@ export default async function Services() {
                             <li>Zastawa kuchenna, garnki, patelnie, toster</li>
                             <li>Pralka</li>
                             <li>TV i WiFi</li>
-                            <li>Stół dla 6 osób i rozkładana 2-osobowa kanapa</li>
+                            <li>Stół dla 6 osób i rozkładana 2-osobowa kanapa w salonie</li>
                             <li>Klimatyzacja</li>
                             <li>Suszarka do włosów i ubrań</li>
                             <li>Ręczniki</li>

@@ -265,7 +265,7 @@ export default function BlockBookingsPage() {
           <div className="setting-row">
             <div className="setting-content">
               <label className="setting-label" htmlFor="adminNotes">Notatka (opcjonalnie)</label>
-              <p className="setting-description">Ta notatka będzie widoczna przy blokadzie.</p>
+              <p className="setting-description">Ta notatka nie będzie widoczna dla klientów, będzie widoczna tylko w panelu admina.</p>
             </div>
             <div className="setting-control">
               <textarea
