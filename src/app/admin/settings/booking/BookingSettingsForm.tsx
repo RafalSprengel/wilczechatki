@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useActionState, useEffect, useState, useTransition, useMemo } from 'react';
 import { updateBookingConfig, updateAllowCheckinOnDepartureDay } from '@/actions/bookingConfigActions';
 import { getAllSeasons, updateSeasonDates, updateSeasonOrder, ISeasonData } from '@/actions/seasonActions';
