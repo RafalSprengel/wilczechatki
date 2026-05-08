@@ -78,9 +78,9 @@ export default function BookingDetailsPage() {
     if (!formData.address.trim()) newErrors.address = 'Adres jest wymagany';
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email jest wymagany';
+      newErrors.email = 'E-mail jest wymagany';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Nieprawidłowy format email';
+      newErrors.email = 'Nieprawidłowy format e-mail';
     }
 
     if (!formData.phone.trim()) {
@@ -159,12 +159,12 @@ export default function BookingDetailsPage() {
     const nextInvoiceData = formData.invoice
       ? formData.invoiceData
       : {
-          companyName: '',
-          nip: '',
-          street: '',
-          city: '',
-          postalCode: '',
-        };
+        companyName: '',
+        nip: '',
+        street: '',
+        city: '',
+        postalCode: '',
+      };
 
     const updatedData: BookingData = {
       ...(bookingSummary as BookingData),
@@ -178,7 +178,7 @@ export default function BookingDetailsPage() {
       invoiceData: nextInvoiceData,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
-   
+
     router.push('/terms-and-conditions');
   };
 
@@ -190,12 +190,12 @@ export default function BookingDetailsPage() {
     const nextInvoiceData = formData.invoice
       ? formData.invoiceData
       : {
-          companyName: '',
-          nip: '',
-          street: '',
-          city: '',
-          postalCode: '',
-        };
+        companyName: '',
+        nip: '',
+        street: '',
+        city: '',
+        postalCode: '',
+      };
 
     const updatedData: BookingData = {
       ...(bookingSummary as BookingData),
@@ -324,7 +324,7 @@ export default function BookingDetailsPage() {
           <h2 className={styles.sectionTitle}>Dane kontaktowe</h2>
           <div className={styles.grid}>
             <div className={styles.inputGroup}>
-              <label htmlFor="email">Email *</label>
+              <label htmlFor="email">E-mail *</label>
               <input
                 id="email"
                 name="email"

@@ -29,7 +29,7 @@ export default function AdminLoginPage() {
         }
         setError(null);
         setSuccessMsg(null);
-        
+
         if (isResetLoading) return;
 
         setIsResetLoading(true);
@@ -179,7 +179,7 @@ export default function AdminLoginPage() {
                             className={styles.forgotPasswordInfo}>
                             {isUsernameReminderLoading
                                 ? 'Wysyłanie loginu...'
-                                : 'Wyslij login na adres email powiazany z kontem'}
+                                : 'Wyślij login na adres e-mail powiązany z kontem'}
                         </div>
                     </>
                 )}

@@ -168,7 +168,7 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
           />
         </div>
         <div className={styles.inputGroup}>
-          <label>Email</label>
+          <label>E-mail</label>
           <input
             name="guestEmail"
             type="email"

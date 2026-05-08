@@ -81,7 +81,7 @@ const BookingTooltip = ({ details }: { details: BookingDetails }) => {
       </div>
       <div className={styles.tooltipSection}>
         <div className={styles.tooltipRow}>
-          <span className={styles.label}>📧 Email:</span>
+          <span className={styles.label}>📧 E-mail:</span>
           <span className={styles.valueText}>{details.guestEmail}</span>
         </div>
         <div className={styles.tooltipRow}>
@@ -168,7 +168,7 @@ export default function Calendar() {
                     if (!cell || cell.status === 'free') {
                       return <td key={cabin.id} className={styles.free}><span className={styles.statusText}>Wolny</span></td>
                     }
-                    
+
                     if (cell.status === 'booked' || cell.status === 'blocked_sys') {
                       return (
                         <td key={cabin.id} className={styles.cell} style={{ backgroundColor: isPast ? '#f5f5f5' : cell.details?.color }}>
@@ -181,14 +181,14 @@ export default function Calendar() {
                     return (
                       <td key={cabin.id} className={styles.splitCellContainer}>
                         <div className={styles.splitWrapper}>
-                          <div 
+                          <div
                             className={`${styles.half} ${cell.checkoutDetails ? styles.bookedHalf : styles.freeHalf}`}
                             style={{ backgroundColor: (!isPast && cell.checkoutDetails) ? cell.checkoutDetails.color : '' }}
                           >
                             <span className={styles.halfText}>{cell.checkoutDetails ? 'OUT' : 'Wolny'}</span>
                             {cell.checkoutDetails && <div className={styles.tooltipContainer}><BookingTooltip details={cell.checkoutDetails} /></div>}
                           </div>
-                          <div 
+                          <div
                             className={`${styles.half} ${cell.checkinDetails ? styles.bookedHalf : styles.freeHalf}`}
                             style={{ backgroundColor: (!isPast && cell.checkinDetails) ? cell.checkinDetails.color : '' }}
                           >

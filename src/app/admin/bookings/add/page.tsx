@@ -515,7 +515,7 @@ export default function AddBookingPage() {
             <input id="guestName" name="guestName" type="text" required />
           </div>
           <div className={styles.inputGroup}>
-            <label htmlFor="guestEmail">Email</label>
+            <label htmlFor="guestEmail">E-mail</label>
             <input id="guestEmail" name="guestEmail" type="email" required />
           </div>
           <div className={styles.inputGroup}>
