@@ -12,7 +12,7 @@ export default function Attractions() {
             title: 'Muzeum Hymnu Narodowego w Będominie',
             description: 'Jedyne na świecie muzeum poświęcone "Mazurkowi Dąbrowskiego".',
             distance: 'ok. 5 km',
-            url: 'https://muzeumhymnu.pl/'
+            url: 'http://www.jozefwybicki.pl/'
         },
         {
             title: 'Stok narciarski Trzepowo',
@@ -42,11 +42,11 @@ export default function Attractions() {
             title: 'Wieżyca – Wieża Widokowa',
             description: 'Najwyższy szczyt Niżu Polskiego (329 m n.p.m.) z niesamowitym widokiem.',
             distance: 'ok. 24 km',
-            url: 'https://szwajcariakaszubska.com/atrakcje/wieza-widokowa-na-wiezycy'
+            url: 'https://www.wiezyca.pl/wieza-widokowa-na-szczycie-wiezyca/'
         },
         {
             title: 'Stok narciarski Wieżyca',
-            description: 'Największy ośrodek narciarski na Kaszubach (Koszałkowo).',
+            description: 'Największy ośrodek narciarski na Kaszubach. Osada Koszałkowo to Centrum Aktywnego Wypoczynku nie tylko na nartach',
             distance: 'ok. 25 km',
             url: 'https://www.wiezyca.pl/'
         },
