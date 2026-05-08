@@ -135,7 +135,7 @@ export default function ContactForm() {
         </div>
 
         <div className={styles.group}>
-          <label htmlFor="email">Adres E-mail</label>
+          <label htmlFor="email">Adres e-mail</label>
           <input
             id="email"
             name="email"

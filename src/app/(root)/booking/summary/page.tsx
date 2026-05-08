@@ -129,7 +129,7 @@ export default function BookingSummaryPage() {
             <span className={styles.summaryValue}>{clientData.address}</span>
           </div>
           <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Email:</span>
+            <span className={styles.summaryLabel}>E-mail:</span>
             <span className={styles.summaryValue}>{clientData.email}</span>
           </div>
           <div className={styles.summaryItem}>
