@@ -36,6 +36,18 @@ function formatMethod(method: 'online' | 'cash' | 'transfer'): string {
   return 'Online'
 }
 
+function getActiveFilterClass(status: AdminPaymentStatus, styles: Record<string, string>): string {
+  if (status === 'confirmed') {
+    return styles.filterBtnConfirmedActive
+  }
+
+  if (status === 'failed') {
+    return styles.filterBtnFailedActive
+  }
+
+  return styles.filterBtnPendingActive
+}
+
 export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps) {
   const router = useRouter()
   const [statusFilter, setStatusFilter] = useState<AdminPaymentStatus>('confirmed')
@@ -92,7 +104,7 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
 
   return (
     <section className={styles.panel}>
-      <h2 className={styles.sectionTitle}>{mode === 'online' ? 'Płatności Online' : 'Gotówka/Przelew'}</h2>
+      <h2 className={styles.sectionTitle}>{mode === 'online' ? 'Płatności online' : 'Gotówka / Przelew'}</h2>
 
       {mode === 'online' ? (
         <div className={styles.filtersWrap}>
@@ -101,7 +113,7 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
               type="button"
               role="radio"
               aria-checked={statusFilter === 'confirmed'}
-              className={`${styles.filterBtn} ${statusFilter === 'confirmed' ? styles.filterBtnActive : ''}`}
+              className={`${styles.filterBtn} ${statusFilter === 'confirmed' ? getActiveFilterClass('confirmed', styles) : ''}`}
               onClick={() => setStatusFilter('confirmed')}
             >
               Potwierdzone
@@ -110,7 +122,7 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
               type="button"
               role="radio"
               aria-checked={statusFilter === 'failed'}
-              className={`${styles.filterBtn} ${statusFilter === 'failed' ? styles.filterBtnActive : ''}`}
+              className={`${styles.filterBtn} ${statusFilter === 'failed' ? getActiveFilterClass('failed', styles) : ''}`}
               onClick={() => setStatusFilter('failed')}
             >
               Odrzucone (failed)
@@ -119,7 +131,7 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
               type="button"
               role="radio"
               aria-checked={statusFilter === 'pending'}
-              className={`${styles.filterBtn} ${statusFilter === 'pending' ? styles.filterBtnActive : ''}`}
+              className={`${styles.filterBtn} ${statusFilter === 'pending' ? getActiveFilterClass('pending', styles) : ''}`}
               onClick={() => setStatusFilter('pending')}
             >
               Oczekujące (pending)
@@ -144,7 +156,7 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
           <thead>
             <tr>
               {mode === 'online' ? <th>Zamówienie nr.</th> : null}
-              <th>Data</th>
+              <th>Data płatności</th>
               <th>Klient</th>
               <th>Kwota</th>
               {mode === 'online' ? <th>Status</th> : <th>Metoda</th>}

@@ -323,7 +323,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         </div>
         <div className={styles.settingRow}>
           <div className={styles.settingContent}>
-            <label htmlFor="minBookingDays" className={styles.settingLabel}>Minimalna liczba nocy</label>
+            <label htmlFor="minBookingDays" className={styles.settingLabel}>Minimalna liczba nocy:</label>
             <p className={styles.settingDescription}>Klient nie może wybrać okresu krótszego.</p>
           </div>
           <div className={styles.settingControl}>
@@ -339,7 +339,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         </div>
         <div className={styles.settingRow}>
           <div className={styles.settingContent}>
-            <label htmlFor="maxBookingDays" className={styles.settingLabel}>Maksymalna liczba nocy</label>
+            <label htmlFor="maxBookingDays" className={styles.settingLabel}>Maksymalna liczba nocy:</label>
             <p className={styles.settingDescription}>Klient nie może wybrać okresu dłuższego.</p>
           </div>
           <div className={styles.settingControl}>

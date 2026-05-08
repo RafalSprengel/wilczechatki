@@ -294,7 +294,7 @@ export default function AddBookingPage() {
     <div className={styles.container}>
       <FloatingBackButton />
       <header className={styles.header}>
-        <h1>Dodaj Nową Rezerwację</h1>
+        <h1>Dodaj nową rezerwację</h1>
         <p>Ręczne wprowadzenie rezerwacji (np. telefonicznej)</p>
       </header>
 
@@ -524,7 +524,7 @@ export default function AddBookingPage() {
           </div>
         </div>
 
-        <div className={styles.inputGroup}>
+        <div className={styles.inputGroup+' '+styles.internalNotes}>
           <label htmlFor="internalNotes">Uwagi wewnętrzne</label>
           <textarea id="internalNotes" name="internalNotes" rows={3}></textarea>
         </div>

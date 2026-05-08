@@ -330,7 +330,7 @@ export default function BookingClient({
                 disableIncrement={atMaxGuests}
               />
             </div>
-            <span className={styles.info}>* Dzieci do lat {childrenFreeAgeLimit} bezpłatnie</span>
+            <span className={styles.info}>*  Dzieci do {childrenFreeAgeLimit} roku życia bezpłatnie.</span>
             <button className={styles.buttOk} onClick={closeAllBoxes}>Gotowe</button>
           </div>
         </div>

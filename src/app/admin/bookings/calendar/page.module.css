@@ -45,6 +45,7 @@
 
 .calendarTable {
     min-width: max-content;
+    width: 100%;
     border-collapse: separate;
     border-spacing: 0;
     table-layout: fixed;

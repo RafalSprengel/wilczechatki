@@ -179,6 +179,9 @@
 }
 
 .dateBox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   width: 100%;
   position: relative;
 }
@@ -305,6 +308,10 @@
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-left: 10px;
+}
+
+.internalNotes {
+  margin-top: 17px;
 }
 
 .inlineSpinner {

@@ -63,6 +63,11 @@ export default function AdminAccountSettings() {
 
     try {
       if (username !== dbDisplayUsername) {
+        if (username.length === 0) {
+          toast.error('Login nie może być pusty.')
+          return
+        }
+
         const { error: userError } = await (authClient as any).username.updateUsername({
           newUsername: username,
         })

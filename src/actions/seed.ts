@@ -498,13 +498,11 @@ export async function seedAdmin() {
     await db.collection('user').deleteMany({
       $or: [{ email: { $in: emails } }, { username: { $in: usernames } }]
     });
-    // Czyścimy powiązane konta (Better Auth dla credentials trzyma hasło bezpośrednio w 'user')
     await db.collection('account').deleteMany({});
 
     let createdCount = 0;
 
     for (const admin of admins) {
-      // Używamy Better Auth API do rejestracji
       await auth.api.signUpEmail({
         body: {
           email: admin.email,
@@ -513,17 +511,15 @@ export async function seedAdmin() {
         },
       });
 
-      // Wymuszamy weryfikację adresu email, aby uniknąć blokad logowania
-      // oraz upewniamy się, że rola jest poprawnie ustawiona (signUpEmail czasem ignoruje dodatkowe pola w body jeśli nie są w schemacie wejściowym)
       await db.collection('user').updateOne(
         { email: admin.email },
-        { 
-          $set: { 
+        {
+          $set: {
             emailVerified: true,
             role: 'admin',
             username: admin.username.toLowerCase(),
             displayUsername: admin.username
-          } 
+          }
         }
       );
 

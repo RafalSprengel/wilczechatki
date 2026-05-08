@@ -172,7 +172,7 @@ export default function AdminLayout({
                   className={`${styles.subLink} ${isPaymentsOfflineActive ? styles.active : ''}`}
                   onClick={handleMenuLinkClick}
                 >
-                  💵 Gotówka / przelew
+                  💵 Gotówka / Przelew
                 </Link>
               </div>
             </div>
