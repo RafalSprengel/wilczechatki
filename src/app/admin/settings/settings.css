@@ -54,6 +54,7 @@
   border: 1px solid var(--color-border);
   overflow: hidden;
   transition: transform 0.2s ease;
+  padding: 0;
 }
 
 .card-header {

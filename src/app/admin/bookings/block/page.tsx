@@ -15,7 +15,7 @@ import {
 } from '@/actions/adminBookingActions'
 import { formatDisplayDate } from '@/utils/formatDate'
 import '../../settings/settings.css'
-import styles from './page.module.css'
+import styles from './page.module.scss'
 
 interface PropertyOption {
   _id: string
@@ -297,7 +297,7 @@ export default function BlockBookingsPage() {
         )}
       </form>
 
-      <section className="settings-card">
+      <div className="settings-card">
         <div className="card-header">
           <h2 className="card-title">Istniejące blokady</h2>
           <span className="card-badge">{blockedBookings.length}</span>
@@ -328,7 +328,7 @@ export default function BlockBookingsPage() {
             ))}
           </div>
         )}
-      </section>
+      </div>
 
       <Modal
         isOpen={Boolean(deleteTarget)}
