@@ -182,7 +182,7 @@ export default function AllPropertiesCard({
                   value={extraBeds}
                   onIncrement={() => onExtraBedsChange(option.displayName, extraBeds + 1)}
                   onDecrement={() => onExtraBedsChange(option.displayName, extraBeds - 1)}
-                  min={1}
+                  min={0}
                   max={option.maxExtraBeds}
                 />
                 <span className={styles.extraBedsPrice}>+{extraBeds * option.extraBedPrice} zł</span>

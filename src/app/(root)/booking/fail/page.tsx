@@ -46,9 +46,6 @@ export default function BookingFailPage() {
           <button onClick={handleRetry} className={styles.btnPrimary} disabled={isRetrying}>
             {isRetrying ? 'Przekierowywanie...' : 'Spróbuj ponownie'}
           </button>
-          <Link href="/booking/details" className={styles.btnSecondary}>
-            Edytuj dane
-          </Link>
           <Link href="/" className={styles.btnTertiary}>
             Wróć na stronę główną
           </Link>

@@ -167,7 +167,7 @@ export default function BookingSuccessPage() {
             </p>
 
             <div className={styles.infoBox}>
-              <p className={styles.infoText}>Sprawdź skrzynkę odbiorczą (oraz folder SPAM)</p>
+              <p className={styles.infoText}>Sprawdź skrzynkę odbiorczą (oraz folder SPAM).</p>
               <p className={styles.infoText}>
                 W razie pytań:{' '}
                 <a href={`tel:${SITE_CONFIG.phoneHref}`} className={styles.phoneLink}>

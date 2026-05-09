@@ -107,9 +107,8 @@ export default function CalendarPicker({
   const days = useMemo(() => {
     const startOfMonth = viewDate.startOf('month');
     const daysInMonth = viewDate.daysInMonth();
-    
-    let startDayOfWeek = startOfMonth.day();
-    if (startDayOfWeek === 0) startDayOfWeek = 7;
+
+    const startDayOfWeek = startOfMonth.day() === 0 ? 7 : startOfMonth.day();
 
     const result = [];
     const today = dayjs().startOf('day');
