@@ -71,11 +71,10 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
     }
 
     return rowsByMode.filter((row) => {
-      if (typeof row.orderId !== 'string') {
-        return false
-      }
+      const orderIdMatch = typeof row.orderId === 'string' && row.orderId.toLowerCase().includes(normalizedQuery)
+      const guestNameMatch = typeof row.guestName === 'string' && row.guestName.toLowerCase().includes(normalizedQuery)
 
-      return row.orderId.toLowerCase().includes(normalizedQuery)
+      return orderIdMatch || guestNameMatch
     })
   }, [rows, statusFilter, mode, orderSearch])
 
@@ -138,13 +137,13 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
             </button>
           </div>
           <div className={styles.orderSearchWrap}>
-            <label htmlFor="orderSearch" className={styles.orderSearchLabel}>Szukaj po numerze zamówienia</label>
+            <label htmlFor="orderSearch" className={styles.orderSearchLabel}>Szukaj zamówienia</label>
             <input
               id="orderSearch"
               type="text"
               value={orderSearch}
               onChange={(event) => setOrderSearch(event.target.value)}
-              placeholder="Np. ORD-000123"
+              placeholder="Numer zamówienia lub dane gościa"
               className={styles.orderSearchInput}
             />
           </div>
