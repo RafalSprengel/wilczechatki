@@ -64,8 +64,16 @@ const BookingTooltip = ({ details }: { details: BookingDetails }) => {
         <span className={styles.valueText}>{details.startDate} do {details.endDate}</span>
       </div>
       <div className={styles.tooltipRow}>
-        <span className={styles.label}>👥 Goście:</span>
-        <span className={styles.valueText}>{details.numberOfGuests} osób</span>
+        <span className={styles.label}>🌙 Ilość nocy:</span>
+        <span className={styles.valueText}>{details.durationDays}</span>
+      </div>
+      <div className={styles.tooltipRow}>
+        <span className={styles.label}>👨‍👩‍👧 Dorośli:</span>
+        <span className={styles.valueText}>{details.adults}</span>
+      </div>
+      <div className={styles.tooltipRow}>
+        <span className={styles.label}>🧒 Dzieci:</span>
+        <span className={styles.valueText}>{details.children}</span>
       </div>
       <div className={styles.tooltipRow}>
         <span className={styles.label}>🛏️ Dostawki:</span>

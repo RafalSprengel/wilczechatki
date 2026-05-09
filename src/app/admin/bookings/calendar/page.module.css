@@ -103,6 +103,11 @@
     font-weight: 600;
 }
 
+.cell {
+    position: relative;
+    cursor: pointer;
+}
+
 .statusText {
     display: block;
     z-index: 1;
