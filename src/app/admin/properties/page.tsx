@@ -20,14 +20,14 @@ export default async function PropertiesPage() {
     <div className={styles.container}>
       <FloatingBackButton />
       <header className={styles.header}>
-        <h1>Zarządzanie domkami</h1>
+        <h1>Zarządzanie obiektami</h1>
         <p>Dodaj, edytuj lub dezaktywuj obiekty w systemie.</p>
-        <Link href="/admin/properties/add" className={styles.btnAdd}>➕ Dodaj nowy domek</Link>
+        <Link href="/admin/properties/add" className={styles.btnAdd}>➕ Dodaj nowy obiekt</Link>
       </header>
       {properties.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>Brak domków w systemie.</p>
-          <Link href="/admin/properties/add" className={styles.btnAdd}>Dodaj pierwszy domek</Link>
+          <p>Brak obiektów w systemie.</p>
+          <Link href="/admin/properties/add" className={styles.btnAdd}>Dodaj pierwszy obiekt</Link>
         </div>
       ) : (
         <div className={styles.propertiesGrid}>

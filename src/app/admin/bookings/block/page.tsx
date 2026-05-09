@@ -285,9 +285,6 @@ export default function BlockBookingsPage() {
           <button type="button" className="btn-primary" onClick={() => void handleCreateBlock()} disabled={isSubmitting}>
             {isSubmitting ? 'Zapisywanie...' : 'Zablokuj termin'}
           </button>
-          {(!selectedPropertyId || !bookingDates.start) && (
-            <div className={styles.submitHint}>Wybierz domek i dzień rozpoczęcia. Jeśli nie wybierzesz końca, zablokowany zostanie 1 dzień.</div>
-          )}
         </div>
 
         {errorMessage && (

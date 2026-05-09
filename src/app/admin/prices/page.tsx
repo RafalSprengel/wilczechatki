@@ -22,7 +22,7 @@ export default async function PricesPage() {
       <FloatingBackButton />
       <header className="admin-header">
         <h1 className="admin-title">Zarządzanie cenami</h1>
-        <p className="admin-subtitle">Konfiguruj stawki podstawowe, w sezonie wysokim oraz ceny indywidualne</p>
+        <p className="admin-subtitle">Konfiguruj stawki podstawowe, stawki w sezonach oraz ceny indywidualne.</p>
       </header>
       <PriceSettingsForm
         properties={serializedProperties}

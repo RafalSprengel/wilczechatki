@@ -75,7 +75,7 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
                 pattern="[a-z0-9\-]+"
                 title="Tylko małe litery, cyfry i myślniki"
               />
-              <small className={styles.hint}>Opcjonalne. Np. chatka-a</small>
+              <small className={styles.hint}>Opcjonalne, np. chatka-a.</small>
             </div>
           </div>
           <div className={styles.inputGroup}>
@@ -104,7 +104,7 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
                 required
                 defaultValue={property.baseCapacity}
               />
-              <small className={styles.hint}>Maksymalna liczba osób na podstawowych łóżkach</small>
+              <small className={styles.hint}>Maksymalna liczba osób na podstawowych łóżkach.</small>
             </div>
             <div className={styles.inputGroup}>
               <label htmlFor="maxExtraBeds">Maksymalna liczba dostawek *</label>
@@ -117,7 +117,7 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
                 required
                 defaultValue={property.maxExtraBeds}
               />
-              <small className={styles.hint}>Ile dodatkowych łóżek można dostawić</small>
+              <small className={styles.hint}>Ile dodatkowych łóżek można dostawić.</small>
             </div>
           </div>
         </div>
@@ -133,7 +133,7 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
               defaultValue={property.images?.join(', ') || ''}
               placeholder="/images/chatka-1.jpg, /images/chatka-2.jpg"
             />
-            <small className={styles.hint}>Wklej ścieżki do zdjęć, oddzielając je przecinkami</small>
+            <small className={styles.hint}>Wklej ścieżki do zdjęć, oddzielając je przecinkami.</small>
           </div>
         </div>
 
