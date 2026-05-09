@@ -26,26 +26,41 @@ function formatGuestName(name: string) {
 }
 
 interface BookingsListPageProps {
-  searchParams?: Promise<{ q?: string }>;
+  searchParams?: Promise<{ q?: string; status?: string }>;
 }
 
 export default async function BookingsListPage({ searchParams }: BookingsListPageProps) {
   const bookings = await getAdminBookingsList();
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const orderQuery = typeof resolvedSearchParams?.q === 'string' ? resolvedSearchParams.q.trim() : '';
+  const statusFilter = typeof resolvedSearchParams?.status === 'string' ? resolvedSearchParams.status : 'confirmed';
   const normalizedOrderQuery = orderQuery.toLowerCase();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const filteredBookings = normalizedOrderQuery.length === 0
-    ? bookings
-    : bookings.filter((booking: any) => {
-      if (typeof booking.orderId !== 'string') {
-        return false;
-      }
+  const filteredBookings = bookings.filter((booking: any) => {
+    let matchStatus = false;
+    if (statusFilter === 'confirmed') {
+      matchStatus = ['confirmed', 'blocked'].includes(booking.status);
+    } else if (statusFilter === 'pending') {
+      matchStatus = booking.status === 'pending';
+    } else if (statusFilter === 'rejected') {
+      matchStatus = ['failed', 'cancelled'].includes(booking.status);
+    } else {
+      matchStatus = true; // all
+    }
 
-      return booking.orderId.toLowerCase().includes(normalizedOrderQuery);
-    });
+    let matchSearch = true;
+    if (normalizedOrderQuery.length > 0) {
+      const q = normalizedOrderQuery;
+      matchSearch = 
+        (typeof booking.orderId === 'string' && booking.orderId.toLowerCase().includes(q)) ||
+        (typeof booking.guestName === 'string' && booking.guestName.toLowerCase().includes(q)) ||
+        (typeof booking.guestEmail === 'string' && booking.guestEmail.toLowerCase().includes(q));
+    }
+
+    return matchStatus && matchSearch;
+  });
 
   const upcomingBookings = filteredBookings
     .filter((b: any) => new Date(b.endDate) >= today)
@@ -63,22 +78,46 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
           <h1>Lista rezerwacji</h1>
         </div>
         <p>Przeglądaj, edytuj lub usuwaj istniejące rezerwacje.</p>
-        <form method="get" className={styles.searchForm}>
-          <input
-            type="text"
-            name="q"
-            defaultValue={orderQuery}
-            placeholder="Szukaj po numerze zamówienia, np. ORD-000123"
-            className={styles.searchInput}
-          />
-          <button type="submit" className={styles.searchButton}>Szukaj</button>
-          {orderQuery.length > 0 ? <Link href="/admin/bookings/list" className={styles.clearSearch}>Wyczyść</Link> : null}
-        </form>
+        <div className={styles.filtersWrap}>
+          <div className={styles.filters} role="navigation" aria-label="Filtr statusu">
+            <Link 
+              href={`/admin/bookings/list?status=confirmed${orderQuery ? `&q=${orderQuery}` : ''}`}
+              className={`${styles.filterBtn} ${statusFilter === 'confirmed' ? styles.filterBtnConfirmedActive : ''}`}
+            >
+              Potwierdzone
+            </Link>
+            <Link 
+              href={`/admin/bookings/list?status=rejected${orderQuery ? `&q=${orderQuery}` : ''}`}
+              className={`${styles.filterBtn} ${statusFilter === 'rejected' ? styles.filterBtnFailedActive : ''}`}
+            >
+              Odrzucone
+            </Link>
+            <Link 
+              href={`/admin/bookings/list?status=pending${orderQuery ? `&q=${orderQuery}` : ''}`}
+              className={`${styles.filterBtn} ${statusFilter === 'pending' ? styles.filterBtnPendingActive : ''}`}
+            >
+              Oczekujące
+            </Link>
+          </div>
+          
+          <form method="get" className={styles.searchForm}>
+            <input type="hidden" name="status" value={statusFilter} />
+            <input
+              type="text"
+              name="q"
+              defaultValue={orderQuery}
+              placeholder="Szukaj po nazwisku, e-mailu lub numerze"
+              className={styles.searchInput}
+            />
+            <button type="submit" className={styles.searchButton}>Szukaj</button>
+            {orderQuery.length > 0 ? <Link href={`/admin/bookings/list?status=${statusFilter}`} className={styles.clearSearch}>Wyczyść</Link> : null}
+          </form>
+        </div>
       </header>
 
       {filteredBookings.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>{orderQuery.length > 0 ? 'Brak rezerwacji dla podanego numeru zamówienia.' : 'Brak rezerwacji w systemie.'}</p>
+          <p>{orderQuery.length > 0 ? 'Brak rezerwacji dla podanej frazy.' : 'Brak rezerwacji w systemie.'}</p>
         </div>
       ) : (
         <>

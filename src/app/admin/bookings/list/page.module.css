@@ -27,8 +27,58 @@
   margin: 0;
 }
 
+.filtersWrap {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filterBtn {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s;
+}
+
+.filterBtnActive {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+}
+
+.filterBtnConfirmedActive {
+  background: #15803d;
+  border-color: #15803d;
+  color: #ffffff;
+}
+
+.filterBtnFailedActive {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+.filterBtnPendingActive {
+  background: #eab308;
+  border-color: #eab308;
+  color: #1f2937;
+}
+
 .searchForm {
-  margin-top: 14px;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
