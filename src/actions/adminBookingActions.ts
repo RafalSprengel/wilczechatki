@@ -126,6 +126,16 @@ function validateBookingData(data: any) {
 
 export async function getAdminBookingsList() {
   await dbConnect()
+
+  // Leniwe weryfikowanie "oczekujących" rezerwacji przed pobraniem całej listy
+  const pendingBookingsForCleanup = await Booking.find({ status: 'pending' })
+    .select('_id propertyId status createdAt stripeSessionId source adminNotes startDate endDate')
+    .lean()
+
+  if (pendingBookingsForCleanup.length > 0) {
+    await resolveOccupiedPropertyIdsFromBookings(pendingBookingsForCleanup)
+  }
+
   const bookings = await Booking.find({ status: { $ne: 'blocked' } })
     .sort({ startDate: -1 })
     .populate('propertyId', 'name')
