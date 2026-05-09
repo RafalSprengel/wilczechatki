@@ -10,6 +10,21 @@ function getPaymentBadge(paymentStatus: string, paidAmount: number, totalPrice: 
   return { text: 'Nieopłacone', class: styles.paymentUnpaid };
 }
 
+function formatGuestName(name: string) {
+  if (!name) return 'Gość';
+  const trimmed = name.trim();
+  // Jeśli tekst jest samymi dużymi lub samymi małymi literami - poprawiamy.
+  // Jeśli ma już mieszane wielkości liter, zostawiamy (ochrona nazwisk typu MacDonald).
+  if (trimmed === trimmed.toUpperCase() || trimmed === trimmed.toLowerCase()) {
+    return trimmed
+      .toLowerCase()
+      .split(/\s+/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+  return trimmed;
+}
+
 interface BookingsListPageProps {
   searchParams?: Promise<{ q?: string }>;
 }
@@ -25,12 +40,12 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
   const filteredBookings = normalizedOrderQuery.length === 0
     ? bookings
     : bookings.filter((booking: any) => {
-        if (typeof booking.orderId !== 'string') {
-          return false;
-        }
+      if (typeof booking.orderId !== 'string') {
+        return false;
+      }
 
-        return booking.orderId.toLowerCase().includes(normalizedOrderQuery);
-      });
+      return booking.orderId.toLowerCase().includes(normalizedOrderQuery);
+    });
 
   const upcomingBookings = filteredBookings
     .filter((b: any) => new Date(b.endDate) >= today)
@@ -45,7 +60,7 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
       <header className={styles.header}>
         <div className={styles.headerTop}>
           <FloatingBackButton />
-          <h1>Lista Rezerwacji</h1>
+          <h1>Lista rezerwacji</h1>
         </div>
         <p>Przeglądaj, edytuj lub usuwaj istniejące rezerwacje.</p>
         <form method="get" className={styles.searchForm}>
@@ -97,7 +112,7 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
                         {start.toLocaleDateString('pl-PL')} - {end.toLocaleDateString('pl-PL')}
                       </span>
                     </div>
-                    <h3 className={styles.guestName}>{booking.guestName || 'Gość'}</h3>
+                    <h3 className={styles.guestName}>{formatGuestName(booking.guestName)}</h3>
                     <div className={styles.guestEmail}>{booking.guestEmail || '-'}</div>
                     <div className={styles.propertyName}>{booking.propertyName || 'Domek'}</div>
                     <div className={styles.detailRow}>
@@ -108,11 +123,11 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
 
                     <div className={styles.detailsGrid}>
                       <div className={styles.detailRow}>
-                        <span className={styles.label}>Nocy:</span>
+                        <span className={styles.label}>Ilość nocy:</span>
                         <span className={styles.value}>{nights}</span>
                       </div>
                       <div className={styles.detailRow}>
-                        <span className={styles.label}>Dorośli:</span>
+                        <span className={styles.label}>Dorośli (bezpłatnie):</span>
                         <span className={styles.value}>{booking.adults}</span>
                       </div>
                       <div className={styles.detailRow}>
