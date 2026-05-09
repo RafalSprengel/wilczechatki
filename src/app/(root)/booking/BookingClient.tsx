@@ -14,6 +14,7 @@ import styles from './page.module.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUsers, faSpinner, faExclamationCircle, faArrowRight, faHome } from '@fortawesome/free-solid-svg-icons'
 import AllPropertiesCard from './AllPropertiesCard'
+import dayjs from 'dayjs'
 
 interface BookingDates {
   start: string | null
@@ -96,7 +97,7 @@ export default function BookingClient({
   const [bookingDates, setBookingDates] = useState<BookingDates>({
     start: initialStart,
     end: initialEnd,
-    count: 0
+    count: initialStart && initialEnd ? dayjs(initialEnd).diff(dayjs(initialStart), 'day') : 0
   })
 
   const [isSearching, setIsSearching] = useState(false)
@@ -131,7 +132,7 @@ export default function BookingClient({
       setBookingDates({
         start: initialStart,
         end: initialEnd,
-        count: 0
+        count: initialStart && initialEnd ? dayjs(initialEnd).diff(dayjs(initialStart), 'day') : 0
       });
     }
   }, [initialStart, initialEnd]);
@@ -342,7 +343,7 @@ export default function BookingClient({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
               <span>
                 {bookingDates.start && bookingDates.end
-                  ? `${formatDisplayDate(bookingDates.start)} — ${formatDisplayDate(bookingDates.end)}`
+                  ? `${formatDisplayDate(bookingDates.start)} — ${formatDisplayDate(bookingDates.end)} (nocy: ${bookingDates.count})`
                   : 'Wybierz daty'}
               </span>
               <span style={{ fontSize: '0.8rem', color: '#aaa' }}>&#9662;</span>
