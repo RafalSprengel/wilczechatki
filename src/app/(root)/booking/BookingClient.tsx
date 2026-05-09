@@ -268,7 +268,7 @@ export default function BookingClient({
   const isSearchDisabled = totalGuests === 0 || !bookingDates.start || !bookingDates.end
   const showModeSelector = searchResults?.areAllAvailable === true
   const showSingleResults = searchResults?.areAllAvailable === false || bookingMode === 'single'
-console.log(bookingDates)
+
   return (
     <div className={styles.container}>
       {hasDraft && (

@@ -4,6 +4,7 @@ import { username } from "better-auth/plugins";
 import mongoose from "mongoose";
 import dbConnect from "@/db/connection";
 import { sendEmail } from "@/lib/sendEmail";
+import { PasswordReset } from "@/emails/PasswordReset";
 import {Db} from "mongodb";
 
 function createAuth(db: Db) {
@@ -17,18 +18,7 @@ function createAuth(db: Db) {
                 await sendEmail({
                     to: user.email,
                     subject: "Reset hasła - Wilcze Chatki",
-                    html: `
-                        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-                            <h2>Zresetuj swoje hasło</h2>
-                            <p>Witaj,</p>
-                            <p>Otrzymaliśmy prośbę o zresetowanie hasła dla Twojego konta. Kliknij poniższy przycisk, aby ustawić nowe hasło:</p>
-                            <p style="text-align: center; margin: 30px 0;">
-                                <a href="${url}" style="display: inline-block; padding: 12px 24px; background-color: #222; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">Ustaw nowe hasło</a>
-                            </p>
-                            <p>Link jest ważny przez ograniczony czas.</p>
-                            <p>Jeśli to nie Ty prosiłeś o reset hasła, po prostu zignoruj tę wiadomość.</p>
-                        </div>
-                    `
+                    react: PasswordReset({ url })
                 });
             }
         },

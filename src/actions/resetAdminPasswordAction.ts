@@ -4,6 +4,7 @@ import { getAuth } from "@/lib/auth";
 import dbConnect from "@/db/connection";
 import { sendEmail } from "@/lib/sendEmail";
 import mongoose from "mongoose";
+import { UsernameReminder } from "@/emails/UsernameReminder";
 
 export async function requestPasswordResetByUsername(username: string) {
     try {
@@ -67,15 +68,7 @@ export async function requestUsernameReminderByEmail(email: string) {
         await sendEmail({
             to: normalizedEmail,
             subject: "Przypomnienie loginu - Wilcze Chatki",
-            html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-                    <h2>Przypomnienie loginu</h2>
-                    <p>Witaj,</p>
-                    <p>Otrzymaliśmy prośbę o przypomnienie loginu do panelu administratora.</p>
-                    <p>Twój login to: <strong>${userDoc.username}</strong></p>
-                    <p>Jeśli to nie Ty wysłałeś tę prośbę, zignoruj tę wiadomość.</p>
-                </div>
-            `,
+            react: UsernameReminder({ username: userDoc.username }),
         });
 
         return { success: true };

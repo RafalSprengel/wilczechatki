@@ -295,7 +295,7 @@ export default function AddBookingPage() {
       <FloatingBackButton />
       <header className={styles.header}>
         <h1>Dodaj nową rezerwację</h1>
-        <p>Ręczne wprowadzenie rezerwacji (np. telefonicznej)</p>
+        <p>Ręczne wprowadzenie rezerwacji (np. telefonicznej).</p>
       </header>
 
       <form ref={formRef} action={formAction} onSubmit={handleSubmit} className={styles.formCard}>
@@ -390,7 +390,7 @@ export default function AddBookingPage() {
         <div className={styles.sectionTitle}>Płatność</div>
         <div className={styles.grid}>
           <div className={styles.inputGroup}>
-            <label htmlFor="totalPrice">Cena całkowita (PLN) *</label>
+            <label htmlFor="totalPrice">Cena całkowita (PLN)</label>
             <div className={styles.priceInputWrapper}>
               <input
                 id="totalPrice"
@@ -524,7 +524,7 @@ export default function AddBookingPage() {
           </div>
         </div>
 
-        <div className={styles.inputGroup+' '+styles.internalNotes}>
+        <div className={styles.inputGroup + ' ' + styles.internalNotes}>
           <label htmlFor="internalNotes">Uwagi wewnętrzne</label>
           <textarea id="internalNotes" name="internalNotes" rows={3}></textarea>
         </div>
