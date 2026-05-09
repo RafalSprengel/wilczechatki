@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './page.module.css';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
+import { formatDisplayDate } from '@/utils/formatDate';
 import type { BookingData, ClientData, InvoiceData } from '@/types/booking';
 
 interface GuestData extends ClientData {
@@ -256,7 +257,7 @@ export default function BookingDetailsPage() {
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Termin:</span>
             <span className={styles.summaryValue}>
-              {startDate} — {endDate} ({nights} nocy)
+              {formatDisplayDate(startDate)} — {formatDisplayDate(endDate)} ({nights} nocy)
             </span>
           </div>
           <div className={styles.summaryItem}>

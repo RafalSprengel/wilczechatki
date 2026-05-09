@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { SearchOption } from '@/actions/searchActions'
+import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton'
+import { formatDisplayDate } from '@/utils/formatDate'
 import QuantityPicker from '../../_components/QuantityPicker/QuantityPicker'
 import CalendarPicker, { DatesData } from '../../_components/CalendarPicker/CalendarPicker'
 import { useClickOutside } from '@/hooks/useClickOutside'
@@ -340,7 +342,7 @@ export default function BookingClient({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
               <span>
                 {bookingDates.start && bookingDates.end
-                  ? `${bookingDates.start} — ${bookingDates.end}`
+                  ? `${formatDisplayDate(bookingDates.start)} — ${formatDisplayDate(bookingDates.end)}`
                   : 'Wybierz daty'}
               </span>
               <span style={{ fontSize: '0.8rem', color: '#aaa' }}>&#9662;</span>

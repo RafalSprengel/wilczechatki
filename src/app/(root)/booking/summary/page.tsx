@@ -5,6 +5,7 @@ import Link from 'next/link';
 import styles from './page.module.css';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
 import { createCheckoutSession } from '@/actions/stripe';
+import { formatDisplayDate } from '@/utils/formatDate';
 import type { BookingData } from '@/types/booking';
 
 const STORAGE_KEY = 'wilczechatki_booking_draft';
@@ -100,7 +101,7 @@ export default function BookingSummaryPage() {
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Termin:</span>
             <span className={styles.summaryValue}>
-              {startDate} — {endDate} ({nights} nocy)
+              {formatDisplayDate(startDate)} — {formatDisplayDate(endDate)} ({nights} nocy)
             </span>
           </div>
           <div className={styles.summaryItem}>

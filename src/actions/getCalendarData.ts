@@ -9,6 +9,8 @@ import utc from 'dayjs/plugin/utc';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 
+import { formatDisplayDate } from '@/utils/formatDate';
+
 dayjs.extend(utc);
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
@@ -108,8 +110,8 @@ export async function getCalendarData(daysInMonth: number, startDateStr: string)
       paidAmount,
       paymentStatus,
       status: b.status,
-      startDate: dayjs.utc(b.startDate).format('YYYY-MM-DD'),
-      endDate: dayjs.utc(b.endDate).format('YYYY-MM-DD'),
+      startDate: formatDisplayDate(b.startDate),
+      endDate: formatDisplayDate(b.endDate),
       durationDays: dayjs.utc(b.endDate).diff(dayjs.utc(b.startDate), 'day'),
       color: b.status === 'blocked' ? '#e3f2fd' : generatePastelColor(id)
     };
@@ -121,7 +123,7 @@ export async function getCalendarData(daysInMonth: number, startDateStr: string)
     const currentDate = startDate.add(i, 'day');
     const dayData: CalendarDay = {
       date: currentDate.format('YYYY-MM-DD'),
-      datePL: currentDate.format('DD.MM.YYYY'),
+      datePL: formatDisplayDate(currentDate.format('YYYY-MM-DD')),
       cabins: {}
     };
 

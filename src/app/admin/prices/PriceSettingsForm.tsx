@@ -15,6 +15,7 @@ import {
 import CalendarPicker, { DatesData } from '@/app/_components/CalendarPicker/CalendarPicker'
 import dayjs from 'dayjs'
 import Modal from '@/app/_components/Modal/Modal'
+import { formatDisplayDate } from '@/utils/formatDate'
 import { toast } from 'react-hot-toast'
 import '../settings/settings.css'
 import styles from './page.module.css'
@@ -1185,8 +1186,8 @@ export default function PriceSettingsForm({
               {bookingDates.start && (
                 <div className={styles.selectedDateInfo}>
                   <span>
-                    Wybrano: {bookingDates.start}
-                    {bookingDates.end && ` — ${bookingDates.end}`}
+                    Wybrano: {formatDisplayDate(bookingDates.start)}
+                    {bookingDates.end && ` — ${formatDisplayDate(bookingDates.end)}`}
                   </span>
                   {!bookingDates.end && (
                     <span className={styles.dayType}>

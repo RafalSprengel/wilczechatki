@@ -3,8 +3,9 @@
 import React, { useEffect, useRef, useState, useTransition } from 'react'
 import { useActionState } from 'react'
 import styles from './page.module.css'
-import { createBookingByAdmin, calculatePriceAction, getUnavailableDatesForProperty } from '@/actions/adminBookingActions'
+import { createBookingByAdmin, calculatePriceAction, getUnavailableDatesForProperty, getBlockedBookings } from '@/actions/adminBookingActions'
 import { getAllProperties } from '@/actions/adminPropertyActions'
+import { formatDisplayDate } from '@/utils/formatDate'
 import { getBookingConfig } from '@/actions/bookingConfigActions'
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton'
 import CalendarPicker, { DatesData } from '@/app/_components/CalendarPicker/CalendarPicker'
@@ -340,7 +341,7 @@ export default function AddBookingPage() {
               <span className={styles.dateText}>
                 <span>
                   {bookingDates.start && bookingDates.end
-                    ? `${bookingDates.start} — ${bookingDates.end}`
+                    ? `${formatDisplayDate(bookingDates.start)} — ${formatDisplayDate(bookingDates.end)}`
                     : !propertySelection
                       ? 'Najpierw wybierz obiekt'
                       : isLoadingUnavailableDates

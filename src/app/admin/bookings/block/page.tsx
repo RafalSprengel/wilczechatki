@@ -13,6 +13,7 @@ import {
   getBlockedBookings,
   getUnavailableDatesForBlocking,
 } from '@/actions/adminBookingActions'
+import { formatDisplayDate } from '@/utils/formatDate'
 import '../../settings/settings.css'
 import styles from './page.module.css'
 
@@ -252,9 +253,9 @@ export default function BlockBookingsPage() {
               <div className={styles.rangePreview}>
                 <strong>Wybrany zakres:</strong>{' '}
                 {bookingDates.start && bookingDates.end
-                  ? `${bookingDates.start} -> ${bookingDates.end}`
+                  ? `${formatDisplayDate(bookingDates.start)} -> ${formatDisplayDate(bookingDates.end)}`
                   : bookingDates.start
-                    ? `${bookingDates.start} (1 dzień)`
+                    ? `${formatDisplayDate(bookingDates.start)} (1 dzień)`
                   : 'brak'}
               </div>
             </div>

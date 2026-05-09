@@ -8,6 +8,7 @@ import Property from "@/db/models/Property";
 import { stripe } from "@/lib/stripe";
 import type { BookingData } from "@/types/booking";
 import { generateOrderId } from "@/utils/generateOrderId";
+import { formatDisplayDate } from "@/utils/formatDate";
 
 export async function createCheckoutSession(bookingData: BookingData) {
   if (!bookingData) throw new Error("Brak danych rezerwacji.");
@@ -25,10 +26,6 @@ export async function createCheckoutSession(bookingData: BookingData) {
   ) {
     throw new Error("Niekompletne dane rezerwacji.");
   }
-
-  //sprawdzamy czy domki o danych id istnieja w bazie
-  // robimy petle po orders i sprawdzamy czy kazdy z nich ma propertyId, displayName, price, guests i extraBeds oraz dodajemy do wpis o rezerwacji dla kazdego domku oobno z tymi samymi danymi dotyczacymi rezerwujacego oraz datami, oznaczamy paymentStatus jako unpaid, status: pending. Pozniej jak zrobimy obsługe webhooka to bedziemy zonaczac jako caonfirmad albo jak sie nie uda platnosc nie wiem cancelled
-  // ponizej tworzymy sesje checkout dla stripe
 
   await dbConnect();
 
@@ -123,7 +120,7 @@ export async function createCheckoutSession(bookingData: BookingData) {
             currency: "pln",
             product_data: {
               name: `Rezerwacja: ${orderDisplayName}`,
-              description: `Pobyt od ${startDate} do ${endDate}`,
+              description: `Pobyt od ${formatDisplayDate(startDate)} do ${formatDisplayDate(endDate)}`,
             },
             unit_amount: Math.round(amount * 100),
           },
