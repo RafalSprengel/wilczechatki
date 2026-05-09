@@ -44,7 +44,10 @@ function createAuth(db: Db) {
         ],
 
         secret: process.env.BETTER_AUTH_SECRET,
-        trustedOrigins: [process.env.BETTER_AUTH_URL ?? "http://localhost:3000"],
+        trustedOrigins: [
+            process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
+            "http://192.168.0.77:3000"
+        ],
     });
 }
 
