@@ -53,7 +53,7 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
     let matchSearch = true;
     if (normalizedOrderQuery.length > 0) {
       const q = normalizedOrderQuery;
-      matchSearch = 
+      matchSearch =
         (typeof booking.orderId === 'string' && booking.orderId.toLowerCase().includes(q)) ||
         (typeof booking.guestName === 'string' && booking.guestName.toLowerCase().includes(q)) ||
         (typeof booking.guestEmail === 'string' && booking.guestEmail.toLowerCase().includes(q));
@@ -80,26 +80,26 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
         <p>Przeglądaj, edytuj lub usuwaj istniejące rezerwacje.</p>
         <div className={styles.filtersWrap}>
           <div className={styles.filters} role="navigation" aria-label="Filtr statusu">
-            <Link 
+            <Link
               href={`/admin/bookings/list?status=confirmed${orderQuery ? `&q=${orderQuery}` : ''}`}
               className={`${styles.filterBtn} ${statusFilter === 'confirmed' ? styles.filterBtnConfirmedActive : ''}`}
             >
               Potwierdzone
             </Link>
-            <Link 
+            <Link
               href={`/admin/bookings/list?status=rejected${orderQuery ? `&q=${orderQuery}` : ''}`}
               className={`${styles.filterBtn} ${statusFilter === 'rejected' ? styles.filterBtnFailedActive : ''}`}
             >
               Odrzucone
             </Link>
-            <Link 
+            <Link
               href={`/admin/bookings/list?status=pending${orderQuery ? `&q=${orderQuery}` : ''}`}
               className={`${styles.filterBtn} ${statusFilter === 'pending' ? styles.filterBtnPendingActive : ''}`}
             >
               Oczekujące
             </Link>
           </div>
-          
+
           <form method="get" className={styles.searchForm}>
             <input type="hidden" name="status" value={statusFilter} />
             <input
@@ -187,7 +187,7 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
                       </div>
                       {isFullyPaid ? (
                         <div className={styles.detailRow}>
-                          <span className={styles.label}>Płatność:</span>
+                          <span className={styles.label}>Status płatności:</span>
                           <span className={`${styles.value} ${styles.paymentPaid}`}>Opłacono</span>
                         </div>
                       ) : (
