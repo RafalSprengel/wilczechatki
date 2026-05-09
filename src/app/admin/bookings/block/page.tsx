@@ -213,7 +213,7 @@ export default function BlockBookingsPage() {
         <div className="setting-row">
           <div className="setting-content">
             <label className="setting-label" htmlFor="propertySelect">Domek</label>
-            <p className="setting-description">Wybierz domek z listy lub opcję Wszystkie.</p>
+            <p className="setting-description">Wybierz domek z listy lub opcję "Wszystkie".</p>
           </div>
           <div className="setting-control">
             <select
@@ -256,7 +256,7 @@ export default function BlockBookingsPage() {
                   ? `${formatDisplayDate(bookingDates.start)} -> ${formatDisplayDate(bookingDates.end)}`
                   : bookingDates.start
                     ? `${formatDisplayDate(bookingDates.start)} (1 dzień)`
-                  : 'brak'}
+                    : 'brak'}
               </div>
             </div>
           </div>
