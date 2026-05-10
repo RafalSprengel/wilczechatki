@@ -10,7 +10,7 @@ export default async function BookingSettingsPage() {
       <FloatingBackButton />
       <header className={styles.adminHeader}>
         <h1 className={styles.adminTitle}>Ustawienia rezerwacji</h1>
-        <p className={styles.adminSubtitle}>Zarządzaj globalnymi zasadami rezerwacji</p>
+        <p className={styles.adminSubtitle}>Zarządzaj globalnymi zasadami rezerwacji.</p>
       </header>
       <BookingSettingsForm initialConfig={config} />
     </div>

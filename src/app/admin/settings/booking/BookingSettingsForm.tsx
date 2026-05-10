@@ -60,7 +60,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
   const [localCheckInHour, setLocalCheckInHour] = useState(initialConfig.checkInHour);
   const [localCheckOutHour, setLocalCheckOutHour] = useState(initialConfig.checkOutHour);
   const [allowCheckin, setAllowCheckin] = useState(initialConfig.allowCheckinOnDepartureDay);
-  
+
   const [togglePending, startToggleTransition] = useTransition();
   const [seasons, setSeasons] = useState<ISeasonData[]>([]);
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>('');
@@ -94,7 +94,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
     if (!selectedSeason) return false;
     const originalStart = dayjs(selectedSeason.startDate);
     const originalEnd = dayjs(selectedSeason.endDate);
-    
+
     return (
       seasonName !== selectedSeason.name ||
       seasonDesc !== (selectedSeason.description || '') ||
@@ -117,7 +117,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
     };
     loadSeasons();
   }, []);
-  
+
   useEffect(() => {
     if (!selectedSeasonId && seasons.length > 0) {
       setSelectedSeasonId(seasons[0]._id);
@@ -174,7 +174,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         startDateToSave,
         endDateToSave
       );
-      
+
       if (result.success) {
         const updatedSeasons = await getAllSeasons();
         setSeasons(updatedSeasons);
@@ -355,7 +355,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         </div>
 
         <div className={`${styles.cardHeader} ${styles.cardHeaderSpaced}`}>
-          <h2 className={styles.cardTitle}>Daty sezonów</h2>
+          <h2 className={styles.cardTitle}>Ustawienia sezonów</h2>
         </div>
         <div className={styles.settingRow}>
           <div className={styles.settingContent}>
@@ -543,7 +543,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
             </label>
             <p className={styles.settingDescription}>
               Jeśli włączone, nowi goście mogą przyjechać tego samego dnia, w którym poprzedni wyjeżdżają (po {localCheckOutHour}:00).<br />
-              Jeśli wyłączone, dzień rozpoczęcia i dzień zakończenia istniejącej rezerwacji są niedostępne dla innych rezerwacji w tym samym domku.
+              Jeśli wyłączone, dzień rozpoczęcia i dzień zakończenia istniejącej rezerwacji pokazują się w kalendarzu jako niedostępne do zarezerwowania dla nowych gości (zasada "sprzątanie obiektu bez pośpiechu').
             </p>
           </div>
           <div className={styles.settingControl}>
@@ -566,17 +566,17 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         <div className={`${styles.floatingSaveBar} ${isAnyDirty ? styles.visible : ''}`}>
           <div className={styles.floatingSaveContent}>
             <p className={styles.floatingSaveText}>
-              {isConfigDirty && isSeasonDirty ? 'Masz niezapisane zmiany w ustawieniach i sezonie.' : 
-               isSeasonDirty ? `Niezapisane zmiany w sezonie: ${selectedSeason?.name}` : 
-               'Masz niezapisane zmiany w ustawieniach głównych.'}
+              {isConfigDirty && isSeasonDirty ? 'Masz niezapisane zmiany w ustawieniach i sezonie.' :
+                isSeasonDirty ? `Niezapisane zmiany w sezonie: ${selectedSeason?.name}` :
+                  'Masz niezapisane zmiany w ustawieniach głównych.'}
             </p>
             <div className={styles.floatingSaveActions}>
               <button type="button" className={styles.btnSecondary} onClick={handleReset} disabled={isPending || isUpdatingSeason}>Odrzuć</button>
-              <button 
-                type={isConfigDirty ? "submit" : "button"} 
-                className={styles.btnPrimary} 
+              <button
+                type={isConfigDirty ? "submit" : "button"}
+                className={styles.btnPrimary}
                 disabled={isPending || isUpdatingSeason}
-                onClick={() => { if(!isConfigDirty && isSeasonDirty) handleUpdateSeasonSilent() }}
+                onClick={() => { if (!isConfigDirty && isSeasonDirty) handleUpdateSeasonSilent() }}
               >
                 {isPending || isUpdatingSeason ? 'Zapisywanie...' : 'Zapisz wszystko'}
               </button>

@@ -1,10 +1,9 @@
 'use client'
-import { useState, useEffect, use } from 'react';
-import TopBar from '@components/Navbar/TopBar';
+import { useState, useEffect, ReactNode } from 'react';
 import Navbar from '@components/Navbar/Navbar';
 import styles from './Header.module.css';
 
-export default function Header() {
+export default function Header({ topBar }: { topBar: ReactNode }) {
     const [isScrolled, setIsScrolled] = useState(false);
 
     useEffect(() => {
@@ -21,10 +20,8 @@ export default function Header() {
 
     return (
         <header className={styles.container + (isScrolled ? ' ' + styles.scrolled : '')}>
-            <TopBar />
+            {topBar}
             <Navbar isSmaller={isScrolled} />
         </header>
-
     )
-
 }

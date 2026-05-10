@@ -1,10 +1,11 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFacebook } from '@fortawesome/free-brands-svg-icons';
 import styles from './TopBar.module.css';
-import { getCachedSiteSettings } from '@/db/services/siteSettingsService';
+import { getSiteSettings } from '@/actions/siteSettingsActions';
 
 export default async function TopBar() {
-    const siteSettings = await getCachedSiteSettings();
+    const siteSettings = await getSiteSettings();
+
     return (
         <div className={styles.container}>
             <div className={styles.inner}>

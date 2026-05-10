@@ -3,10 +3,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone } from '@fortawesome/free-solid-svg-icons';
 import { faFacebook } from '@fortawesome/free-brands-svg-icons';
 import Image from 'next/image';
-import { getCachedSiteSettings } from '@/db/services/siteSettingsService';
+import { getSiteSettings } from '@/actions/siteSettingsActions';
 
 export default async function Footer() {
-  const siteSettings = await getCachedSiteSettings();
+  const siteSettings = await getSiteSettings();
+
   return (
     <footer className={styles.container}>
       <div className={styles.inner}>
