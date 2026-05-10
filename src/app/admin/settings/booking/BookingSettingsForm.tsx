@@ -527,7 +527,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
                 </div>
                 <div className={styles.seasonEditRow}>
                   <div className={styles.seasonEditLabelCol}>
-                    <label className={styles.seasonEditLabel}>Kolejność:</label>
+                    <label className={styles.seasonEditLabel}>Kolejność na liście:</label>
                   </div>
                   <div className={styles.seasonEditControlCol}>
                     <input type="number" value={newSeasonOrder} onChange={(e) => setNewSeasonOrder(e.target.value)} className={styles.seasonEditInput} />
@@ -536,7 +536,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
                 <div className={styles.addSeasonActions}>
                   <button
                     type="button"
-                    className={styles.btnPrimary}
+                    className={styles.btnPrimary+' '+styles.createSeasonButt}
                     onClick={handleCreateSeason}
                     disabled={isCreatingSeason}
                   >
@@ -692,8 +692,8 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
               Zezwalaj na zameldowanie w dniu wymeldowania poprzednich gości
             </label>
             <p className={styles.settingDescription}>
-              Jeśli włączone, nowi goście mogą przyjechać tego samego dnia, w którym poprzedni wyjeżdżają (po {localCheckOutHour}:00).<br />
-              Jeśli wyłączone, dzień rozpoczęcia i dzień zakończenia istniejącej rezerwacji pokazują się w kalendarzu jako niedostępne do zarezerwowania dla nowych gości (zasada "sprzątanie obiektu bez pośpiechu').
+              Jeśli <strong>włączone</strong>, nowi goście mogą przyjechać tego samego dnia, w którym poprzedni wyjeżdżają (po {localCheckOutHour}:00).<br />
+              Jeśli <strong>wyłączone</strong>, dzień rozpoczęcia i dzień zakończenia istniejących rezerwacji pokazują się w kalendarzu jako niedostępne do zarezerwowania dla nowych gości (zasada "sprzątanie obiektu bez pośpiechu").
             </p>
           </div>
           <div className={styles.settingControl}>

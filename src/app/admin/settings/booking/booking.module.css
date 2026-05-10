@@ -306,6 +306,10 @@
     flex: 1;
 }
 
+.createSeasonButt {
+    margin-top: 15px;
+}
+
 @media (max-width: 600px) {
     .settingsEditNameAndDesc {
         margin: 10px 5px;

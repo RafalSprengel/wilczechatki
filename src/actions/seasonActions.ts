@@ -143,6 +143,8 @@ export async function updateSeasonDates(
 }
 
 export async function updateSeasonOrder(seasonId: string, order: number) {
+  console.log('wykonuje update order, order to ', order);
+  order = order - 1;
   try {
     await dbConnect();
     await Season.findByIdAndUpdate(seasonId, { order });

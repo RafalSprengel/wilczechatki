@@ -33,7 +33,7 @@ export default async function PricesPage() {
             Ceny indywidualne mają priorytet nad cenami sezonowymi, a ceny sezonowe mają priorytet nad cenami podstawowymi.
           </span>
           <div className={styles.priorityInfoChain}>
-            <span>Ceny Indywidualne</span>
+            <span>Ceny indywidualne</span>
             <span className={styles.priorityInfoArrow}>→</span>
             <span>Ceny sezonowe</span>
             <span className={styles.priorityInfoArrow}>→</span>
