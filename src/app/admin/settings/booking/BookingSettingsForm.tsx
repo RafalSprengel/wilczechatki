@@ -562,7 +562,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
                 </div>
                 <div className={styles.seasonEditRow}>
                   <div className={styles.seasonEditLabelCol}>
-                    <label className={styles.seasonEditLabel}>Kolejność:</label>
+                    <label className={styles.seasonEditLabel}>Kolejność na liście:</label>
                   </div>
                   <div className={styles.seasonEditControlCol}>
                     <input type="number" value={seasonOrder} onChange={(e) => setSeasonOrder(parseInt(e.target.value) || 0)} className={styles.seasonEditInput} />
