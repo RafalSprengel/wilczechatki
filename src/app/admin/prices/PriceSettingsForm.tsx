@@ -64,8 +64,26 @@ interface Props {
 }
 
 const OFF_SEASON_ID = 'off-season'
-const DEFAULT_CUSTOM_TIERS: PriceTier[] = [{ minGuests: 1, maxGuests: 2, price: 350 }]
+const DEFAULT_CUSTOM_TIERS: InputPriceTier[] = [{ minGuests: 1, maxGuests: 2, price: 350 }]
 const DEFAULT_CUSTOM_EXTRA_BED_PRICE = 100
+
+type InputPriceTier = {
+  minGuests: number | ""
+  maxGuests: number | ""
+  price: number | ""
+}
+
+function hasEmptyTierFields(tiers: InputPriceTier[]): boolean {
+  return tiers.some((t) => t.minGuests === "" || t.maxGuests === "" || t.price === "")
+}
+
+function toNumberTiers(tiers: InputPriceTier[]): PriceTier[] {
+  return tiers.map((t) => ({
+    minGuests: t.minGuests as number,
+    maxGuests: t.maxGuests as number,
+    price: t.price as number,
+  }))
+}
 
 type TierField = keyof PriceTier
 
@@ -203,10 +221,10 @@ export default function PriceSettingsForm({
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>(OFF_SEASON_ID)
 
   // ── Formularz cen ───────────────────────────────────────────────────────────
-  const [weekdayTiers, setWeekdayTiers] = useState<PriceTier[]>([])
-  const [weekendTiers, setWeekendTiers] = useState<PriceTier[]>([])
-  const [weekdayExtraBedPrice, setWeekdayExtraBedPrice] = useState<number>(50)
-  const [weekendExtraBedPrice, setWeekendExtraBedPrice] = useState<number>(70)
+  const [weekdayTiers, setWeekdayTiers] = useState<InputPriceTier[]>([])
+  const [weekendTiers, setWeekendTiers] = useState<InputPriceTier[]>([])
+  const [weekdayExtraBedPrice, setWeekdayExtraBedPrice] = useState<number | "">(50)
+  const [weekendExtraBedPrice, setWeekendExtraBedPrice] = useState<number | "">(70)
 
   // ── Ceny indywidualne (per data) ────────────────────────────────────────────
   const [bookingDates, setBookingDates] = useState<BookingDates>({
@@ -214,9 +232,9 @@ export default function PriceSettingsForm({
     end: null,
     count: 0,
   })
-  const [customTiers, setCustomTiers] = useState<PriceTier[]>([...DEFAULT_CUSTOM_TIERS])
+  const [customTiers, setCustomTiers] = useState<InputPriceTier[]>([...DEFAULT_CUSTOM_TIERS])
   const [customPrices, setCustomPrices] = useState<CustomPriceEntry[]>([])
-  const [customExtraBedPrice, setCustomExtraBedPrice] = useState<number>(DEFAULT_CUSTOM_EXTRA_BED_PRICE)
+  const [customExtraBedPrice, setCustomExtraBedPrice] = useState<number | "">(DEFAULT_CUSTOM_EXTRA_BED_PRICE)
   const [calendarPrices, setCalendarPrices] = useState<Record<string, number>>({})
   const [isCustomRangeMode, setIsCustomRangeMode] = useState(true)
   const [customTierErrors, setCustomTierErrors] = useState<TierValidationError[]>([])
@@ -335,7 +353,7 @@ export default function PriceSettingsForm({
     type: 'weekday' | 'weekend',
     index: number,
     field: keyof PriceTier,
-    value: number
+    value: number | ""
   ) => {
     const setter = type === 'weekend' ? setWeekendTiers : setWeekdayTiers
     setIsSeasonDirty(true)
@@ -359,10 +377,11 @@ export default function PriceSettingsForm({
     }
 
     const last = tiers[tiers.length - 1]
+    if (last.maxGuests === "" || last.price === "") return
     setTierErrors((prev) => ({ ...prev, [type]: [] }))
     setter((prev) => [
       ...prev,
-      { minGuests: last.maxGuests + 1, maxGuests: last.maxGuests + 2, price: last.price + 100 },
+      { minGuests: (last.maxGuests as number) + 1, maxGuests: (last.maxGuests as number) + 2, price: (last.price as number) + 100 },
     ])
   }
 
@@ -405,22 +424,42 @@ export default function PriceSettingsForm({
     tierErrors[type].find((error) => error.index === index)
 
   const handleSavePrices = async (overrides?: {
-    weekdayTiersOverride?: PriceTier[]
-    weekendTiersOverride?: PriceTier[]
+    weekdayTiersOverride?: InputPriceTier[]
+    weekendTiersOverride?: InputPriceTier[]
   }): Promise<boolean> => {
     if (!selectedPropertyId) {
       toast.error('Wybierz obiekt')
       return false
     }
 
-    const weekdayTiersToSave =
+    const weekdayInputTiers =
       overrides && overrides.weekdayTiersOverride
         ? overrides.weekdayTiersOverride
         : weekdayTiers
-    const weekendTiersToSave =
+    const weekendInputTiers =
       overrides && overrides.weekendTiersOverride
         ? overrides.weekendTiersOverride
         : weekendTiers
+
+    if (hasEmptyTierFields(weekdayInputTiers)) {
+      toast.error('Uzupełnij wszystkie pola w przedziale cenowym (dzień powszedni).')
+      return false
+    }
+    if (hasEmptyTierFields(weekendInputTiers)) {
+      toast.error('Uzupełnij wszystkie pola w przedziale cenowym (weekend).')
+      return false
+    }
+    if (weekdayExtraBedPrice === "") {
+      toast.error('Cena za dostawkę (dzień powszedni) nie może być pusta.')
+      return false
+    }
+    if (weekendExtraBedPrice === "") {
+      toast.error('Cena za dostawkę (weekend) nie może być pusta.')
+      return false
+    }
+
+    const weekdayTiersToSave = toNumberTiers(weekdayInputTiers)
+    const weekendTiersToSave = toNumberTiers(weekendInputTiers)
 
     const weekdayValidation = normalizeAndValidateTiers(weekdayTiersToSave, 'weekday')
     if (!weekdayValidation.isValid) {
@@ -455,8 +494,8 @@ export default function PriceSettingsForm({
       formData.append('propertyId', selectedPropertyId)
       formData.append('weekdayTiers', JSON.stringify(weekdayValidation.sorted))
       formData.append('weekendTiers', JSON.stringify(weekendValidation.sorted))
-      formData.append('weekdayExtraBedPrice', weekdayExtraBedPrice.toString())
-      formData.append('weekendExtraBedPrice', weekendExtraBedPrice.toString())
+      formData.append('weekdayExtraBedPrice', (weekdayExtraBedPrice as number).toString())
+      formData.append('weekendExtraBedPrice', (weekendExtraBedPrice as number).toString())
 
       if (selectedSeasonId === OFF_SEASON_ID) {
         formData.append('mode', 'basic')
@@ -538,7 +577,7 @@ export default function PriceSettingsForm({
   const handleCustomTierChange = (
     index: number,
     field: keyof PriceTier,
-    value: number
+    value: number | ""
   ) => {
     setIsCustomDirty(true)
     setCustomTierErrors([])
@@ -562,9 +601,10 @@ export default function PriceSettingsForm({
     }
 
     const last = tiers[tiers.length - 1]
+    if (last.maxGuests === "" || last.price === "") return
     setCustomTiers((prev) => [
       ...prev,
-      { minGuests: last.maxGuests + 1, maxGuests: last.maxGuests + 2, price: last.price },
+      { minGuests: (last.maxGuests as number) + 1, maxGuests: (last.maxGuests as number) + 2, price: last.price },
     ])
   }
 
@@ -597,7 +637,16 @@ export default function PriceSettingsForm({
   const handleSaveCustomPrice = async (): Promise<boolean> => {
     if (!selectedPropertyId || !bookingDates.start) return false
 
-    const customValidation = normalizeAndValidateTiers(customTiers, 'custom')
+    if (hasEmptyTierFields(customTiers)) {
+      toast.error('Uzupełnij wszystkie pola w przedziale cenowym.')
+      return false
+    }
+    if (customExtraBedPrice === "") {
+      toast.error('Cena za dostawkę nie może być pusta.')
+      return false
+    }
+
+    const customValidation = normalizeAndValidateTiers(toNumberTiers(customTiers), 'custom')
     if (!customValidation.isValid) {
       setCustomTiers(customValidation.sorted)
       setCustomTierErrors(customValidation.errors ?? [])
@@ -614,7 +663,7 @@ export default function PriceSettingsForm({
         propertyId: selectedPropertyId,
         dates: buildDateRange(),
         prices: customValidation.sorted,
-        extraBedPrice: customExtraBedPrice,
+        extraBedPrice: customExtraBedPrice as number,
       })
 
       if (result?.success) {
@@ -902,60 +951,39 @@ export default function PriceSettingsForm({
                       <div className={`${styles.tierRow} ${tierError ? styles.tierRowError : ''}`}>
                         <label className={styles.tierField}>
                           <span className={styles.tierFieldLabel}>Osób od</span>
-                          <input
-                            type="number"
-                            min="1"
-                            step="1"
-                            value={tier.minGuests}
-                            onChange={(e) =>
-                              handleBaseRateChange(
-                                'weekday',
-                                index,
-                                'minGuests',
-                                parseInt(e.target.value, 10) || 1
-                              )
-                            }
-                            className={`${styles.input} ${tierError?.fields.includes('minGuests') ? styles.inputError : ''}`}
-                            disabled={isLoadingPrices}
-                          />
+                            <input
+                              type="number"
+                              min="1"
+                              step="1"
+                              value={tier.minGuests}
+                              onChange={e => handleBaseRateChange('weekday', index, 'minGuests', e.target.value === '' ? '' : Number(e.target.value))}
+                              className={`${styles.input} ${tierError?.fields.includes('minGuests') ? styles.inputError : ''}`}
+                              disabled={isLoadingPrices}
+                            />
                         </label>
                         <label className={styles.tierField}>
                           <span className={styles.tierFieldLabel}>Osób do</span>
-                          <input
-                            type="number"
-                            min="1"
-                            step="1"
-                            value={tier.maxGuests}
-                            onChange={(e) =>
-                              handleBaseRateChange(
-                                'weekday',
-                                index,
-                                'maxGuests',
-                                parseInt(e.target.value, 10) || 1
-                              )
-                            }
-                            className={`${styles.input} ${tierError?.fields.includes('maxGuests') ? styles.inputError : ''}`}
-                            disabled={isLoadingPrices}
-                          />
+                            <input
+                              type="number"
+                              min="1"
+                              step="1"
+                              value={tier.maxGuests}
+                              onChange={e => handleBaseRateChange('weekday', index, 'maxGuests', e.target.value === '' ? '' : Number(e.target.value))}
+                              className={`${styles.input} ${tierError?.fields.includes('maxGuests') ? styles.inputError : ''}`}
+                              disabled={isLoadingPrices}
+                            />
                         </label>
                         <label className={styles.tierField}>
                           <span className={styles.tierFieldLabel}>Cena</span>
-                          <input
-                            type="number"
-                            min="0"
-                            step="10"
-                            value={tier.price}
-                            onChange={(e) =>
-                              handleBaseRateChange(
-                                'weekday',
-                                index,
-                                'price',
-                                parseInt(e.target.value) || 0
-                              )
-                            }
-                            className={`${styles.input} ${tierError?.fields.includes('price') ? styles.inputError : ''}`}
-                            disabled={isLoadingPrices}
-                          />
+                            <input
+                              type="number"
+                              min="0"
+                              step="10"
+                              value={tier.price}
+                              onChange={e => handleBaseRateChange('weekday', index, 'price', e.target.value === '' ? '' : Number(e.target.value))}
+                              className={`${styles.input} ${tierError?.fields.includes('price') ? styles.inputError : ''}`}
+                              disabled={isLoadingPrices}
+                            />
                         </label>
                         <span className={styles.currency}>zł</span>
                         {weekdayTiers.length > 1 && (
@@ -1008,14 +1036,7 @@ export default function PriceSettingsForm({
                             min="1"
                             step="1"
                             value={tier.minGuests}
-                            onChange={(e) =>
-                              handleBaseRateChange(
-                                'weekend',
-                                index,
-                                'minGuests',
-                                parseInt(e.target.value, 10) || 1
-                              )
-                            }
+                            onChange={e => handleBaseRateChange('weekend', index, 'minGuests', e.target.value === '' ? '' : Number(e.target.value))}
                             className={`${styles.input} ${tierError?.fields.includes('minGuests') ? styles.inputError : ''}`}
                             disabled={isLoadingPrices}
                           />
@@ -1027,14 +1048,7 @@ export default function PriceSettingsForm({
                             min="1"
                             step="1"
                             value={tier.maxGuests}
-                            onChange={(e) =>
-                              handleBaseRateChange(
-                                'weekend',
-                                index,
-                                'maxGuests',
-                                parseInt(e.target.value, 10) || 1
-                              )
-                            }
+                            onChange={e => handleBaseRateChange('weekend', index, 'maxGuests', e.target.value === '' ? '' : Number(e.target.value))}
                             className={`${styles.input} ${tierError?.fields.includes('maxGuests') ? styles.inputError : ''}`}
                             disabled={isLoadingPrices}
                           />
@@ -1046,14 +1060,7 @@ export default function PriceSettingsForm({
                             min="0"
                             step="10"
                             value={tier.price}
-                            onChange={(e) =>
-                              handleBaseRateChange(
-                                'weekend',
-                                index,
-                                'price',
-                                parseInt(e.target.value) || 0
-                              )
-                            }
+                            onChange={e => handleBaseRateChange('weekend', index, 'price', e.target.value === '' ? '' : Number(e.target.value))}
                             className={`${styles.input} ${tierError?.fields.includes('price') ? styles.inputError : ''}`}
                             disabled={isLoadingPrices}
                           />
@@ -1097,8 +1104,8 @@ export default function PriceSettingsForm({
                   min="0"
                   step="10"
                   value={weekdayExtraBedPrice}
-                  onChange={(e) => {
-                    setWeekdayExtraBedPrice(parseInt(e.target.value) || 0)
+                  onChange={e => {
+                    setWeekdayExtraBedPrice(e.target.value === '' ? '' : Number(e.target.value))
                     setIsSeasonDirty(true)
                   }}
                   className={`${styles.input} ${styles.inputLarge}`}
@@ -1120,8 +1127,8 @@ export default function PriceSettingsForm({
                   min="0"
                   step="10"
                   value={weekendExtraBedPrice}
-                  onChange={(e) => {
-                    setWeekendExtraBedPrice(parseInt(e.target.value) || 0)
+                  onChange={e => {
+                    setWeekendExtraBedPrice(e.target.value === '' ? '' : Number(e.target.value))
                     setIsSeasonDirty(true)
                   }}
                   className={`${styles.input} ${styles.inputLarge}`}
@@ -1213,13 +1220,7 @@ export default function PriceSettingsForm({
                                 min="1"
                                 step="1"
                                 value={tier.minGuests}
-                                onChange={(e) =>
-                                  handleCustomTierChange(
-                                    index,
-                                    'minGuests',
-                                    parseInt(e.target.value, 10) || 1
-                                  )
-                                }
+                                onChange={e => handleCustomTierChange(index, 'minGuests', e.target.value === '' ? '' : Number(e.target.value))}
                                 className={`${styles.input} ${tierError?.fields.includes('minGuests') ? styles.inputError : ''}`}
                               />
                             </label>
@@ -1230,13 +1231,7 @@ export default function PriceSettingsForm({
                                 min="1"
                                 step="1"
                                 value={tier.maxGuests}
-                                onChange={(e) =>
-                                  handleCustomTierChange(
-                                    index,
-                                    'maxGuests',
-                                    parseInt(e.target.value, 10) || 1
-                                  )
-                                }
+                                onChange={e => handleCustomTierChange(index, 'maxGuests', e.target.value === '' ? '' : Number(e.target.value))}
                                 className={`${styles.input} ${tierError?.fields.includes('maxGuests') ? styles.inputError : ''}`}
                               />
                             </label>
@@ -1247,13 +1242,7 @@ export default function PriceSettingsForm({
                                 min="0"
                                 step="10"
                                 value={tier.price}
-                                onChange={(e) =>
-                                  handleCustomTierChange(
-                                    index,
-                                    'price',
-                                    parseInt(e.target.value, 10) || 0
-                                  )
-                                }
+                                onChange={e => handleCustomTierChange(index, 'price', e.target.value === '' ? '' : Number(e.target.value))}
                                 className={`${styles.input} ${tierError?.fields.includes('price') ? styles.inputError : ''}`}
                               />
                             </label>
@@ -1294,8 +1283,8 @@ export default function PriceSettingsForm({
                       min="0"
                       step="10"
                       value={customExtraBedPrice}
-                      onChange={(e) => {
-                        setCustomExtraBedPrice(parseInt(e.target.value, 10) || 0)
+                      onChange={e => {
+                        setCustomExtraBedPrice(e.target.value === '' ? '' : Number(e.target.value))
                         setIsCustomDirty(true)
                       }}
                       className={`${styles.input} ${styles.inputLarge}`}

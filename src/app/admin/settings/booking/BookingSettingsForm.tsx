@@ -57,11 +57,11 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
     success: false,
   });
 
-  const [localMinDays, setLocalMinDays] = useState(initialConfig.minBookingDays);
-  const [localMaxDays, setLocalMaxDays] = useState(initialConfig.maxBookingDays);
-  const [localChildrenFreeAge, setLocalChildrenFreeAge] = useState(initialConfig.childrenFreeAgeLimit);
-  const [localCheckInHour, setLocalCheckInHour] = useState(initialConfig.checkInHour);
-  const [localCheckOutHour, setLocalCheckOutHour] = useState(initialConfig.checkOutHour);
+  const [localMinDays, setLocalMinDays] = useState<number | "">(initialConfig.minBookingDays);
+  const [localMaxDays, setLocalMaxDays] = useState<number | "">(initialConfig.maxBookingDays);
+  const [localChildrenFreeAge, setLocalChildrenFreeAge] = useState<number | "">(initialConfig.childrenFreeAgeLimit);
+  const [localCheckInHour, setLocalCheckInHour] = useState<number | "">(initialConfig.checkInHour);
+  const [localCheckOutHour, setLocalCheckOutHour] = useState<number | "">(initialConfig.checkOutHour);
   const [allowCheckin, setAllowCheckin] = useState(initialConfig.allowCheckinOnDepartureDay);
 
   const [togglePending, startToggleTransition] = useTransition();
@@ -312,42 +312,39 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
     }
   };
 
-  const handleBlurMinDays = (e: React.FocusEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value);
-    if (!isNaN(val) && val >= 1) setLocalMinDays(val);
-    else e.target.value = localMinDays.toString();
-  };
-
-  const handleBlurMaxDays = (e: React.FocusEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value);
-    if (!isNaN(val) && val >= 1) setLocalMaxDays(val);
-    else e.target.value = localMaxDays.toString();
-  };
-
-  const handleBlurChildrenFreeAge = (e: React.FocusEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value);
-    if (!isNaN(val) && val >= 0) setLocalChildrenFreeAge(val);
-    else e.target.value = localChildrenFreeAge.toString();
-  };
-
-  const handleBlurCheckIn = (e: React.FocusEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value);
-    if (isNaN(val) || val < 0 || val > 23 || val < localCheckOutHour) {
-      if (val < localCheckOutHour) toast.error('Godzina rozpoczęcia doby nie może być wcześniejsza niż zakończenia.');
-      e.target.value = localCheckInHour.toString();
-      return;
+  const handleBlurMinDays = () => {
+    if (localMinDays === "" || isNaN(Number(localMinDays)) || Number(localMinDays) < 1) {
+      toast.error("Minimalna liczba nocy jest wymagana i musi być większa od zera");
+      setLocalMinDays(initialConfig.minBookingDays);
     }
-    setLocalCheckInHour(val);
   };
 
-  const handleBlurCheckOut = (e: React.FocusEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value);
-    if (isNaN(val) || val < 0 || val > 23 || val > localCheckInHour) {
-      if (val > localCheckInHour) toast.error('Godzina zakończenia doby nie może być późniejsza niż rozpoczęcia.');
-      e.target.value = localCheckOutHour.toString();
-      return;
+  const handleBlurMaxDays = () => {
+    if (localMaxDays === "" || isNaN(Number(localMaxDays)) || Number(localMaxDays) < 1) {
+      toast.error("Maksymalna liczba nocy jest wymagana i musi być większa od zera");
+      setLocalMaxDays(initialConfig.maxBookingDays);
     }
-    setLocalCheckOutHour(val);
+  };
+
+  const handleBlurChildrenFreeAge = () => {
+    if (localChildrenFreeAge === "" || isNaN(Number(localChildrenFreeAge)) || Number(localChildrenFreeAge) < 0) {
+      toast.error("Wiek dziecka musi być liczbą nieujemną");
+      setLocalChildrenFreeAge(initialConfig.childrenFreeAgeLimit);
+    }
+  };
+
+  const handleBlurCheckIn = () => {
+    if (localCheckInHour === "" || isNaN(Number(localCheckInHour)) || Number(localCheckInHour) < 0 || Number(localCheckInHour) > 23 || Number(localCheckInHour) < Number(localCheckOutHour)) {
+      toast.error("Godzina rozpoczęcia doby nie może być wcześniejsza niż zakończenia i musi być z zakresu 0-23");
+      setLocalCheckInHour(initialConfig.checkInHour);
+    }
+  };
+
+  const handleBlurCheckOut = () => {
+    if (localCheckOutHour === "" || isNaN(Number(localCheckOutHour)) || Number(localCheckOutHour) < 0 || Number(localCheckOutHour) > 23 || Number(localCheckOutHour) > Number(localCheckInHour)) {
+      toast.error("Godzina zakończenia doby nie może być późniejsza niż rozpoczęcia i musi być z zakresu 0-23");
+      setLocalCheckOutHour(initialConfig.checkOutHour);
+    }
   };
 
   const handleReset = () => {
@@ -419,10 +416,11 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
               type="number"
               id="minBookingDays"
               value={localMinDays}
-              onChange={(e) => setLocalMinDays(parseInt(e.target.value) || 1)}
+              onChange={e => setLocalMinDays(e.target.value === "" ? "" : Number(e.target.value))}
               onBlur={handleBlurMinDays}
               className={styles.numberInput}
             />
+            <input type="hidden" name="minBookingDays" value={localMinDays === "" ? "" : localMinDays} />
           </div>
         </div>
         <div className={styles.settingRow}>
@@ -435,10 +433,11 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
               type="number"
               id="maxBookingDays"
               value={localMaxDays}
-              onChange={(e) => setLocalMaxDays(parseInt(e.target.value) || 1)}
+              onChange={e => setLocalMaxDays(e.target.value === "" ? "" : Number(e.target.value))}
               onBlur={handleBlurMaxDays}
               className={styles.numberInput}
             />
+            <input type="hidden" name="maxBookingDays" value={localMaxDays === "" ? "" : localMaxDays} />
           </div>
         </div>
 
@@ -661,6 +660,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
           </div>
           <div className={styles.settingControl}>
             <input type="number" id="checkInHour" min={0} value={localCheckInHour} onChange={(e) => setLocalCheckInHour(parseInt(e.target.value) || 0)} onBlur={handleBlurCheckIn} className={styles.numberInput} />
+            <input type="hidden" name="checkInHour" value={localCheckInHour === "" ? "" : localCheckInHour} />
           </div>
         </div>
         <div className={styles.settingRow}>
@@ -670,6 +670,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
           </div>
           <div className={styles.settingControl}>
             <input type="number" id="checkOutHour" min={0} value={localCheckOutHour} onChange={(e) => setLocalCheckOutHour(parseInt(e.target.value) || 0)} onBlur={handleBlurCheckOut} className={styles.numberInput} />
+            <input type="hidden" name="checkOutHour" value={localCheckOutHour === "" ? "" : localCheckOutHour} />
           </div>
         </div>
 
@@ -680,6 +681,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
           <div className={styles.settingContent}><label htmlFor="childrenFreeAgeLimit" className={styles.settingLabel}>Bezpłatny pobyt dzieci do lat:</label></div>
           <div className={styles.settingControl}>
             <input type="number" id="childrenFreeAgeLimit" min={0} value={localChildrenFreeAge} onChange={(e) => setLocalChildrenFreeAge(parseInt(e.target.value) || 0)} onBlur={handleBlurChildrenFreeAge} className={styles.numberInput} />
+            <input type="hidden" name="childrenFreeAgeLimit" value={localChildrenFreeAge === "" ? "" : localChildrenFreeAge} />
           </div>
         </div>
 
