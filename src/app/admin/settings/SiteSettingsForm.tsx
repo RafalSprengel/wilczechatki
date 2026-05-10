@@ -99,7 +99,7 @@ export default function SiteSettingsForm() {
 
       <div className={styles.siteSettings__form}>
         <div className={styles.siteSettings__inputGroup}>
-          <label htmlFor="site-phone-display">Telefon (wyświetlany):</label>
+          <label htmlFor="site-phone-display">Telefon (wyświetlany na stronie www):</label>
           <input
             id="site-phone-display"
             type="text"
@@ -112,7 +112,7 @@ export default function SiteSettingsForm() {
         </div>
 
         <div className={styles.siteSettings__inputGroup}>
-          <label htmlFor="site-phone-href">Telefon (link tel:):</label>
+          <label htmlFor="site-phone-href">Telefon (w formacie +48123456789, bez spacji i myślników):</label>
           <input
             id="site-phone-href"
             type="text"
