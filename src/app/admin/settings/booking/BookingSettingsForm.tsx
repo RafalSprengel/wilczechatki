@@ -1,5 +1,6 @@
 'use client';
 import { useActionState, useEffect, useState, useTransition, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { updateBookingConfig, updateAllowCheckinOnDepartureDay } from '@/actions/bookingConfigActions';
 import { createSeason, deleteSeason, getAllSeasons, updateSeasonDates, updateSeasonOrder, ISeasonData } from '@/actions/seasonActions';
 import dayjs from 'dayjs';
@@ -50,6 +51,7 @@ function toIsoDate(month: number, day: number): string {
 }
 
 export default function BookingSettingsForm({ initialConfig }: Props) {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(updateBookingConfig, {
     message: '',
     success: false,
@@ -478,11 +480,18 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
             <div className={styles.seasonActionLinks}>
               <button
                 type="button"
+                onClick={() => router.push(`/admin/prices`)}
+                className={styles.btnActionLink}
+              >
+                Przejdź do ustawień cen sezonu
+              </button>
+              <button
+                type="button"
                 onClick={() => setIsEditExpanded(!isEditExpanded)}
                 className={styles.btnActionLink}
                 disabled={isDeletingSeason || isCreatingSeason || isUpdatingSeason}
               >
-                {isEditExpanded ? 'Anuluj edycję' : 'Edytuj nazwę i opis'}
+                {isEditExpanded ? 'Anuluj edycję' : 'Edytuj nazwę i opis sezonu'}
               </button>
               <button
                 type="button"
