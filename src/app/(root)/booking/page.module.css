@@ -274,6 +274,119 @@
   gap: 20px;
 }
 
+.seasonAlert {
+  background: #fff8e6;
+  border: 1px solid #e6c15a;
+  border-radius: 10px;
+  padding: 15px 22px;
+  color: #6e4f10;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  margin-bottom: 25px;;
+}
+
+.seasonAlert strong {
+  color: #4c360b;
+}
+
+.seasonAlertAction {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.seasonLinkButton {
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: #8a6700;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.seasonLinkButton:hover {
+  color: #6f5300;
+}
+
+.seasonPricePanel {
+  border: 1px solid #ead79a;
+  border-radius: 10px;
+  background: #fffdf5;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;;
+}
+
+.seasonPriceSection {
+  border: 1px solid #eee5c2;
+  border-radius: 8px;
+  padding: 10px;
+  background: #ffffff;
+}
+
+.seasonPriceHeading {
+  margin: 0 0 8px 0;
+  font-size: 0.95rem;
+  color: #3a3a3a;
+}
+
+.seasonNoPrices {
+  margin: 0;
+  color: #7a6a3a;
+  font-size: 0.88rem;
+}
+
+.seasonPriceCard {
+  border: 1px solid #ececec;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 8px;
+  background: #fff;
+}
+
+.seasonPriceProperty {
+  margin: 0 0 8px 0;
+  font-size: 0.92rem;
+  color: #2f3a45;
+}
+
+.seasonTableTitle {
+  font-size: 0.86rem;
+  color: #46505a;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.seasonTableBlock {
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  padding: 8px;
+  margin-top: 8px;
+}
+
+.seasonTableHeader {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #34495e;
+  margin-bottom: 6px;
+}
+
+.seasonRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+  font-size: 0.85rem;
+  color: #36414d;
+}
+
 .resultsTitle {
   grid-column: 1 / -1;
   margin-bottom: 15px;

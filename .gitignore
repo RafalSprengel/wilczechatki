@@ -43,3 +43,4 @@ yarn-error.log*
 AGENTS.md
 .env
 idx/
+repomix-output.xml

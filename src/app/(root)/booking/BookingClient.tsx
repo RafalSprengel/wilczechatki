@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { SearchOption } from '@/actions/searchActions'
+import { SearchOption, SearchResults } from '@/actions/searchActions'
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton'
 import { formatDisplayDate } from '@/utils/formatDate'
 import QuantityPicker from '../../_components/QuantityPicker/QuantityPicker'
@@ -74,7 +74,7 @@ interface BookingClientProps {
   maxBookingDays: number
   childrenFreeAgeLimit: number
   blockedDates: { date: string }[]
-  searchResults: { propertiesAvailable: SearchOption[]; areAllAvailable: boolean } | null
+  searchResults: SearchResults | null
 }
 
 export default function BookingClient({
@@ -105,12 +105,17 @@ export default function BookingClient({
   const [guestsMap, setGuestsMap] = useState<Record<string, number>>({})
   const [hasDraft, setHasDraft] = useState(false)
   const [bookingMode, setBookingMode] = useState<'single' | 'double' | null>(null)
+  const [isSeasonPriceListOpen, setIsSeasonPriceListOpen] = useState(false)
 
   const guestsRef = useRef<HTMLDivElement>(null)
   const datesRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setIsSearching(false)
+  }, [searchResults])
+
+  useEffect(() => {
+    setIsSeasonPriceListOpen(false)
   }, [searchResults])
 
   useEffect(() => {
@@ -268,9 +273,13 @@ export default function BookingClient({
     return `${adultsText}${childrenText}`
   }
 
+  const formatSeasonMonthDay = (dateValue: string) => dayjs.utc(dateValue).format('DD.MM')
+
   const isSearchDisabled = totalGuests === 0 || !bookingDates.start || !bookingDates.end
   const showModeSelector = searchResults?.areAllAvailable === true
   const showSingleResults = searchResults?.areAllAvailable === false || bookingMode === 'single'
+  const overlappingSeasons = searchResults ? searchResults.overlappingSeasons : []
+  const hasSeasonOverlap = overlappingSeasons.length > 0
 
   return (
     <div className={styles.container}>
@@ -395,6 +404,90 @@ export default function BookingClient({
 
         {!isSearching && searchResults && searchResults.propertiesAvailable && adults + children === initialAdults + initialChildren && bookingDates.start === initialStart && bookingDates.end === initialEnd && (
           <>
+            {hasSeasonOverlap && (
+              <>
+                <div className={styles.seasonAlert} role="status" aria-live="polite">
+                  <strong>Uwaga:</strong> Wybrany termin zahacza o sezon wysoki:
+                  <br></br>
+                  {' '}
+                  {overlappingSeasons.map((season, index) => {
+                    const seasonRange = `${formatSeasonMonthDay(season.startDate)} - ${formatSeasonMonthDay(season.endDate)}`
+                    const separator = index < overlappingSeasons.length - 1 ? ', ' : ''
+                    return (
+                      <>
+                        <span key={season.seasonId}>
+                          "{season.name} ({seasonRange})"{separator}
+                        </span>
+                        <br></br>
+                      </>
+                    )
+                  })}
+                  Ceny w tym okresie mogą być droższe niż w okresie poza sezonem.
+                  <div className={styles.seasonAlertAction}>
+                    <button
+                      type="button"
+                      className={styles.seasonLinkButton}
+                      onClick={() => setIsSeasonPriceListOpen((prev) => !prev)}
+                      aria-expanded={isSeasonPriceListOpen}
+                    >
+                      Kliknij tu
+                    </button>
+                    <span>aby zobaczyć ceny w sezonie wysokim.</span>
+                  </div>
+                </div>
+
+                {isSeasonPriceListOpen && (
+                  <div className={styles.seasonPricePanel}>
+                    {overlappingSeasons.map((season) => (
+                      <section key={season.seasonId} className={styles.seasonPriceSection}>
+                        <h4 className={styles.seasonPriceHeading}>
+                          {season.name} ({formatSeasonMonthDay(season.startDate)} - {formatSeasonMonthDay(season.endDate)})
+                        </h4>
+
+                        {season.prices.length === 0 && (
+                          <p className={styles.seasonNoPrices}>Brak zdefiniowanego cennika sezonowego dla dostępnych domków.</p>
+                        )}
+
+                        {season.prices.map((price) => (
+                          <div key={`${season.seasonId}-${price.propertyId}`} className={styles.seasonPriceCard}>
+                            <h5 className={styles.seasonPriceProperty}>{price.displayName}</h5>
+                            <div className={styles.seasonTableTitle}>Cennik za dobę:</div>
+
+                            <div className={styles.seasonTableBlock}>
+                              <div className={styles.seasonTableHeader}>W tygodniu</div>
+                              {price.weekdayPrices.map((tier) => (
+                                <div key={`wd-${price.propertyId}-${tier.minGuests}-${tier.maxGuests}`} className={styles.seasonRow}>
+                                  <span>{tier.minGuests}-{tier.maxGuests} osób</span>
+                                  <span>{tier.price} zł</span>
+                                </div>
+                              ))}
+                              <div className={styles.seasonRow}>
+                                <span>Dostawka</span>
+                                <span>+{price.weekdayExtraBedPrice} zł</span>
+                              </div>
+                            </div>
+
+                            <div className={styles.seasonTableBlock}>
+                              <div className={styles.seasonTableHeader}>Weekendy</div>
+                              {price.weekendPrices.map((tier) => (
+                                <div key={`we-${price.propertyId}-${tier.minGuests}-${tier.maxGuests}`} className={styles.seasonRow}>
+                                  <span>{tier.minGuests}-{tier.maxGuests} osób</span>
+                                  <span>{tier.price} zł</span>
+                                </div>
+                              ))}
+                              <div className={styles.seasonRow}>
+                                <span>Dostawka</span>
+                                <span>+{price.weekendExtraBedPrice} zł</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </section>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
             {(() => {
               if (searchResults?.propertiesAvailable.length === 0) {
                 return (

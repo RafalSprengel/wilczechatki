@@ -1,5 +1,5 @@
 import React from 'react'
-import { searchAction, getMaxTotalGuests } from '@/actions/searchActions'
+import { searchAction, getMaxTotalGuests, SearchResults } from '@/actions/searchActions'
 import { getBookingConfig } from '@/actions/bookingConfigActions'
 import { getBlockedDates } from '@/actions/bookingActions'
 import BookingClient from './BookingClient'
@@ -30,7 +30,7 @@ export default async function BookingPage({
     getBlockedDates()
   ])
 
-  let searchResults = null
+  let searchResults: SearchResults | null = null
 
   if (start && end && totalGuests > 0) {
     try {
@@ -42,7 +42,7 @@ export default async function BookingPage({
       })
     } catch (error) {
       console.error(error)
-      searchResults = { propertiesAvailable: [], areAllAvailable: false }
+      searchResults = null
     }
   }
   return (

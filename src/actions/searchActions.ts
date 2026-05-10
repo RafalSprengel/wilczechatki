@@ -36,6 +36,40 @@ export interface SearchOption {
 export interface SearchResults {
   propertiesAvailable: SearchOption[];
   areAllAvailable: boolean;
+  overlappingSeasons: OverlappingSeasonInfo[];
+}
+
+interface PriceTier {
+  minGuests: number;
+  maxGuests: number;
+  price: number;
+}
+
+interface SeasonPropertyPriceInfo {
+  propertyId: string;
+  displayName: string;
+  weekdayPrices: PriceTier[];
+  weekendPrices: PriceTier[];
+  weekdayExtraBedPrice: number;
+  weekendExtraBedPrice: number;
+}
+
+interface SeasonPriceDoc {
+  seasonId: Types.ObjectId | null;
+  propertyId: Types.ObjectId;
+  weekdayPrices: PriceTier[];
+  weekendPrices: PriceTier[];
+  weekdayExtraBedPrice: number;
+  weekendExtraBedPrice: number;
+}
+
+interface OverlappingSeasonInfo {
+  seasonId: string;
+  name: string;
+  description?: string;
+  startDate: string;
+  endDate: string;
+  prices: SeasonPropertyPriceInfo[];
 }
 
 interface SearchParams {
@@ -281,12 +315,35 @@ export async function calculateTotalPrice(
 
 // ─── Wyszukiwanie dostępności ─────────────────────────────────────────────────
 
-export async function searchAction(params: SearchParams) {
+export async function searchAction(params: SearchParams): Promise<SearchResults> {
   const { startDate, endDate, baseGuests, extraBeds } = params;
   try {
     await dbConnect();
     const start = dayjs.utc(startDate, 'YYYY-MM-DD', true);
     const end = dayjs.utc(endDate, 'YYYY-MM-DD', true);
+
+    const activeSeasons = await Season.find({ isActive: true })
+      .select('_id name description startDate endDate')
+      .lean();
+
+    const overlappingSeasons: OverlappingSeasonInfo[] = [];
+    for (const season of activeSeasons as Array<ISeason & { _id: Types.ObjectId }>) {
+      let currentDate = start;
+      while (currentDate.isBefore(end, 'day')) {
+        if (isDateInRecurringSeason(currentDate, season)) {
+          overlappingSeasons.push({
+            seasonId: String(season._id),
+            name: season.name,
+            description: season.description,
+            startDate: dayjs.utc(season.startDate).format('YYYY-MM-DD'),
+            endDate: dayjs.utc(season.endDate).format('YYYY-MM-DD'),
+            prices: [],
+          });
+          break;
+        }
+        currentDate = currentDate.add(1, 'day');
+      }
+    }
 
     const totalActiveProperties = await Property.countDocuments({ isActive: true });
 
@@ -319,7 +376,7 @@ export async function searchAction(params: SearchParams) {
       });
 
     if (autoBlockOtherCabins && occupiedIds.length > 0) {
-      return { propertiesAvailable: [], areAllAvailable: false };
+      return { propertiesAvailable: [], areAllAvailable: false, overlappingSeasons };
     }
 
     const availableProperties = await Property.find({
@@ -328,7 +385,9 @@ export async function searchAction(params: SearchParams) {
       baseCapacity: { $gte: baseGuests - extraBeds }
     }).select('-createdAt -updatedAt').sort({ name: 1 });
 
-    if (availableProperties.length === 0) return { propertiesAvailable: [], areAllAvailable: false };
+    if (availableProperties.length === 0) {
+      return { propertiesAvailable: [], areAllAvailable: false, overlappingSeasons };
+    }
 
     const options: SearchOption[] = [];
 
@@ -377,7 +436,49 @@ export async function searchAction(params: SearchParams) {
     }
     const result = options.sort((a, b) => a.totalPrice - b.totalPrice);
 
-    return { propertiesAvailable: result, areAllAvailable: result.length === totalActiveProperties };
+    if (overlappingSeasons.length > 0 && result.length > 0) {
+      const seasonIds = overlappingSeasons.map((season) => new Types.ObjectId(season.seasonId));
+      const propertyIds = result.map((option) => new Types.ObjectId(option.propertyId));
+
+      const seasonPriceDocs = await PropertyPrices.find({
+        seasonId: { $in: seasonIds },
+        propertyId: { $in: propertyIds },
+      })
+        .select('seasonId propertyId weekdayPrices weekendPrices weekdayExtraBedPrice weekendExtraBedPrice')
+        .lean() as SeasonPriceDoc[];
+
+      const propertyNameById = new Map(result.map((option) => [option.propertyId, option.displayName]));
+
+      for (const season of overlappingSeasons) {
+        const seasonPrices = seasonPriceDocs.filter((doc) => {
+          if (!doc.seasonId) return false;
+          return String(doc.seasonId) === season.seasonId;
+        });
+
+        season.prices = seasonPrices.map((doc) => {
+          const propertyId = String(doc.propertyId);
+          const displayName = propertyNameById.get(propertyId);
+          if (!displayName) {
+            throw new Error(`Brak nazwy domku dla identyfikatora: ${propertyId}`);
+          }
+
+          return {
+            propertyId,
+            displayName,
+            weekdayPrices: doc.weekdayPrices,
+            weekendPrices: doc.weekendPrices,
+            weekdayExtraBedPrice: doc.weekdayExtraBedPrice,
+            weekendExtraBedPrice: doc.weekendExtraBedPrice,
+          };
+        });
+      }
+    }
+
+    return {
+      propertiesAvailable: result,
+      areAllAvailable: result.length === totalActiveProperties,
+      overlappingSeasons,
+    };
   } catch (error) {
     console.error('Błąd wyszukiwania dostępności:', error);
     throw new Error('Nie udało się pobrać dostępnych terminów.');
