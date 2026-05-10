@@ -10,7 +10,6 @@ import {
   Link
 } from '@react-email/components';
 import * as React from 'react';
-import { SITE_CONFIG } from '../config/site';
 
 import { ISiteSettings } from '../db/models/SiteSettings';
 

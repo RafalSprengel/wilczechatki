@@ -14,7 +14,7 @@ import {
   getUnavailableDatesForBlocking,
 } from '@/actions/adminBookingActions'
 import { formatDisplayDate } from '@/utils/formatDate'
-import styles from './page.module.scss'
+import styles from './page.module.css'
 
 interface PropertyOption {
   _id: string

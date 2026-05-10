@@ -11,8 +11,9 @@ import Season from '@/db/models/Season';
 import CustomPrice from '@/db/models/CustomPrice';
 import { Types } from 'mongoose';
 import mongoose from 'mongoose';
-import { SITE_CONFIG } from '@/config/site';
+import { getSiteSettings } from '@/actions/siteSettingsActions';
 import { getAuth } from '@/lib/auth';
+import { siteSettingsDefaults } from '@/lib/siteSettingsDefaults';
 
 function toPlainObject(doc: any) {
   return JSON.parse(JSON.stringify(doc));
@@ -469,9 +470,10 @@ export async function seedAllData() {
 }
 
 export async function seedAdmin() {
+  const siteSettings = await getSiteSettings();
   const admins = [
     {
-      email: SITE_CONFIG.email,
+      email: siteSettings.email || siteSettingsDefaults.email,
       password: 'wilczki',
       name: 'Marika',
       username: 'Marika',

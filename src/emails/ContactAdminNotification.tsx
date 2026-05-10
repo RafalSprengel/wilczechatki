@@ -9,19 +9,25 @@ import {
   Section,
   Text,
 } from "@react-email/components";
-import { SITE_CONFIG } from "../config/site";
+import { ISiteSettings } from "../db/models/SiteSettings";
+import { siteSettingsDefaults } from "../lib/siteSettingsDefaults";
 
 interface ContactAdminNotificationProps {
   senderName: string;
   senderEmail: string;
   message: string;
+  siteSettings?: Partial<ISiteSettings>;
 }
 
 export const ContactAdminNotification = ({
   senderName,
   senderEmail,
   message,
+  siteSettings,
 }: ContactAdminNotificationProps) => {
+  const contactEmail = siteSettings?.email || siteSettingsDefaults.email;
+  const contactPhone = siteSettings?.phoneDisplay || siteSettingsDefaults.phoneDisplay;
+
   const mainStyle = {
     backgroundColor: "#f6f9fc",
     fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
@@ -102,7 +108,7 @@ export const ContactAdminNotification = ({
 
           <Text style={footerTextStyle}>
             Odpowiedz bezpośrednio na tę wiadomość albo skontaktuj się przez{" "}
-            {SITE_CONFIG.email} / {SITE_CONFIG.phoneDisplay}.
+            {contactEmail} / {contactPhone}.
           </Text>
           <Hr style={footerHrStyle} />
           <Link href="https://wilczechatki.pl" style={footerLinkStyle}>

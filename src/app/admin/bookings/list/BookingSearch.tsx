@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import styles from './BookingSearch.module.scss'
+import styles from './BookingSearch.module.css'
 
 interface BookingSearchProps {
   defaultValue: string
@@ -38,11 +38,11 @@ export default function BookingSearch({ defaultValue }: BookingSearchProps) {
   }, [query, pathname, router, searchParams])
 
   return (
-    <div className={styles['booking-search']}>
+    <div className={styles.bookingSearch}>
       <input
         type="text"
         placeholder="Szukaj po nazwisku, e-mailu lub numerze"
-        className={styles['booking-search__input']}
+        className={styles.bookingSearchInput}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />

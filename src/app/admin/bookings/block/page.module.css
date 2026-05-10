@@ -34,16 +34,7 @@
 
 .actionsRow {
   padding: 0 15px 15px;
-
-  @media (min-width: 481px) {
-    padding: 0 20px 20px;
-  }
-
-  @media (min-width: 769px) {
-    padding: 0 25px 25px;
-  }
 }
-
 
 .errorMsg {
   margin: 0 15px 15px;
@@ -53,42 +44,18 @@
   color: #7f1d1d;
   background: #fee2e2;
   border: 1px solid #fca5a5;
-
-  @media (min-width: 481px) {
-    margin: 0 20px 20px;
-  }
-
-  @media (min-width: 769px) {
-    margin: 0 25px 25px;
-  }
 }
 
 .emptyState {
   padding: 18px 15px;
   color: #64748b;
   font-size: 0.95rem;
-
-  @media (min-width: 481px) {
-    padding: 20px;
-  }
-
-  @media (min-width: 769px) {
-    padding: 25px;
-  }
 }
 
 .blockList {
   display: grid;
   gap: 10px;
   padding: 15px;
-
-  @media (min-width: 481px) {
-    padding: 20px;
-  }
-
-  @media (min-width: 769px) {
-    padding: 25px;
-  }
 }
 
 .blockItem {
@@ -100,11 +67,6 @@
   align-items: center;
   gap: 10px;
   background: #f8fafc;
-
-  @media (max-width: 720px) {
-    flex-direction: column;
-    align-items: stretch;
-  }
 }
 
 .blockMeta {
@@ -112,14 +74,14 @@
   flex-direction: column;
   gap: 4px;
   color: #1f2937;
+}
 
-  span {
-    font-size: 0.9rem;
-  }
+.blockMeta span {
+  font-size: 0.9rem;
+}
 
-  small {
-    color: #64748b;
-  }
+.blockMeta small {
+  color: #64748b;
 }
 
 .deleteBtn {
@@ -131,17 +93,60 @@
   font-size: 0.86rem;
   cursor: pointer;
   white-space: nowrap;
+}
 
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+.deleteBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.deleteBtn:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+@media (min-width: 481px) {
+  .actionsRow {
+    padding: 0 20px 20px;
   }
 
-  &:hover:not(:disabled) {
-    background: #fee2e2;
+  .errorMsg {
+    margin: 0 20px 20px;
   }
 
-  @media (max-width: 720px) {
+  .emptyState {
+    padding: 20px;
+  }
+
+  .blockList {
+    padding: 20px;
+  }
+}
+
+@media (min-width: 769px) {
+  .actionsRow {
+    padding: 0 25px 25px;
+  }
+
+  .errorMsg {
+    margin: 0 25px 25px;
+  }
+
+  .emptyState {
+    padding: 25px;
+  }
+
+  .blockList {
+    padding: 25px;
+  }
+}
+
+@media (max-width: 720px) {
+  .blockItem {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .deleteBtn {
     width: 100%;
   }
 }

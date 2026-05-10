@@ -39,6 +39,7 @@ export async function POST(request: Request) {
         senderName: name,
         senderEmail: email,
         message,
+        siteSettings,
       }),
       replyTo: email,
     });
