@@ -154,6 +154,53 @@ export async function updateSeasonOrder(seasonId: string, order: number) {
   }
 }
 
+export async function createSeason(name: string, description: string, order: number) {
+  try {
+    await dbConnect();
+
+    const normalizedName = name.trim();
+    if (!normalizedName) {
+      return { success: false, message: 'Nazwa sezonu jest wymagana' };
+    }
+
+    const season = await Season.create({
+      name: normalizedName,
+      description: description.trim(),
+      order,
+      startDate: new Date(2000, 0, 1),
+      endDate: new Date(2000, 0, 1),
+      isActive: true,
+    });
+
+    revalidatePath('/admin/settings/booking');
+    return {
+      success: true,
+      message: `Dodano sezon: ${normalizedName}`,
+      seasonId: season._id.toString(),
+    };
+  } catch (error) {
+    console.error('Błąd tworzenia sezonu:', error);
+    return { success: false, message: 'Nie udało się dodać sezonu' };
+  }
+}
+
+export async function deleteSeason(seasonId: string) {
+  try {
+    await dbConnect();
+
+    const deleted = await Season.findByIdAndDelete(seasonId);
+    if (!deleted) {
+      return { success: false, message: 'Nie znaleziono sezonu do usunięcia' };
+    }
+
+    revalidatePath('/admin/settings/booking');
+    return { success: true, message: `Usunięto sezon: ${deleted.name}` };
+  } catch (error) {
+    console.error('Błąd usuwania sezonu:', error);
+    return { success: false, message: 'Nie udało się usunąć sezonu' };
+  }
+}
+
 // ── Prices per property (kolekcja PropertyPrices) ────────────────────────────
 //
 // Konwencja: seasonId === null  →  ceny poza sezonem (dawne basicPrices)

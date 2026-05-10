@@ -1,9 +1,10 @@
 'use client';
 import { useActionState, useEffect, useState, useTransition, useMemo } from 'react';
 import { updateBookingConfig, updateAllowCheckinOnDepartureDay } from '@/actions/bookingConfigActions';
-import { getAllSeasons, updateSeasonDates, updateSeasonOrder, ISeasonData } from '@/actions/seasonActions';
+import { createSeason, deleteSeason, getAllSeasons, updateSeasonDates, updateSeasonOrder, ISeasonData } from '@/actions/seasonActions';
 import dayjs from 'dayjs';
 import { toast } from 'react-hot-toast';
+import Modal from '@/app/_components/Modal/Modal';
 import styles from './booking.module.css';
 
 interface BookingConfig {
@@ -75,6 +76,13 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
   const [seasonEndMonth, setSeasonEndMonth] = useState(1);
   const [seasonOrder, setSeasonOrder] = useState<number>(0);
   const [isEditExpanded, setIsEditExpanded] = useState(false);
+  const [isAddExpanded, setIsAddExpanded] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeletingSeason, setIsDeletingSeason] = useState(false);
+  const [isCreatingSeason, setIsCreatingSeason] = useState(false);
+  const [newSeasonName, setNewSeasonName] = useState('');
+  const [newSeasonDesc, setNewSeasonDesc] = useState('');
+  const [newSeasonOrder, setNewSeasonOrder] = useState('');
   const [seasonDateErrors, setSeasonDateErrors] = useState<{
     startDate?: string;
     endDate?: string;
@@ -222,6 +230,84 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         toast.error(result.message || 'Błąd zapisu');
       }
     });
+  };
+
+  const resetAddSeasonForm = () => {
+    setNewSeasonName('');
+    setNewSeasonDesc('');
+    setNewSeasonOrder('');
+  };
+
+  const handleToggleAddSeason = () => {
+    if (isAddExpanded) {
+      setIsAddExpanded(false);
+      return;
+    }
+    resetAddSeasonForm();
+    setIsAddExpanded(true);
+  };
+
+  const handleCreateSeason = async () => {
+    if (!newSeasonName.trim()) {
+      toast.error('Nazwa sezonu jest wymagana');
+      return;
+    }
+
+    if (newSeasonOrder.trim() === '') {
+      toast.error('Kolejność jest wymagana');
+      return;
+    }
+
+    const parsedOrder = parseInt(newSeasonOrder, 10);
+    if (Number.isNaN(parsedOrder)) {
+      toast.error('Kolejność musi być liczbą');
+      return;
+    }
+
+    setIsCreatingSeason(true);
+    try {
+      const result = await createSeason(newSeasonName, newSeasonDesc, parsedOrder);
+      if (!result.success) {
+        toast.error(result.message || 'Nie udało się dodać sezonu');
+        return;
+      }
+
+      const updatedSeasons = await getAllSeasons();
+      setSeasons(updatedSeasons);
+      if (result.seasonId) {
+        setSelectedSeasonId(result.seasonId);
+      }
+      setIsAddExpanded(false);
+      toast.success(result.message);
+    } catch (error) {
+      toast.error('Wystąpił błąd podczas dodawania sezonu');
+    } finally {
+      setIsCreatingSeason(false);
+    }
+  };
+
+  const handleDeleteSeasonConfirm = async () => {
+    if (!selectedSeasonId) return;
+
+    setIsDeletingSeason(true);
+    try {
+      const result = await deleteSeason(selectedSeasonId);
+      if (!result.success) {
+        toast.error(result.message || 'Nie udało się usunąć sezonu');
+        return;
+      }
+
+      const updatedSeasons = await getAllSeasons();
+      setSeasons(updatedSeasons);
+      setSelectedSeasonId(updatedSeasons[0]?._id || '');
+      setIsDeleteModalOpen(false);
+      setIsEditExpanded(false);
+      toast.success(result.message);
+    } catch (error) {
+      toast.error('Wystąpił błąd podczas usuwania sezonu');
+    } finally {
+      setIsDeletingSeason(false);
+    }
   };
 
   const handleBlurMinDays = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -389,13 +475,68 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
 
         {selectedSeason && (
           <div className={styles.seasonDetailsBox}>
-            <div className={styles.settingRow}>
-              <div className={styles.settingContent}>
-                <button type="button" onClick={() => setIsEditExpanded(!isEditExpanded)} className={styles.btnToggleEdit}>
-                  {isEditExpanded ? 'Anuluj edycję' : 'Edytuj nazwę i opis'}
-                </button>
-              </div>
+            <div className={styles.seasonActionLinks}>
+              <button
+                type="button"
+                onClick={() => setIsEditExpanded(!isEditExpanded)}
+                className={styles.btnActionLink}
+                disabled={isDeletingSeason || isCreatingSeason || isUpdatingSeason}
+              >
+                {isEditExpanded ? 'Anuluj edycję' : 'Edytuj nazwę i opis'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsDeleteModalOpen(true)}
+                className={`${styles.btnActionLink} ${styles.btnActionLinkDanger}`}
+                disabled={isDeletingSeason || isCreatingSeason || isUpdatingSeason}
+              >
+                Usuń ten sezon
+              </button>
+              <button
+                type="button"
+                onClick={handleToggleAddSeason}
+                className={styles.btnActionLink}
+                disabled={isDeletingSeason || isCreatingSeason || isUpdatingSeason}
+              >
+                {isAddExpanded ? 'Anuluj dodawanie nowego sezonu' : 'Dodaj nowy sezon'}
+              </button>
             </div>
+
+            {isAddExpanded && (
+              <div className={styles.settingsEditNameAndDesc}>
+                <div className={styles.settingRow}>
+                  <div className={styles.settingContent}><label className={styles.settingLabel}>Nazwa sezonu:</label></div>
+                  <div className={styles.settingControl}>
+                    <input value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} />
+                  </div>
+                </div>
+                <div className={styles.settingRow}>
+                  <div className={styles.settingContent}><label className={styles.settingLabel}>Opis sezonu:</label></div>
+                  <div className={styles.settingControl}>
+                    <input value={newSeasonDesc} onChange={(e) => setNewSeasonDesc(e.target.value)} />
+                  </div>
+                </div>
+                <div className={styles.settingRow}>
+                  <div className={styles.settingContent}>
+                    <label className={styles.settingLabel}>Kolejność:</label>
+                  </div>
+                  <div className={styles.settingControl}>
+                    <input type="number" value={newSeasonOrder} onChange={(e) => setNewSeasonOrder(e.target.value)} className={styles.numberInput} />
+                  </div>
+                </div>
+                <div className={styles.addSeasonActions}>
+                  <button
+                    type="button"
+                    className={styles.btnPrimary}
+                    onClick={handleCreateSeason}
+                    disabled={isCreatingSeason}
+                  >
+                    {isCreatingSeason ? 'Dodawanie...' : 'Utwórz sezon'}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {isEditExpanded && (
               <div className={styles.settingsEditNameAndDesc}>
                 <div className={styles.settingRow}>
@@ -584,6 +725,22 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
           </div>
         </div>
       </form>
+
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteSeasonConfirm}
+        title="Usunąć sezon?"
+        confirmText="Usuń sezon"
+        cancelText="Anuluj"
+        loadingText="Usuwanie..."
+        confirmVariant="danger"
+        isLoading={isDeletingSeason}
+      >
+        <p>
+          Czy na pewno chcesz usunąć sezon &quot;{selectedSeason?.name}&quot;?
+        </p>
+      </Modal>
     </>
   );
 }

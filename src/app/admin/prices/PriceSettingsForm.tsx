@@ -18,7 +18,6 @@ import Modal from '@/app/_components/Modal/Modal'
 import { formatDisplayDate } from '@/utils/formatDate'
 import { toast } from 'react-hot-toast'
 import Link from 'next/link'
-import '../settings/settings.css'
 import styles from './page.module.css'
 
 interface PropertyOption {
