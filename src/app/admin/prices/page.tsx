@@ -4,7 +4,7 @@ import { getAllSeasons } from '@/actions/seasonActions';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
 import PriceSettingsForm from './PriceSettingsForm';
 import '../settings/settings.css';
-import styles from './page.module.scss';
+import styles from './page.module.css';
 
 export default async function PricesPage() {
   const [properties, bookingConfig, seasons] = await Promise.all([

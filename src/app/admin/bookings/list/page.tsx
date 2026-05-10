@@ -2,6 +2,7 @@ import { getAdminBookingsList } from '@/actions/adminBookingActions';
 import Link from 'next/link';
 import styles from './page.module.css';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
+import BookingSearch from './BookingSearch';
 
 function getPaymentBadge(paymentStatus: string, paidAmount: number, totalPrice: number) {
   const isFullyPaidByAmount = totalPrice > 0 && paidAmount >= totalPrice;
@@ -98,20 +99,15 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
             >
               Oczekujące
             </Link>
+            <Link
+              href={`/admin/bookings/list?status=all${orderQuery ? `&q=${orderQuery}` : ''}`}
+              className={`${styles.filterBtn} ${statusFilter === 'all' ? styles.filterBtnActive : ''}`}
+            >
+              Wszystkie
+            </Link>
           </div>
 
-          <form method="get" className={styles.searchForm}>
-            <input type="hidden" name="status" value={statusFilter} />
-            <input
-              type="text"
-              name="q"
-              defaultValue={orderQuery}
-              placeholder="Szukaj po nazwisku, e-mailu lub numerze"
-              className={styles.searchInput}
-            />
-            <button type="submit" className={styles.searchButton}>Szukaj</button>
-            {orderQuery.length > 0 ? <Link href={`/admin/bookings/list?status=${statusFilter}`} className={styles.clearSearch}>Wyczyść</Link> : null}
-          </form>
+          <BookingSearch defaultValue={orderQuery} />
         </div>
       </header>
 
@@ -155,7 +151,7 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
                     <div className={styles.guestEmail}>{booking.guestEmail || '-'}</div>
                     <div className={styles.propertyName}>{booking.propertyName || 'Domek'}</div>
                     <div className={styles.detailRow}>
-                      <span className={styles.label}>Zamówienie nr.:</span>
+                      <span className={styles.label}>Zamówienie nr:</span>
                       <span className={styles.value}>{booking.orderId ? booking.orderId : 'Brak numeru'}</span>
                     </div>
 

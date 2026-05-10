@@ -7,13 +7,13 @@ export default async function AdminPaymentsOfflinePage() {
   const paymentsData = await getAdminPaymentsData()
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <div className={styles.headerTop}>
+    <div className={styles['payments-layout']}>
+      <header className={styles['payments-layout__header']}>
+        <div className={styles['payments-layout__header-top']}>
           <FloatingBackButton />
-          <h1>Płatności</h1>
+          <h1 className={styles['payments-layout__title']}>Płatności gotówką lub przelewem</h1>
         </div>
-        <p>Zarządzaj płatnościami online oraz wpłatami gotówką i przelewem.</p>
+        <p className={styles['payments-layout__subtitle']}>Przeglądaj płatności zrealizowane gotówką lub przelewem.</p>
       </header>
 
       <PaymentsPanel initialData={paymentsData} mode="offline" />

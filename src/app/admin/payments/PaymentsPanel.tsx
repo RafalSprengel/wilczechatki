@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
 import type { AdminPaymentsData, AdminPaymentTab, AdminPaymentStatus } from '@/actions/adminPaymentActions'
@@ -38,33 +38,45 @@ function formatMethod(method: 'online' | 'cash' | 'transfer'): string {
 
 function getActiveFilterClass(status: AdminPaymentStatus, styles: Record<string, string>): string {
   if (status === 'confirmed') {
-    return styles.filterBtnConfirmedActive
+    return styles['payments-panel__filter-btn--active-confirmed']
   }
 
   if (status === 'failed') {
-    return styles.filterBtnFailedActive
+    return styles['payments-panel__filter-btn--active-failed']
   }
 
-  return styles.filterBtnPendingActive
+  if (status === 'all') {
+    return styles['payments-panel__filter-btn--active-all']
+  }
+
+  return styles['payments-panel__filter-btn--active-pending']
 }
 
 export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps) {
   const router = useRouter()
   const [statusFilter, setStatusFilter] = useState<AdminPaymentStatus>('confirmed')
   const [orderSearch, setOrderSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [syncingId, setSyncingId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(orderSearch)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [orderSearch])
 
   const rows = mode === 'online' ? initialData.online : initialData.offline
 
   const filteredRows = useMemo(() => {
-    const rowsByMode = mode === 'online' ? rows.filter((row) => row.status === statusFilter) : rows
+    const rowsByMode = mode === 'online' ? rows.filter((row) => statusFilter === 'all' ? true : row.status === statusFilter) : rows
 
     if (mode !== 'online') {
       return rowsByMode
     }
 
-    const normalizedQuery = orderSearch.trim().toLowerCase()
+    const normalizedQuery = debouncedSearch.trim().toLowerCase()
 
     if (normalizedQuery.length === 0) {
       return rowsByMode
@@ -76,7 +88,7 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
 
       return orderIdMatch || guestNameMatch
     })
-  }, [rows, statusFilter, mode, orderSearch])
+  }, [rows, statusFilter, mode, debouncedSearch])
 
   const onSync = (bookingId: string) => {
     setSyncingId(bookingId)
@@ -102,17 +114,17 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
   }
 
   return (
-    <section className={styles.panel}>
-      <h2 className={styles.sectionTitle}>{mode === 'online' ? 'Płatności online' : 'Gotówka / Przelew'}</h2>
+    <section className={styles['payments-panel']}>
+      <h2 className={styles['payments-panel__title']}>{mode === 'online' ? 'Płatności online' : 'Gotówka / Przelew'}</h2>
 
       {mode === 'online' ? (
-        <div className={styles.filtersWrap}>
-          <div className={styles.filters} role="radiogroup" aria-label="Filtr statusu">
+        <div className={styles['payments-panel__filters-wrap']}>
+          <div className={styles['payments-panel__filters']} role="radiogroup" aria-label="Filtr statusu">
             <button
               type="button"
               role="radio"
               aria-checked={statusFilter === 'confirmed'}
-              className={`${styles.filterBtn} ${statusFilter === 'confirmed' ? getActiveFilterClass('confirmed', styles) : ''}`}
+              className={`${styles['payments-panel__filter-btn']} ${statusFilter === 'confirmed' ? getActiveFilterClass('confirmed', styles) : ''}`}
               onClick={() => setStatusFilter('confirmed')}
             >
               Potwierdzone
@@ -121,7 +133,7 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
               type="button"
               role="radio"
               aria-checked={statusFilter === 'failed'}
-              className={`${styles.filterBtn} ${statusFilter === 'failed' ? getActiveFilterClass('failed', styles) : ''}`}
+              className={`${styles['payments-panel__filter-btn']} ${statusFilter === 'failed' ? getActiveFilterClass('failed', styles) : ''}`}
               onClick={() => setStatusFilter('failed')}
             >
               Odrzucone (failed)
@@ -130,28 +142,37 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
               type="button"
               role="radio"
               aria-checked={statusFilter === 'pending'}
-              className={`${styles.filterBtn} ${statusFilter === 'pending' ? getActiveFilterClass('pending', styles) : ''}`}
+              className={`${styles['payments-panel__filter-btn']} ${statusFilter === 'pending' ? getActiveFilterClass('pending', styles) : ''}`}
               onClick={() => setStatusFilter('pending')}
             >
               Oczekujące (pending)
             </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={statusFilter === 'all'}
+              className={`${styles['payments-panel__filter-btn']} ${statusFilter === 'all' ? getActiveFilterClass('all', styles) : ''}`}
+              onClick={() => setStatusFilter('all')}
+            >
+              Wszystkie
+            </button>
           </div>
-          <div className={styles.orderSearchWrap}>
-            <label htmlFor="orderSearch" className={styles.orderSearchLabel}>Szukaj zamówienia</label>
+          <div className={styles['payments-panel__search-wrap']}>
+            <label htmlFor="orderSearch" className={styles['payments-panel__search-label']}>Szukaj zamówienia</label>
             <input
               id="orderSearch"
               type="text"
               value={orderSearch}
               onChange={(event) => setOrderSearch(event.target.value)}
               placeholder="Numer zamówienia lub dane gościa"
-              className={styles.orderSearchInput}
+              className={styles['payments-panel__search-input']}
             />
           </div>
         </div>
       ) : null}
 
-      <div className={styles.tableWrap}>
-        <table className={styles.table}>
+      <div className={styles['payments-panel__table-wrap']}>
+        <table className={styles['payments-panel__table']}>
           <thead>
             <tr>
               {mode === 'online' ? <th>Zamówienie nr.</th> : null}
@@ -166,7 +187,7 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
           <tbody>
             {filteredRows.length === 0 ? (
               <tr>
-                <td colSpan={mode === 'online' ? 7 : 4} className={styles.emptyRow}>
+                <td colSpan={mode === 'online' ? 7 : 4} className={styles['payments-panel__empty-row']}>
                   Brak płatności dla wybranego filtra.
                 </td>
               </tr>
@@ -191,12 +212,12 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
                             href={`https://dashboard.stripe.com/checkout/sessions/${row.stripeSessionId}`}
                             target="_blank"
                             rel="noreferrer"
-                            className={styles.sessionLink}
+                            className={styles['payments-panel__session-link']}
                           >
                             {row.stripeSessionId}
                           </a>
                         ) : (
-                          <span className={styles.missingSession}>Brak ID sesji</span>
+                          <span className={styles['payments-panel__missing-session']}>Brak ID sesji</span>
                         )}
                       </td>
                     ) : null}
@@ -205,13 +226,13 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
                         {canSync ? (
                           <button
                             type="button"
-                            className={styles.syncBtn}
+                            className={styles['payments-panel__sync-btn']}
                             disabled={isPending && syncingId === row.id}
                             onClick={() => onSync(row.id)}
                           >
                             {isPending && syncingId === row.id ? (
-                              <span className={styles.syncLoading}>
-                                <span className={styles.spinner} aria-hidden="true"></span>
+                              <span className={styles['payments-panel__sync-loading']}>
+                                <span className={styles['payments-panel__spinner']} aria-hidden="true"></span>
                                 Loading...
                               </span>
                             ) : (
@@ -219,7 +240,7 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
                             )}
                           </button>
                         ) : (
-                          <span className={styles.noAction}>-</span>
+                          <span className={styles['payments-panel__no-action']}>-</span>
                         )}
                       </td>
                     ) : null}
@@ -230,8 +251,6 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
           </tbody>
         </table>
       </div>
-
-
     </section>
   )
 }

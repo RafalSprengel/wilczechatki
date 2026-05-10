@@ -8,7 +8,7 @@ import { stripe } from '@/lib/stripe'
 import type { PaymentMethod } from '@/types/bookingStatus'
 import { Types } from 'mongoose'
 
-export type AdminPaymentStatus = 'pending' | 'confirmed' | 'failed'
+export type AdminPaymentStatus = 'pending' | 'confirmed' | 'failed' | 'all'
 export type AdminPaymentTab = 'online' | 'offline'
 
 export interface AdminPaymentRow {

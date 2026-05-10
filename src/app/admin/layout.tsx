@@ -79,155 +79,154 @@ export default function AdminLayout({
             <h2>Panel Admina</h2>
           </div>
 
-        <nav className={styles.sidebarNav}>
-          <div>
-            <div className={styles.navGroupTitle}>Zarządzanie</div>
-
+          <nav className={styles.sidebarNav}>
             <div>
-              <div
-                className={`${styles.navLink} ${isBookingsActive ? styles.active : ''}`}
-                onClick={toggleBookings}
-                style={{ justifyContent: 'space-between', cursor: 'pointer' }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span className={styles.navIcon}>📅</span>
-                  <span>Rezerwacje</span>
+              <div className={styles.navGroupTitle}>Zarządzanie</div>
+
+              <div>
+                <div
+                  className={`${styles.navLink} ${isBookingsActive ? styles.active : ''}`}
+                  onClick={toggleBookings}
+                  style={{ justifyContent: 'space-between', cursor: 'pointer' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span className={styles.navIcon}>📅</span>
+                    <span>Rezerwacje</span>
+                  </div>
+                  <span>{isBookingsOpen ? '▲' : '▼'}</span>
                 </div>
-                <span>{isBookingsOpen ? '▲' : '▼'}</span>
+
+                <div className={`${styles.submenu} ${isBookingsOpen ? styles.open : ''}`}>
+                  <Link
+                    href="/admin/bookings/add"
+                    className={`${styles.subLink} ${pathname === '/admin/bookings/add' ? styles.active : ''}`}
+                    onClick={handleMenuLinkClick}
+                  >
+                    ➕ Dodaj nową
+                  </Link>
+                  <Link
+                    href="/admin/bookings/calendar"
+                    className={`${styles.subLink} ${pathname === '/admin/bookings/calendar' ? styles.active : ''}`}
+                    onClick={handleMenuLinkClick}
+                  >
+                    🗓️ Kalendarz
+                  </Link>
+                  <Link
+                    href="/admin/bookings/list"
+                    className={`${styles.subLink} ${pathname === '/admin/bookings/list' ? styles.active : ''}`}
+                    onClick={handleMenuLinkClick}
+                  >
+                    📋 Lista rezerwacji
+                  </Link>
+                  <Link
+                    href="/admin/bookings/block"
+                    className={`${styles.subLink} ${pathname === '/admin/bookings/block' ? styles.active : ''}`}
+                    onClick={handleMenuLinkClick}
+                  >
+                    🚫 Blokuj terminy
+                  </Link>
+                </div>
               </div>
 
-              <div className={`${styles.submenu} ${isBookingsOpen ? styles.open : ''}`}>
-                <Link
-                  href="/admin/bookings/add"
-                  className={`${styles.subLink} ${pathname === '/admin/bookings/add' ? styles.active : ''}`}
-                  onClick={handleMenuLinkClick}
+              <Link
+                href="/admin/properties"
+                className={`${styles.navLink} ${isPropertiesActive ? styles.active : ''}`}
+                onClick={handleMenuLinkClick}
+              >
+                <span className={styles.navIcon}>🏠</span>
+                <span>Domki</span>
+              </Link>
+
+              <Link
+                href="/admin/prices"
+                className={`${styles.navLink} ${isPricesActive ? styles.active : ''}`}
+                onClick={handleMenuLinkClick}
+              >
+                <span className={styles.navIcon}>💰</span>
+                <span>Ceny</span>
+              </Link>
+
+              <div>
+                <div
+                  className={`${styles.navLink} ${isPaymentsActive ? styles.active : ''}`}
+                  onClick={togglePayments}
+                  style={{ justifyContent: 'space-between', cursor: 'pointer' }}
                 >
-                  ➕ Dodaj nową
-                </Link>
-                <Link
-                  href="/admin/bookings/calendar"
-                  className={`${styles.subLink} ${pathname === '/admin/bookings/calendar' ? styles.active : ''}`}
-                  onClick={handleMenuLinkClick}
-                >
-                  🗓️ Kalendarz
-                </Link>
-                <Link
-                  href="/admin/bookings/list"
-                  className={`${styles.subLink} ${pathname === '/admin/bookings/list' ? styles.active : ''}`}
-                  onClick={handleMenuLinkClick}
-                >
-                  📋 Lista rezerwacji
-                </Link>
-                <Link
-                  href="/admin/bookings/block"
-                  className={`${styles.subLink} ${pathname === '/admin/bookings/block' ? styles.active : ''}`}
-                  onClick={handleMenuLinkClick}
-                >
-                  🚫 Blokuj terminy
-                </Link>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span className={styles.navIcon}>💳</span>
+                    <span>Płatności</span>
+                  </div>
+                  <span>{isPaymentsOpen ? '▲' : '▼'}</span>
+                </div>
+
+                <div className={`${styles.submenu} ${isPaymentsOpen ? styles.open : ''}`}>
+                  <Link
+                    href="/admin/payments/online"
+                    className={`${styles.subLink} ${isPaymentsOnlineActive ? styles.active : ''}`}
+                    onClick={handleMenuLinkClick}
+                  >
+                    💳 Płatności online
+                  </Link>
+                  <Link
+                    href="/admin/payments/offline"
+                    className={`${styles.subLink} ${isPaymentsOfflineActive ? styles.active : ''}`}
+                    onClick={handleMenuLinkClick}
+                  >
+                    💵 Gotówka / Przelew
+                  </Link>
+                </div>
               </div>
             </div>
 
-            <Link
-              href="/admin/properties"
-              className={`${styles.navLink} ${isPropertiesActive ? styles.active : ''}`}
-              onClick={handleMenuLinkClick}
-            >
-              <span className={styles.navIcon}>🏠</span>
-              <span>Domki</span>
-            </Link>
-
-            <Link
-              href="/admin/prices"
-              className={`${styles.navLink} ${isPricesActive ? styles.active : ''}`}
-              onClick={handleMenuLinkClick}
-            >
-              <span className={styles.navIcon}>💰</span>
-              <span>Ceny</span>
-            </Link>
+            <div>
+              <div className={styles.navGroupTitle}>Konfiguracja</div>
+              <Link
+                href="/admin/settings"
+                className={`${styles.navLink} ${isSettingsActive ? styles.active : ''}`}
+                onClick={handleMenuLinkClick}
+              >
+                <span className={styles.navIcon}>⚙️</span>
+                Ustawienia systemu
+              </Link>
+              <Link
+                href="/admin/settings/booking"
+                className={`${styles.navLink} ${pathname === '/admin/settings/booking' ? styles.active : ''}`}
+                onClick={handleMenuLinkClick}
+              >
+                <span className={styles.navIcon}>📅</span>
+                Ustawienia rezerwacji
+              </Link>
+            </div>
 
             <div>
-              <div
-                className={`${styles.navLink} ${isPaymentsActive ? styles.active : ''}`}
-                onClick={togglePayments}
-                style={{ justifyContent: 'space-between', cursor: 'pointer' }}
+              <div className={styles.navGroupTitle}>Narzędzia</div>
+              <Link
+                href="/admin/dev"
+                className={`${styles.navLink} ${isDevActive ? styles.active : ''}`}
+                onClick={handleMenuLinkClick}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span className={styles.navIcon}>💳</span>
-                  <span>Płatności</span>
-                </div>
-                <span>{isPaymentsOpen ? '▲' : '▼'}</span>
-              </div>
-
-              <div className={`${styles.submenu} ${isPaymentsOpen ? styles.open : ''}`}>
-                <Link
-                  href="/admin/payments/online"
-                  className={`${styles.subLink} ${isPaymentsOnlineActive ? styles.active : ''}`}
-                  onClick={handleMenuLinkClick}
-                >
-                  💳 Płatności online
-                </Link>
-                <Link
-                  href="/admin/payments/offline"
-                  className={`${styles.subLink} ${isPaymentsOfflineActive ? styles.active : ''}`}
-                  onClick={handleMenuLinkClick}
-                >
-                  💵 Gotówka / Przelew
-                </Link>
-              </div>
+                <span className={styles.navIcon}>💻</span>
+                Dev
+              </Link>
             </div>
-          </div>
+          </nav>
 
-          <div>
-            <div className={styles.navGroupTitle}>Konfiguracja</div>
+          <div className={styles.sidebarFooter}>
             <Link
-              href="/admin/settings"
-              className={`${styles.navLink} ${isSettingsActive ? styles.active : ''}`}
+              href="/"
+              className={`${styles.navLinkSmall} ${pathname === '/' ? styles.active : ''}`}
               onClick={handleMenuLinkClick}
             >
-              <span className={styles.navIcon}>⚙️</span>
-              Ustawienia systemu
+              <span className={styles.navIcon}>🌐</span>
+              Wróć na stronę
             </Link>
-            <Link
-              href="/admin/settings/booking"
-              className={`${styles.navLink} ${pathname === '/admin/settings/booking' ? styles.active : ''}`}
-              onClick={handleMenuLinkClick}
-            >
-              <span className={styles.navIcon}>📅</span>
-              Ustawienia rezerwacji
-            </Link>
+            <button className={styles.btnLogout} onClick={async () => {
+              await authClient.signOut();
+              router.push('/admin-login');
+            }}>
+              Wyloguj się
+            </button>
           </div>
-
-          <div>
-            <div className={styles.navGroupTitle}>Narzędzia</div>
-            <Link
-              href="/admin/dev"
-              className={`${styles.navLink} ${isDevActive ? styles.active : ''}`}
-              onClick={handleMenuLinkClick}
-            >
-              <span className={styles.navIcon}>💻</span>
-              Dev
-            </Link>
-          </div>
-        </nav>
-
-        <div className={styles.sidebarFooter}>
-          <Link 
-            href="/" 
-            className={`${styles.navLink} ${pathname === '/' ? styles.active : ''}`} 
-            style={{ marginBottom: '10px', display: 'flex', alignItems: 'center' }} 
-            onClick={handleMenuLinkClick}
-          >
-            <span className={styles.navIcon}>🏠</span>
-            Wróć na stronę
-          </Link>
-          <button className={styles.btnLogout} onClick={async () => {
-            await authClient.signOut();
-            router.push('/admin-login');
-          }}>
-            Wyloguj się
-          </button>
-        </div>
         </aside>
 
         <main className={styles.adminContent}>

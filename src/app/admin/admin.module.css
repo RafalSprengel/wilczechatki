@@ -86,7 +86,8 @@
   margin-top: 10px;
 }
 
-.navLink, .navLinkStatic {
+.navLink,
+.navLinkStatic {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -101,16 +102,46 @@
   box-sizing: border-box;
 }
 
-.navLink:hover, .navLinkStatic:hover {
+.navLink:hover,
+.navLinkStatic:hover {
   background-color: rgba(255, 255, 255, 0.05);
   color: #fff;
 }
 
-.navLink.active, .navLinkStatic.active {
+.navLink.active,
+.navLinkStatic.active {
   background-color: rgba(59, 130, 246, 0.15);
   color: #60a5fa;
   border-left-color: #60a5fa;
   font-weight: 600;
+}
+
+.navLinkSmall {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 24px;
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+}
+
+.navLinkSmall:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.navLinkSmall .navIcon {
+  font-size: 1rem;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .navIcon {
