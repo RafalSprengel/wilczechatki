@@ -804,16 +804,6 @@ export default function PriceSettingsForm({
             <p className={styles.description}>
               Wybierz domek, dla którego chcesz skonfigurować ceny.
             </p>
-            {selectedPropertyId && (
-              <button
-                type="button"
-                onClick={() => setCopyConfirmOpen(true)}
-                className={styles.copyLink}
-                disabled={isCopying}
-              >
-                Skopiuj ceny z tego domku do pozostałych domków
-              </button>
-            )}
           </div>
           <div className={styles.control}>
             <select
@@ -835,6 +825,16 @@ export default function PriceSettingsForm({
                 </option>
               ))}
             </select>
+            {selectedPropertyId && (
+              <button
+                type="button"
+                onClick={() => setCopyConfirmOpen(true)}
+                className={styles.copyLink}
+                disabled={isCopying}
+              >
+                Skopiuj ceny z tego domku do pozostałych domków
+              </button>
+            )}
           </div>
         </div>
       </form>

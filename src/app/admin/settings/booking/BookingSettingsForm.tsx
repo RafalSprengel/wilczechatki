@@ -513,24 +513,24 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
 
             {isAddExpanded && (
               <div className={styles.settingsEditNameAndDesc}>
-                <div className={styles.settingRow}>
-                  <div className={styles.settingContent}><label className={styles.settingLabel}>Nazwa sezonu:</label></div>
-                  <div className={styles.settingControl}>
-                    <input value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} />
+                <div className={styles.seasonEditRow}>
+                  <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Nazwa sezonu:</label></div>
+                  <div className={styles.seasonEditControlCol}>
+                    <input className={styles.seasonEditInput} value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} />
                   </div>
                 </div>
-                <div className={styles.settingRow}>
-                  <div className={styles.settingContent}><label className={styles.settingLabel}>Opis sezonu:</label></div>
-                  <div className={styles.settingControl}>
-                    <input value={newSeasonDesc} onChange={(e) => setNewSeasonDesc(e.target.value)} />
+                <div className={styles.seasonEditRow}>
+                  <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Opis sezonu:</label></div>
+                  <div className={styles.seasonEditControlCol}>
+                    <input className={styles.seasonEditInput} value={newSeasonDesc} onChange={(e) => setNewSeasonDesc(e.target.value)} />
                   </div>
                 </div>
-                <div className={styles.settingRow}>
-                  <div className={styles.settingContent}>
-                    <label className={styles.settingLabel}>Kolejność:</label>
+                <div className={styles.seasonEditRow}>
+                  <div className={styles.seasonEditLabelCol}>
+                    <label className={styles.seasonEditLabel}>Kolejność:</label>
                   </div>
-                  <div className={styles.settingControl}>
-                    <input type="number" value={newSeasonOrder} onChange={(e) => setNewSeasonOrder(e.target.value)} className={styles.numberInput} />
+                  <div className={styles.seasonEditControlCol}>
+                    <input type="number" value={newSeasonOrder} onChange={(e) => setNewSeasonOrder(e.target.value)} className={styles.seasonEditInput} />
                   </div>
                 </div>
                 <div className={styles.addSeasonActions}>
@@ -548,24 +548,24 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
 
             {isEditExpanded && (
               <div className={styles.settingsEditNameAndDesc}>
-                <div className={styles.settingRow}>
-                  <div className={styles.settingContent}><label className={styles.settingLabel}>Nazwa sezonu:</label></div>
-                  <div className={styles.settingControl}>
-                    <input value={seasonName} onChange={(e) => setSeasonName(e.target.value)} />
+                <div className={styles.seasonEditRow}>
+                  <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Nazwa sezonu:</label></div>
+                  <div className={styles.seasonEditControlCol}>
+                    <input className={styles.seasonEditInput} value={seasonName} onChange={(e) => setSeasonName(e.target.value)} />
                   </div>
                 </div>
-                <div className={styles.settingRow}>
-                  <div className={styles.settingContent}><label className={styles.settingLabel}>Opis sezonu:</label></div>
-                  <div className={styles.settingControl}>
-                    <input value={seasonDesc} onChange={(e) => setSeasonDesc(e.target.value)} />
+                <div className={styles.seasonEditRow}>
+                  <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Opis sezonu:</label></div>
+                  <div className={styles.seasonEditControlCol}>
+                    <input className={styles.seasonEditInput} value={seasonDesc} onChange={(e) => setSeasonDesc(e.target.value)} />
                   </div>
                 </div>
-                <div className={styles.settingRow}>
-                  <div className={styles.settingContent}>
-                    <label className={styles.settingLabel}>Kolejność:</label>
+                <div className={styles.seasonEditRow}>
+                  <div className={styles.seasonEditLabelCol}>
+                    <label className={styles.seasonEditLabel}>Kolejność:</label>
                   </div>
-                  <div className={styles.settingControl}>
-                    <input type="number" value={seasonOrder} onChange={(e) => setSeasonOrder(parseInt(e.target.value) || 0)} className={styles.numberInput} />
+                  <div className={styles.seasonEditControlCol}>
+                    <input type="number" value={seasonOrder} onChange={(e) => setSeasonOrder(parseInt(e.target.value) || 0)} className={styles.seasonEditInput} />
                   </div>
                 </div>
               </div>

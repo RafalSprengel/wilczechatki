@@ -76,7 +76,7 @@
     justify-content: space-between;
     align-items: flex-start;
     flex-direction: column;
-    gap: 25px;
+    /* gap: 25px; */
 }
 
 .settingContent {
@@ -98,7 +98,7 @@
     font-size: 0.95rem;
     line-height: 1.6;
     color: #555;
-    margin: 0 0 15px 0;
+    margin: 0;
 }
 
 .settingsDateDescription {
@@ -107,7 +107,7 @@
 }
 
 .settingControl {
-    width: 100%;
+    flex: 1;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -116,10 +116,11 @@
     padding-left: 0;
     border-left: none;
     border-top: 1px solid var(--color-border);
-    padding-top: 20px;
+    padding-top: 15px;
+    margin-top: 10px;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 992px) {
     .adminSettingsContainer {
         padding: 40px 20px;
     }
@@ -138,17 +139,18 @@
     .settingRow {
         padding: 25px;
         flex-direction: row;
-        gap: 20px;
+        gap: 30px;
     }
 
     .settingControl {
         width: auto;
-        min-width: 180px;
+        min-width: 200px;
         margin-left: auto;
         padding-left: 20px;
         padding-top: 0;
+        margin-top: 0;
         border-top: none;
-        border-left-color: var(--color-border);
+        border-left: 1px solid var(--color-border);
         align-items: flex-end;
     }
 }
@@ -159,7 +161,8 @@
     border: 1px solid #bdc3c7;
     border-radius: 4px;
     font-size: 1rem;
-    width: 150px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .seasonSelectFull {
@@ -174,9 +177,15 @@
 .seasonActionLinks {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
     align-items: flex-start;
-    padding: 0 20px 10px;
+    padding: 10px 20px;
+}
+
+@media (max-width: 600px) {
+    .seasonActionLinks {
+        padding: 10px 15px;
+    }
 }
 
 .btnActionLink {
@@ -184,9 +193,10 @@
     border: none;
     color: #2563eb;
     cursor: pointer;
-    padding: 0;
+    padding: 6px 0;
     text-decoration: underline;
     font-size: 0.95rem;
+    text-align: left;
 }
 
 .btnActionLinkDanger {
@@ -206,20 +216,101 @@
 
 .seasonDateGrid {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     width: 100%;
     flex-direction: column;
 }
 
+@media (max-width: 600px) {
+    .seasonDateGrid {
+        gap: 15px;
+    }
+
+    .seasonDateCol {
+        width: 100%;
+    }
+
+    .dateInput {
+        width: 100% !important;
+        max-width: none !important;
+    }
+}
+
+.settingsEditNameAndDescRow {
+    display: flex;
+
+}
+
 .seasonDateCol {
-    flex: 1;
+    flex: 2;
+}
+
+.settingsEditNameAndDescContent {
+    flex: 1
 }
 
 .settingsEditNameAndDesc {
-    background-color: #f1f1f1;
-    margin-left: 20px;
-    margin-right: 5px;
-    border-radius: 5px;
+    background-color: #f8fafc;
+    margin: 10px;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+}
+
+.seasonEditRow {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.seasonEditRow:last-child {
+    border-bottom: none;
+}
+
+.seasonEditLabelCol {
+    width: 100%;
+}
+
+.seasonEditLabel {
+    display: block;
+    margin: 0;
+    color: var(--color-primary);
+    font-size: 0.98rem;
+    font-weight: 600;
+}
+
+.seasonEditControlCol {
+    width: 100%;
+}
+
+.settingsEditNameAndDesc .seasonEditInput {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 10px;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    background-color: #ffffff;
+}
+
+.settingsEditNameAndDesc .seasonEditInput:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.ettingsEditNameAndDescControl {
+    flex: 1;
+}
+
+@media (max-width: 600px) {
+    .settingsEditNameAndDesc {
+        margin: 10px 5px;
+        padding: 10px;
+    }
 }
 
 .settingsEditNameAndDesc input {
@@ -228,7 +319,30 @@
     border-radius: 4px;
     font-size: 0.95rem;
     width: 100%;
-    max-width: 240px;
+}
+
+@media (min-width: 768px) {
+    .seasonEditRow {
+        flex-direction: row;
+        align-items: center;
+        gap: 18px;
+    }
+
+    .seasonEditLabelCol {
+        width: 240px;
+        flex: 0 0 240px;
+    }
+
+    .seasonEditControlCol {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .settingsEditNameAndDesc .seasonEditInput {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+    }
 }
 
 .btnToggleEdit {
@@ -251,7 +365,7 @@
     width: 100%;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 992px) {
     .toggleWrapper {
         flex-direction: column;
         align-items: center;
