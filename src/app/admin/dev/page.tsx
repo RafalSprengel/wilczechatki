@@ -70,7 +70,7 @@ export default function DevPage() {
                   runAction('Seed PropertyPrices (ceny)', seedPropertyPrices)
                 }
               >
-                Seed PropertyPrices (ceny per domek)
+                Seed PropertyPrices (ceny per obiekt)
               </button>
               <button
                 className={styles.btnSecondary}

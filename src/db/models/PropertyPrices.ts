@@ -37,7 +37,7 @@ const PropertyPricesSchema = new Schema<IPropertyPrices>(
   { timestamps: true }
 );
 
-// Jeden rekord per domek + sezon. null obsługiwany przez sparse=false (domyślnie).
+// Jeden rekord per obiekt + sezon. null obsługiwany przez sparse=false (domyślnie).
 PropertyPricesSchema.index({ propertyId: 1, seasonId: 1 }, { unique: true });
 // Szybkie wyszukiwanie wszystkich cen dla sezonu (używane przy kasowaniu sezonu)
 PropertyPricesSchema.index({ seasonId: 1 });

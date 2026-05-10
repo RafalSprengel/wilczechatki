@@ -90,7 +90,7 @@ export async function createProperty(formData: FormData) {
 
     revalidatePath('/admin/properties');
     revalidatePath('/admin/prices');
-    return { success: true, message: 'Domek dodany pomyślnie', propertyId: property._id.toString() };
+    return { success: true, message: 'Obiekt dodany pomyślnie', propertyId: property._id.toString() };
   } catch (error) {
     console.error(error);
     return { success: false, message: 'Nie udało się dodać domku' };
@@ -153,5 +153,5 @@ export async function deleteProperty(id: string) {
   await Property.findByIdAndDelete(id);
   revalidatePath('/admin/properties');
   revalidatePath('/admin/prices');
-  return { success: true, message: 'Domek usunięty' };
+  return { success: true, message: 'Obiekt usunięty' };
 }

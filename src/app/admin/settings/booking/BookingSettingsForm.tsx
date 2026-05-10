@@ -666,7 +666,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         <div className={styles.settingRow}>
           <div className={styles.settingContent}>
             <label htmlFor="checkOutHour" className={styles.settingLabel}>Godzina zakończenia doby (check-out):</label>
-            <p className={styles.settingDescription}>Do której godziny trzeba opuścić domek w dniu wyjazdu.</p>
+            <p className={styles.settingDescription}>Do której godziny trzeba opuścić obiekt w dniu wyjazdu.</p>
           </div>
           <div className={styles.settingControl}>
             <input type="number" id="checkOutHour" value={localCheckOutHour} onChange={(e) => setLocalCheckOutHour(parseInt(e.target.value) || 0)} onBlur={handleBlurCheckOut} className={styles.numberInput} />

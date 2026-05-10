@@ -461,7 +461,7 @@ export async function createBlockedBookingByAdmin(data: BlockCreateInput) {
     const allowCheckinOnDepartureDay = ADMIN_ALLOW_CHECKIN_ON_DEPARTURE_DAY
 
     if (!data.propertyId || !data.startDate || !data.endDate) {
-      return { success: false, message: 'Wybierz domek oraz zakres dat.' }
+      return { success: false, message: 'Wybierz obiekt oraz zakres dat.' }
     }
 
     const startDate = new Date(data.startDate)
@@ -486,7 +486,7 @@ export async function createBlockedBookingByAdmin(data: BlockCreateInput) {
       targetProperties = properties.map((p: any) => ({ _id: p._id, name: p.name || 'Domek' }))
     } else {
       if (!Types.ObjectId.isValid(data.propertyId)) {
-        return { success: false, message: 'Nieprawidłowy domek.' }
+        return { success: false, message: 'Nieprawidłowy obiekt.' }
       }
 
       const property = await Property

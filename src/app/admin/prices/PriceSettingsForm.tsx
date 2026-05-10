@@ -409,7 +409,7 @@ export default function PriceSettingsForm({
     weekendTiersOverride?: PriceTier[]
   }): Promise<boolean> => {
     if (!selectedPropertyId) {
-      toast.error('Wybierz domek')
+      toast.error('Wybierz obiekt')
       return false
     }
 
@@ -796,13 +796,13 @@ export default function PriceSettingsForm({
 
       <form className={styles.card} onSubmit={(e) => e.preventDefault()}>
         <div className={styles.cardHeader}>
-          <h2 className={styles.cardTitle}>Wybierz domek</h2>
+          <h2 className={styles.cardTitle}>Wybierz obiekt</h2>
         </div>
         <div className={styles.row}>
           <div className={styles.content}>
             <label className={styles.label}>Obiekt</label>
             <p className={styles.description}>
-              Wybierz domek, dla którego chcesz skonfigurować ceny.
+              Wybierz obiekt, dla którego chcesz skonfigurować ceny.
             </p>
           </div>
           <div className={styles.control}>
@@ -818,7 +818,7 @@ export default function PriceSettingsForm({
               }}
               className={styles.select}
             >
-              <option value="">-- Wybierz domek --</option>
+              <option value="">-- Wybierz obiekt --</option>
               {properties.map((prop) => (
                 <option key={prop._id} value={prop._id}>
                   {prop.name}
@@ -1139,7 +1139,7 @@ export default function PriceSettingsForm({
         <form className={styles.card} onSubmit={(e) => e.preventDefault()}>
           <div className={styles.cardHeader}>
             <h2 className={styles.cardTitle}>Ceny indywidualne</h2>
-            <span className={styles.cardBadge}>Per domek / data</span>
+            <span className={styles.cardBadge}>Per obiekt / data</span>
           </div>
 
           <div className={styles.row}>

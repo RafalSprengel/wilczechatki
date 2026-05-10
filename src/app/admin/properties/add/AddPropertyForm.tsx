@@ -31,7 +31,7 @@ export default function AddPropertyForm() {
     <div className={styles.container}>
       <FloatingBackButton />
       <header className={styles.header}>
-        <h1>Dodaj nowy domek</h1>
+        <h1>Dodaj nowy obiekt</h1>
         <p>Wprowadź dane nowego obiektu w systemie.</p>
       </header>
       {message && (<div className={`${styles.alert} ${message.type === 'success' ? styles.alertSuccess : styles.alertError}`}>{message.text}</div>)}
@@ -98,7 +98,7 @@ export default function AddPropertyForm() {
 
         <div className={styles.actions}>
           <button type="button" className={styles.btnCancel} onClick={() => router.back()}>Anuluj</button>
-          <button type="submit" className={styles.btnSubmit} disabled={isSubmitting}>{isSubmitting ? 'Zapisuję...' : '💾 Zapisz domek'}</button>
+          <button type="submit" className={styles.btnSubmit} disabled={isSubmitting}>{isSubmitting ? 'Zapisuję...' : '💾 Zapisz obiekt'}</button>
         </div>
       </form>
     </div>
