@@ -18,7 +18,7 @@ import Modal from '@/app/_components/Modal/Modal'
 import { formatDisplayDate } from '@/utils/formatDate'
 import { toast } from 'react-hot-toast'
 import Link from 'next/link'
-import styles from './page.module.css'
+import styles from './PriceSettingsForm.module.css'
 
 interface PropertyOption {
   _id: string
@@ -250,15 +250,12 @@ export default function PriceSettingsForm({
 
     setIsLoadingPrices(true)
     try {
-      // Jedno zapytanie – wszystkie rekordy dla domku
       const allPrices = await getPricesForProperty(selectedPropertyId)
 
-      // seasonId === null → basicPrices
       const basicPrices = allPrices.find(
         (p: any) => p.seasonId === null || p.seasonId === undefined
       )
 
-      // Mapa sezonowa
       const seasonMap = new Map<string, any>(
         allPrices
           .filter((p: any) => p.seasonId != null)
@@ -301,12 +298,10 @@ export default function PriceSettingsForm({
     }
   }, [selectedPropertyId, selectedSeasonId])
 
-  // ── Ładuj ceny z PropertyPrices gdy zmieni się domek lub sezon ───────────────
   useEffect(() => {
     loadSeasonPrices()
   }, [loadSeasonPrices])
 
-  // ── Ładuj custom prices gdy zmieni się domek ─────────────────────────────────
   useEffect(() => {
     if (!selectedPropertyId) return
 
@@ -335,8 +330,6 @@ export default function PriceSettingsForm({
     })
     return dates
   }, [calendarPrices])
-
-  // ── Handlers przedziałów cenowych ────────────────────────────────────────────
 
   const handleBaseRateChange = (
     type: 'weekday' | 'weekend',
@@ -411,8 +404,6 @@ export default function PriceSettingsForm({
   const getTierError = (type: 'weekday' | 'weekend', index: number) =>
     tierErrors[type].find((error) => error.index === index)
 
-  // ── Zapis cen sezonowych/basic ───────────────────────────────────────────────
-
   const handleSavePrices = async (overrides?: {
     weekdayTiersOverride?: PriceTier[]
     weekendTiersOverride?: PriceTier[]
@@ -455,7 +446,6 @@ export default function PriceSettingsForm({
     }
     setTierErrors((prev) => ({ ...prev, weekend: [] }))
 
-    // Keep UI consistent with what is persisted.
     setWeekdayTiers(weekdayValidation.sorted)
     setWeekendTiers(weekendValidation.sorted)
 
@@ -501,8 +491,6 @@ export default function PriceSettingsForm({
     }
   }
 
-  // ── Ceny indywidualne (per data) ─────────────────────────────────────────────
-
   const handleDateSelect = useCallback(
     (dates: BookingDates) => {
       setBookingDates((prev) => {
@@ -526,7 +514,6 @@ export default function PriceSettingsForm({
           setCustomExtraBedPrice(DEFAULT_CUSTOM_EXTRA_BED_PRICE)
           setCustomTierErrors([])
         }
-      } else {
       }
     },
     [customPrices]
@@ -781,7 +768,6 @@ export default function PriceSettingsForm({
 
   return (
     <>
-      {/* ── Potwierdzenie kopiowania cen ──────────────────────────────────── */}
       <Modal
         isOpen={copyConfirmOpen}
         onClose={() => setCopyConfirmOpen(false)}
@@ -808,29 +794,28 @@ export default function PriceSettingsForm({
         </p>
       </Modal>
 
-      {/* ── Wybór domku ──────────────────────────────────────────────────────── */}
-      <form className="settings-card" onSubmit={(e) => e.preventDefault()}>
-        <div className="card-header">
-          <h2 className="card-title">Wybierz domek</h2>
+      <form className={styles.card} onSubmit={(e) => e.preventDefault()}>
+        <div className={styles.cardHeader}>
+          <h2 className={styles.cardTitle}>Wybierz domek</h2>
         </div>
-        <div className="setting-row">
-          <div className="setting-content">
-            <label className="setting-label">Obiekt</label>
-            <p className="setting-description">
+        <div className={styles.row}>
+          <div className={styles.content}>
+            <label className={styles.label}>Obiekt</label>
+            <p className={styles.description}>
               Wybierz domek, dla którego chcesz skonfigurować ceny.
             </p>
             {selectedPropertyId && (
               <button
                 type="button"
                 onClick={() => setCopyConfirmOpen(true)}
-                className={styles['price-settings__copy-link']}
+                className={styles.copyLink}
                 disabled={isCopying}
               >
                 Skopiuj ceny z tego domku do pozostałych domków
               </button>
             )}
           </div>
-          <div className="setting-control">
+          <div className={styles.control}>
             <select
               value={selectedPropertyId}
               onChange={(e) => {
@@ -841,7 +826,7 @@ export default function PriceSettingsForm({
                 setIsSeasonDirty(false)
                 setIsCustomDirty(false)
               }}
-              className={styles['price-settings__date-input-select--wide']}
+              className={styles.select}
             >
               <option value="">-- Wybierz domek --</option>
               {properties.map((prop) => (
@@ -855,24 +840,23 @@ export default function PriceSettingsForm({
       </form>
 
       {isPropertyDataLoading && (
-        <div className="settings-card">
-          <div className={styles['price-settings__property-loading-state']}>
-            <span className={styles['price-settings__property-loading-spinner']} aria-hidden="true"></span>
+        <div className={styles.card}>
+          <div className={styles.loading}>
+            <span className={styles.spinner} aria-hidden="true"></span>
             <span>Wczytywanie...</span>
           </div>
         </div>
       )}
 
-      {/* ── Konfiguracja cen (tylko gdy wybrany domek) ───────────────────────── */}
       {selectedPropertyId && !isPropertyDataLoading && (
-        <form className="settings-card" onSubmit={(e) => e.preventDefault()}>
-          <div className="card-header">
-            <h2 className="card-title">Konfiguracja cen sezonów</h2>
-            <div className={`setting-control ${styles['price-settings__header-select-control']}`}>
+        <form className={styles.card} onSubmit={(e) => e.preventDefault()}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Konfiguracja cen sezonów</h2>
+            <div className={styles.control}>
               <select
                 value={selectedSeasonId}
                 onChange={(e) => setSelectedSeasonId(e.target.value)}
-                className={styles['price-settings__date-input-select']}
+                className={styles.select}
                 disabled={isLoadingPrices}
               >
                 <option value={OFF_SEASON_ID}>🌿 Poza sezonem (ceny bazowe)</option>
@@ -882,17 +866,14 @@ export default function PriceSettingsForm({
                   </option>
                 ))}
               </select>
-              <Link href="/admin/settings/booking" className={styles['price-settings__copy-link']}>
+              <Link href="/admin/settings/booking" className={styles.copyLink}>
                 Przejdź do ustawień nazw i dat sezonów
               </Link>
             </div>
           </div>
 
-          {/* Nagłówek kontekstu */}
-          <div
-            className={`setting-row ${styles['price-settings__context-row']}`}
-          >
-            <div className="setting-content">
+          <div className={`${styles.row} ${styles.rowContext}`}>
+            <div className={styles.content}>
               <strong>
                 {isLoadingPrices
                   ? 'Ładowanie cen...'
@@ -903,25 +884,24 @@ export default function PriceSettingsForm({
             </div>
           </div>
 
-          {/* Cena weekday */}
-          <div className="setting-row">
-            <div className="setting-content">
-              <label className="setting-label">
+          <div className={styles.row}>
+            <div className={styles.content}>
+              <label className={styles.label}>
                 Cena za dobę – Dzień powszedni (nd–czw)
               </label>
-              <p className="setting-description">
+              <p className={styles.description}>
                 Ustaw przedziały: od ilu osób do ilu osób i za jaką cenę.
               </p>
             </div>
-            <div className="setting-control">
-              <div className={styles['price-settings__tiers-container']}>
+            <div className={styles.control}>
+              <div className={styles.tiersContainer}>
                 {weekdayTiers.map((tier, index) => {
                   const tierError = getTierError('weekday', index)
                   return (
-                    <div key={index} className={styles['price-settings__tier-row-wrapper']}>
-                      <div className={`${styles['price-settings__tier-row']} ${tierError ? styles['price-settings__tier-row--error'] : ''}`}>
-                        <label className={styles['price-settings__tier-field']}>
-                          <span className={styles['price-settings__tier-field-label']}>Osób od</span>
+                    <div key={index} className={styles.tierRowWrapper}>
+                      <div className={`${styles.tierRow} ${tierError ? styles.tierRowError : ''}`}>
+                        <label className={styles.tierField}>
+                          <span className={styles.tierFieldLabel}>Osób od</span>
                           <input
                             type="number"
                             min="1"
@@ -935,12 +915,12 @@ export default function PriceSettingsForm({
                                 parseInt(e.target.value, 10) || 1
                               )
                             }
-                            className={`${styles['price-settings__tier-input']} ${tierError?.fields.includes('minGuests') ? styles['price-settings__tier-input--error'] : ''}`}
+                            className={`${styles.input} ${tierError?.fields.includes('minGuests') ? styles.inputError : ''}`}
                             disabled={isLoadingPrices}
                           />
                         </label>
-                        <label className={styles['price-settings__tier-field']}>
-                          <span className={styles['price-settings__tier-field-label']}>Osób do</span>
+                        <label className={styles.tierField}>
+                          <span className={styles.tierFieldLabel}>Osób do</span>
                           <input
                             type="number"
                             min="1"
@@ -954,12 +934,12 @@ export default function PriceSettingsForm({
                                 parseInt(e.target.value, 10) || 1
                               )
                             }
-                            className={`${styles['price-settings__tier-input']} ${tierError?.fields.includes('maxGuests') ? styles['price-settings__tier-input--error'] : ''}`}
+                            className={`${styles.input} ${tierError?.fields.includes('maxGuests') ? styles.inputError : ''}`}
                             disabled={isLoadingPrices}
                           />
                         </label>
-                        <label className={styles['price-settings__tier-field']}>
-                          <span className={styles['price-settings__tier-field-label']}>Cena</span>
+                        <label className={styles.tierField}>
+                          <span className={styles.tierFieldLabel}>Cena</span>
                           <input
                             type="number"
                             min="0"
@@ -973,30 +953,30 @@ export default function PriceSettingsForm({
                                 parseInt(e.target.value) || 0
                               )
                             }
-                            className={`${styles['price-settings__price-input']} ${tierError?.fields.includes('price') ? styles['price-settings__tier-input--error'] : ''}`}
+                            className={`${styles.input} ${tierError?.fields.includes('price') ? styles.inputError : ''}`}
                             disabled={isLoadingPrices}
                           />
                         </label>
-                        <span className={styles['price-settings__currency']}>zł</span>
+                        <span className={styles.currency}>zł</span>
                         {weekdayTiers.length > 1 && (
                           <button
                             type="button"
                             onClick={() => requestRemoveTier('weekday', index)}
-                            className={styles['price-settings__remove-tier-btn']}
+                            className={styles.removeBtn}
                             disabled={isLoadingPrices}
                           >
                             ✕
                           </button>
                         )}
                       </div>
-                      {tierError && <p className={styles['price-settings__tier-error-text']}>{tierError.message}</p>}
+                      {tierError && <p className={styles.tierErrorText}>{tierError.message}</p>}
                     </div>
                   )
                 })}
                 <button
                   type="button"
                   onClick={() => addTier('weekday')}
-                  className={styles['price-settings__add-tier-btn']}
+                  className={styles.addBtn}
                   disabled={isLoadingPrices}
                 >
                   + Dodaj przedział
@@ -1005,25 +985,24 @@ export default function PriceSettingsForm({
             </div>
           </div>
 
-          {/* Cena weekend */}
-          <div className="setting-row">
-            <div className="setting-content">
-              <label className="setting-label">
+          <div className={styles.row}>
+            <div className={styles.content}>
+              <label className={styles.label}>
                 Cena za dobę – Weekend (pt–sob)
               </label>
-              <p className="setting-description">
+              <p className={styles.description}>
                 Ustaw przedziały: od ilu osób do ilu osób i za jaką cenę.
               </p>
             </div>
-            <div className="setting-control">
-              <div className={styles['price-settings__tiers-container']}>
+            <div className={styles.control}>
+              <div className={styles.tiersContainer}>
                 {weekendTiers.map((tier, index) => {
                   const tierError = getTierError('weekend', index)
                   return (
-                    <div key={index} className={styles['price-settings__tier-row-wrapper']}>
-                      <div className={`${styles['price-settings__tier-row']} ${tierError ? styles['price-settings__tier-row--error'] : ''}`}>
-                        <label className={styles['price-settings__tier-field']}>
-                          <span className={styles['price-settings__tier-field-label']}>Osób od</span>
+                    <div key={index} className={styles.tierRowWrapper}>
+                      <div className={`${styles.tierRow} ${tierError ? styles.tierRowError : ''}`}>
+                        <label className={styles.tierField}>
+                          <span className={styles.tierFieldLabel}>Osób od</span>
                           <input
                             type="number"
                             min="1"
@@ -1037,12 +1016,12 @@ export default function PriceSettingsForm({
                                 parseInt(e.target.value, 10) || 1
                               )
                             }
-                            className={`${styles['price-settings__tier-input']} ${tierError?.fields.includes('minGuests') ? styles['price-settings__tier-input--error'] : ''}`}
+                            className={`${styles.input} ${tierError?.fields.includes('minGuests') ? styles.inputError : ''}`}
                             disabled={isLoadingPrices}
                           />
                         </label>
-                        <label className={styles['price-settings__tier-field']}>
-                          <span className={styles['price-settings__tier-field-label']}>Osób do</span>
+                        <label className={styles.tierField}>
+                          <span className={styles.tierFieldLabel}>Osób do</span>
                           <input
                             type="number"
                             min="1"
@@ -1056,12 +1035,12 @@ export default function PriceSettingsForm({
                                 parseInt(e.target.value, 10) || 1
                               )
                             }
-                            className={`${styles['price-settings__tier-input']} ${tierError?.fields.includes('maxGuests') ? styles['price-settings__tier-input--error'] : ''}`}
+                            className={`${styles.input} ${tierError?.fields.includes('maxGuests') ? styles.inputError : ''}`}
                             disabled={isLoadingPrices}
                           />
                         </label>
-                        <label className={styles['price-settings__tier-field']}>
-                          <span className={styles['price-settings__tier-field-label']}>Cena</span>
+                        <label className={styles.tierField}>
+                          <span className={styles.tierFieldLabel}>Cena</span>
                           <input
                             type="number"
                             min="0"
@@ -1075,30 +1054,30 @@ export default function PriceSettingsForm({
                                 parseInt(e.target.value) || 0
                               )
                             }
-                            className={`${styles['price-settings__price-input']} ${tierError?.fields.includes('price') ? styles['price-settings__tier-input--error'] : ''}`}
+                            className={`${styles.input} ${tierError?.fields.includes('price') ? styles.inputError : ''}`}
                             disabled={isLoadingPrices}
                           />
                         </label>
-                        <span className={styles['price-settings__currency']}>zł</span>
+                        <span className={styles.currency}>zł</span>
                         {weekendTiers.length > 1 && (
                           <button
                             type="button"
                             onClick={() => requestRemoveTier('weekend', index)}
-                            className={styles['price-settings__remove-tier-btn']}
+                            className={styles.removeBtn}
                             disabled={isLoadingPrices}
                           >
                             ✕
                           </button>
                         )}
                       </div>
-                      {tierError && <p className={styles['price-settings__tier-error-text']}>{tierError.message}</p>}
+                      {tierError && <p className={styles.tierErrorText}>{tierError.message}</p>}
                     </div>
                   )
                 })}
                 <button
                   type="button"
                   onClick={() => addTier('weekend')}
-                  className={styles['price-settings__add-tier-btn']}
+                  className={styles.addBtn}
                   disabled={isLoadingPrices}
                 >
                   + Dodaj przedział
@@ -1107,13 +1086,12 @@ export default function PriceSettingsForm({
             </div>
           </div>
 
-          {/* Dostawka weekday */}
-          <div className="setting-row">
-            <div className="setting-content">
-              <label className="setting-label">Cena za dostawkę (dzień powszedni)</label>
+          <div className={styles.row}>
+            <div className={styles.content}>
+              <label className={styles.label}>Cena za dostawkę (dzień powszedni)</label>
             </div>
-            <div className="setting-control">
-              <div className={styles['price-settings__price-control']}>
+            <div className={styles.control}>
+              <div className={styles.priceControl}>
                 <input
                   type="number"
                   min="0"
@@ -1122,23 +1100,21 @@ export default function PriceSettingsForm({
                   onChange={(e) => {
                     setWeekdayExtraBedPrice(parseInt(e.target.value) || 0)
                     setIsSeasonDirty(true)
-                  }
-                  }
-                  className={styles['price-settings__price-input--large']}
+                  }}
+                  className={`${styles.input} ${styles.inputLarge}`}
                   disabled={isLoadingPrices}
                 />
-                <span className={styles['price-settings__currency']}>zł / noc</span>
+                <span className={styles.currency}>zł / noc</span>
               </div>
             </div>
           </div>
 
-          {/* Dostawka weekend */}
-          <div className="setting-row">
-            <div className="setting-content">
-              <label className="setting-label">Cena za dostawkę (weekend)</label>
+          <div className={styles.row}>
+            <div className={styles.content}>
+              <label className={styles.label}>Cena za dostawkę (weekend)</label>
             </div>
-            <div className="setting-control">
-              <div className={styles['price-settings__price-control']}>
+            <div className={styles.control}>
+              <div className={styles.priceControl}>
                 <input
                   type="number"
                   min="0"
@@ -1147,12 +1123,11 @@ export default function PriceSettingsForm({
                   onChange={(e) => {
                     setWeekendExtraBedPrice(parseInt(e.target.value) || 0)
                     setIsSeasonDirty(true)
-                  }
-                  }
-                  className={styles['price-settings__price-input--large']}
+                  }}
+                  className={`${styles.input} ${styles.inputLarge}`}
                   disabled={isLoadingPrices}
                 />
-                <span className={styles['price-settings__currency']}>zł / noc</span>
+                <span className={styles.currency}>zł / noc</span>
               </div>
             </div>
           </div>
@@ -1160,22 +1135,21 @@ export default function PriceSettingsForm({
         </form>
       )}
 
-      {/* ── Ceny indywidualne (per data) ─────────────────────────────────────── */}
       {selectedPropertyId && !isPropertyDataLoading && (
-        <form className="settings-card" onSubmit={(e) => e.preventDefault()}>
-          <div className="card-header">
-            <h2 className="card-title">Ceny indywidualne</h2>
-            <span className="card-badge">Per domek / data</span>
+        <form className={styles.card} onSubmit={(e) => e.preventDefault()}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Ceny indywidualne</h2>
+            <span className={styles.cardBadge}>Per domek / data</span>
           </div>
 
-          <div className="setting-row">
-            <div className="setting-content">
-              <label className="setting-label">Wybierz datę lub zakres dat</label>
-              <p className="setting-description">
+          <div className={styles.row}>
+            <div className={styles.content}>
+              <label className={styles.label}>Wybierz datę lub zakres dat</label>
+              <p className={styles.description}>
                 Kliknij na dzień w kalendarzu, aby ustawić cenę. Możesz wybrać
                 pojedynczy dzień lub zakres dat.
               </p>
-              <label className={styles['price-settings__selection-mode-toggle']}>
+              <label className={styles.selectionMode}>
                 <input
                   type="checkbox"
                   checked={!isCustomRangeMode}
@@ -1184,8 +1158,8 @@ export default function PriceSettingsForm({
                 Zaznaczaj jeden dzień
               </label>
             </div>
-            <div className="setting-control">
-              <div className={styles['price-settings__calendar-wrapper']}>
+            <div className={styles.control}>
+              <div className={styles.calendarWrapper}>
                 <CalendarPicker
                   dates={calendarDates}
                   onDateChange={handleDateSelect}
@@ -1195,13 +1169,13 @@ export default function PriceSettingsForm({
                 />
               </div>
               {bookingDates.start && (
-                <div className={styles['price-settings__selected-date-info']}>
+                <div className={styles.selectedInfo}>
                   <span>
                     Wybrano: {formatDisplayDate(bookingDates.start)}
                     {bookingDates.end && ` — ${formatDisplayDate(bookingDates.end)}`}
                   </span>
                   {!bookingDates.end && (
-                    <span className={styles['price-settings__day-type']}>
+                    <span className={styles.dayBadge}>
                       (
                       {getDayType(bookingDates.start) === 'weekend'
                         ? 'Weekend'
@@ -1216,24 +1190,24 @@ export default function PriceSettingsForm({
 
           {bookingDates.start && (
             <>
-              <div className="setting-row">
-                <div className="setting-content">
-                  <label className="setting-label">
+              <div className={styles.row}>
+                <div className={styles.content}>
+                  <label className={styles.label}>
                     Cena za dobę (dla wybranego dnia / zakresu)
                   </label>
-                  <p className="setting-description">
+                  <p className={styles.description}>
                     Ustaw przedziały: od ilu osób do ilu osób i za jaką cenę.
                   </p>
                 </div>
-                <div className="setting-control">
-                  <div className={styles['price-settings__tiers-container']}>
+                <div className={styles.control}>
+                  <div className={styles.tiersContainer}>
                     {customTiers.map((tier, index) => {
                       const tierError = getCustomTierError(index)
                       return (
-                        <div key={index} className={styles['price-settings__tier-row-wrapper']}>
-                          <div className={`${styles['price-settings__tier-row']} ${tierError ? styles['price-settings__tier-row--error'] : ''}`}>
-                            <label className={styles['price-settings__tier-field']}>
-                              <span className={styles['price-settings__tier-field-label']}>Osób od</span>
+                        <div key={index} className={styles.tierRowWrapper}>
+                          <div className={`${styles.tierRow} ${tierError ? styles.tierRowError : ''}`}>
+                            <label className={styles.tierField}>
+                              <span className={styles.tierFieldLabel}>Osób od</span>
                               <input
                                 type="number"
                                 min="1"
@@ -1246,11 +1220,11 @@ export default function PriceSettingsForm({
                                     parseInt(e.target.value, 10) || 1
                                   )
                                 }
-                                className={`${styles['price-settings__tier-input']} ${tierError?.fields.includes('minGuests') ? styles['price-settings__tier-input--error'] : ''}`}
+                                className={`${styles.input} ${tierError?.fields.includes('minGuests') ? styles.inputError : ''}`}
                               />
                             </label>
-                            <label className={styles['price-settings__tier-field']}>
-                              <span className={styles['price-settings__tier-field-label']}>Osób do</span>
+                            <label className={styles.tierField}>
+                              <span className={styles.tierFieldLabel}>Osób do</span>
                               <input
                                 type="number"
                                 min="1"
@@ -1263,11 +1237,11 @@ export default function PriceSettingsForm({
                                     parseInt(e.target.value, 10) || 1
                                   )
                                 }
-                                className={`${styles['price-settings__tier-input']} ${tierError?.fields.includes('maxGuests') ? styles['price-settings__tier-input--error'] : ''}`}
+                                className={`${styles.input} ${tierError?.fields.includes('maxGuests') ? styles.inputError : ''}`}
                               />
                             </label>
-                            <label className={styles['price-settings__tier-field']}>
-                              <span className={styles['price-settings__tier-field-label']}>Cena</span>
+                            <label className={styles.tierField}>
+                              <span className={styles.tierFieldLabel}>Cena</span>
                               <input
                                 type="number"
                                 min="0"
@@ -1280,28 +1254,28 @@ export default function PriceSettingsForm({
                                     parseInt(e.target.value, 10) || 0
                                   )
                                 }
-                                className={`${styles['price-settings__price-input']} ${tierError?.fields.includes('price') ? styles['price-settings__tier-input--error'] : ''}`}
+                                className={`${styles.input} ${tierError?.fields.includes('price') ? styles.inputError : ''}`}
                               />
                             </label>
-                            <span className={styles['price-settings__currency']}>zł</span>
+                            <span className={styles.currency}>zł</span>
                             {customTiers.length > 1 && (
                               <button
                                 type="button"
                                 onClick={() => removeCustomTier(index)}
-                                className={styles['price-settings__remove-tier-btn']}
+                                className={styles.removeBtn}
                               >
                                 ✕
                               </button>
                             )}
                           </div>
-                          {tierError && <p className={styles['price-settings__tier-error-text']}>{tierError.message}</p>}
+                          {tierError && <p className={styles.tierErrorText}>{tierError.message}</p>}
                         </div>
                       )
                     })}
                     <button
                       type="button"
                       onClick={addCustomTier}
-                      className={styles['price-settings__add-tier-btn']}
+                      className={styles.addBtn}
                     >
                       + Dodaj przedział
                     </button>
@@ -1309,12 +1283,12 @@ export default function PriceSettingsForm({
                 </div>
               </div>
 
-              <div className="setting-row">
-                <div className="setting-content">
-                  <label className="setting-label">Cena za dostawkę</label>
+              <div className={styles.row}>
+                <div className={styles.content}>
+                  <label className={styles.label}>Cena za dostawkę</label>
                 </div>
-                <div className="setting-control">
-                  <div className={styles['price-settings__price-control']}>
+                <div className={styles.control}>
+                  <div className={styles.priceControl}>
                     <input
                       type="number"
                       min="0"
@@ -1323,19 +1297,18 @@ export default function PriceSettingsForm({
                       onChange={(e) => {
                         setCustomExtraBedPrice(parseInt(e.target.value, 10) || 0)
                         setIsCustomDirty(true)
-                      }
-                      }
-                      className={styles['price-settings__price-input--large']}
+                      }}
+                      className={`${styles.input} ${styles.inputLarge}`}
                     />
-                    <span className={styles['price-settings__currency']}>zł / noc</span>
+                    <span className={styles.currency}>zł / noc</span>
                   </div>
                 </div>
               </div>
 
-              <div className={`form-actions ${styles['price-settings__form-actions-row']}`}>
+              <div className={styles.row}>
                 <button
                   type="button"
-                  className={`btn-primary ${styles['price-settings__danger-button']}`}
+                  className={`${styles.btn} ${styles.btnDanger}`}
                   onClick={handleRemoveCustomPrice}
                   disabled={isSaving || isDeletingCustom}
                 >
@@ -1345,24 +1318,23 @@ export default function PriceSettingsForm({
             </>
           )}
 
-          {/* Lista ustawionych cen indywidualnych */}
           {customPrices.length > 0 && (
-            <div className="setting-row">
-              <div className={`setting-content ${styles['price-settings__full-width']}`}>
-                <label className="setting-label">
+            <div className={styles.row}>
+              <div className={styles.content}>
+                <label className={styles.label}>
                   Ustawione ceny indywidualne dla: {selectedProperty?.name}
                 </label>
-                <div className={styles['price-settings__custom-prices-list']}>
+                <div className={styles.customList}>
                   {(isCustomPricesExpanded
                     ? customPrices
                     : customPrices.slice(0, 10)
                   ).map((entry, idx) => (
-                    <div key={idx} className={styles['price-settings__custom-price-item']}>
-                      <span className={styles['price-settings__custom-price-date']}>{entry.date}</span>
-                      <span className={styles['price-settings__custom-price-value']}>od {entry.previewPrice} zł</span>
+                    <div key={idx} className={styles.customItem}>
+                      <span className={styles.customDate}>{entry.date}</span>
+                      <span className={styles.customPrice}>od {entry.previewPrice} zł</span>
                       <button
                         type="button"
-                        className={styles['price-settings__remove-tier-btn']}
+                        className={styles.removeBtn}
                         aria-label="Usuń cenę indywidualną"
                         onClick={() => {
                           setDeleteCustomModal({ isOpen: true, date: entry.date })
@@ -1375,7 +1347,7 @@ export default function PriceSettingsForm({
                   {customPrices.length > 10 && (
                     <button
                       type="button"
-                      className={`${styles['price-settings__more-items']} ${styles['price-settings__more-items--button']}`}
+                      className={styles.copyLink}
                       onClick={() => setIsCustomPricesExpanded(!isCustomPricesExpanded)}
                     >
                       {isCustomPricesExpanded
@@ -1390,19 +1362,19 @@ export default function PriceSettingsForm({
         </form>
       )}
 
-      <div className={`floating-save-bar ${isAnyDirty ? 'visible' : ''}`}>
-        <div className="floating-save-content">
-          <p className="floating-save-text">
+      <div className={`${styles.floatingBar} ${isAnyDirty ? styles.floatingBarVisible : ''}`}>
+        <div className={styles.floatingContent}>
+          <p className={styles.floatingText}>
             {isSeasonDirty && isCustomDirty
               ? 'Masz niezapisane zmiany w cenach sezonowych i indywidualnych.'
               : isSeasonDirty
                 ? `Masz niezapisane zmiany w cenach dla ${selectedProperty?.name ?? 'wybranego domku'}.`
                 : 'Masz niezapisane zmiany w cenach indywidualnych.'}
           </p>
-          <div className="floating-save-actions">
+          <div className={styles.floatingActions}>
             <button
               type="button"
-              className="btn-secondary"
+              className={`${styles.btn} ${styles.btnSecondary}`}
               onClick={handleDiscardAll}
               disabled={isSaving || isLoadingPrices || isDeletingCustom || isDiscarding}
             >
@@ -1410,7 +1382,7 @@ export default function PriceSettingsForm({
             </button>
             <button
               type="button"
-              className="btn-primary"
+              className={`${styles.btn} ${styles.btnPrimary}`}
               onClick={handleSaveAll}
               disabled={isSaving || isLoadingPrices || isDeletingCustom || isDiscarding}
             >
@@ -1420,7 +1392,6 @@ export default function PriceSettingsForm({
         </div>
       </div>
 
-      {/* Modal potwierdzenia usunięcia przedziału */}
       <Modal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, type: null, index: null })}
