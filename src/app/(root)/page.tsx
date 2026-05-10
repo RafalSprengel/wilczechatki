@@ -6,7 +6,10 @@ import Attractions from "@components/Attractions/Attractions";
 import Contact from "@components/Contact/Contact";
 import styles from "./page.module.css";
 
-export default function Home() {
+import { getSiteSettings } from "@/actions/siteSettingsActions";
+
+export default async function Home() {
+    const siteSettings = await getSiteSettings();
     return (
         <div className={styles.main}>
             <HeroSlider />
@@ -14,7 +17,7 @@ export default function Home() {
             <Services />
             <GallerySection />
             <Attractions />
-            <Contact />
+            <Contact siteSettings={siteSettings} />
         </div>
     );
 }

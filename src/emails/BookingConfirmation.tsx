@@ -12,12 +12,15 @@ import {
 import * as React from 'react';
 import { SITE_CONFIG } from '../config/site';
 
+import { ISiteSettings } from '../db/models/SiteSettings';
+
 interface BookingEmailProps {
   customerName: string;
   orderNumber: string;
   checkIn: string;
   checkOut: string;
   totalPrice: number;
+  siteSettings: Partial<ISiteSettings>;
 }
 
 export const BookingConfirmation = ({
@@ -25,7 +28,8 @@ export const BookingConfirmation = ({
   orderNumber,
   checkIn,
   checkOut,
-  totalPrice
+  totalPrice,
+  siteSettings
 }: BookingEmailProps) => {
   const mainStyle = {
     backgroundColor: '#f6f9fc',
@@ -118,8 +122,8 @@ export const BookingConfirmation = ({
             <Text style={sumStyle}>Suma: {totalPrice} PLN</Text>
           </Section>
 
-          <Text style={footerTextStyle}>
-            W razie pytań prosimy o kontakt na {SITE_CONFIG.email} lub telefonicznie pod numerem {SITE_CONFIG.phoneDisplay}.
+          <Text style={textStyle}>
+            W razie pytań prosimy o kontakt na {siteSettings.email} lub telefonicznie pod numerem {siteSettings.phoneDisplay}.
           </Text>
           <Hr style={footerHrStyle} />
           <Link href="https://rafalsprengel.com" style={footerLinkStyle}>

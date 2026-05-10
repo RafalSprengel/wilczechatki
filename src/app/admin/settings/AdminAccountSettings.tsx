@@ -3,11 +3,14 @@
 import { useState, useEffect } from 'react'
 import { authClient } from '@/lib/auth-client'
 import { toast } from 'react-hot-toast'
+import styles from './AdminAccountSettings.module.css'
+import settingsStyles from './settings.module.css'
 
 export default function AdminAccountSettings() {
   const { data: session, isPending: sessionPending } = authClient.useSession()
   const [isEditing, setIsEditing] = useState(false)
   const [username, setUsername] = useState<string | null>(null)
+  const [email, setEmail] = useState<string | null>(null)
   const [password, setPassword] = useState<string>('')
   const [confirmPassword, setConfirmPassword] = useState<string>('')
   const [currentPassword, setCurrentPassword] = useState<string>('')
@@ -27,10 +30,14 @@ export default function AdminAccountSettings() {
       } else {
         throw new Error('Błąd integralności danych: Profil użytkownika nie posiada nazwy użytkownika.')
       }
+
+      if (user.email !== undefined && user.email !== null) {
+        setEmail(user.email)
+      }
     }
   }, [session])
 
-  if (sessionPending || username === null) {
+  if (sessionPending || username === null || email === null) {
     return (
       <section className="settings-card account-settings-card">
         <div className="card-header">
@@ -52,8 +59,9 @@ export default function AdminAccountSettings() {
   const dbDisplayUsername = user.displayUsername !== undefined && user.displayUsername !== null
     ? user.displayUsername
     : user.username
+  const dbEmail = user.email
 
-  const hasChanges = (username !== dbDisplayUsername && username.length > 0) || password.length > 0
+  const hasChanges = (username !== dbDisplayUsername && username.length > 0) || (email !== dbEmail && email.length > 0) || password.length > 0
   const passwordsMatch = password === confirmPassword
   const canSave = hasChanges && currentPassword.length > 0 && (password.length > 0 ? passwordsMatch : true)
 
@@ -81,6 +89,21 @@ export default function AdminAccountSettings() {
         })
         if (updateError) {
           toast.error(updateError.message)
+          return
+        }
+      }
+
+      if (email !== dbEmail) {
+        if (email.length === 0) {
+          toast.error('Email nie może być pusty.')
+          return
+        }
+
+        const { error: emailError } = await authClient.changeEmail({
+          newEmail: email,
+        })
+        if (emailError) {
+          toast.error(emailError.message)
           return
         }
       }
@@ -134,6 +157,9 @@ export default function AdminAccountSettings() {
       if (u !== undefined && u !== null) {
         setUsername(u)
       }
+      if (user.email !== undefined && user.email !== null) {
+        setEmail(user.email)
+      }
       setPassword('')
       setConfirmPassword('')
       setCurrentPassword('')
@@ -144,29 +170,29 @@ export default function AdminAccountSettings() {
   }
 
   return (
-    <section className="settings-card account-settings-card">
-      <div className="card-header">
-        <h2 className="card-title">Dane Administratora</h2>
-        <span className="card-badge">Profil</span>
+    <section className={`${settingsStyles.settingsCard} ${styles.accountSettings__card}`}>
+      <div className={settingsStyles.cardHeader}>
+        <h2 className={settingsStyles.cardTitle}>Dane Administratora</h2>
+        <span className={settingsStyles.cardBadge}>Profil</span>
       </div>
 
-      <div className="account-edit-header">
+      <div className={styles.accountSettings__editHeader}>
         <button
           type="button"
-          className="btn-toggle-edit"
+          className={styles.accountSettings__toggleEdit}
           onClick={handleToggleEdit}
         >
           {isEditing ? 'Anuluj' : 'Edytuj'}
         </button>
       </div>
 
-      <div className="account-form">
-        <div className="account-input-group">
-          <label htmlFor="admin-username">Login (Nazwa użytkownika):</label>
+      <div className={styles.accountSettings__form}>
+        <div className={styles.accountSettings__inputGroup}>
+          <label htmlFor="admin-username">Login (nazwa użytkownika):</label>
           <input
             id="admin-username"
             type="text"
-            className="account-input"
+            className={styles.accountSettings__input}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             disabled={!isEditing}
@@ -174,13 +200,26 @@ export default function AdminAccountSettings() {
           />
         </div>
 
+        <div className={styles.accountSettings__inputGroup}>
+          <label htmlFor="admin-email">E-mail:</label>
+          <input
+            id="admin-email"
+            type="email"
+            className={styles.accountSettings__input}
+            value={email || ''}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={!isEditing}
+            placeholder="Wpisz e-mail"
+          />
+        </div>
+
         {isEditing && (
-          <div className="account-input-group">
+          <div className={styles.accountSettings__inputGroup}>
             <label htmlFor="current-password">Aktualne hasło:</label>
             <input
               id="current-password"
               type="password"
-              className={`account-input ${currentPasswordError ? 'input-error' : ''}`}
+              className={`${styles.accountSettings__input} ${currentPasswordError ? styles['accountSettings__input--error'] : ''}`}
               value={currentPassword}
               onChange={(e) => {
                 setCurrentPassword(e.target.value)
@@ -194,12 +233,12 @@ export default function AdminAccountSettings() {
           </div>
         )}
 
-        <div className="account-input-group">
+        <div className={styles.accountSettings__inputGroup}>
           <label htmlFor="admin-password">{isEditing ? 'Nowe hasło:' : 'Hasło:'}</label>
           <input
             id="admin-password"
             type="password"
-            className={`account-input ${newPasswordError ? 'input-error' : ''} ${password.length > 0 && confirmPassword.length > 0 && !passwordsMatch ? 'input-error' : ''}`}
+            className={`${styles.accountSettings__input} ${newPasswordError ? styles['accountSettings__input--error'] : ''} ${password.length > 0 && confirmPassword.length > 0 && !passwordsMatch ? styles['accountSettings__input--error'] : ''}`}
             value={password}
             onChange={(e) => {
               setPassword(e.target.value)
@@ -214,12 +253,12 @@ export default function AdminAccountSettings() {
         </div>
 
         {isEditing && (
-          <div className="account-input-group">
+          <div className={styles.accountSettings__inputGroup}>
             <label htmlFor="confirm-password">Powtórz nowe hasło:</label>
             <input
               id="confirm-password"
               type="password"
-              className={`account-input ${password.length > 0 && confirmPassword.length > 0 && !passwordsMatch ? 'input-error' : ''}`}
+              className={`${styles.accountSettings__input} ${password.length > 0 && confirmPassword.length > 0 && !passwordsMatch ? styles['accountSettings__input--error'] : ''}`}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Wpisz nowe hasło ponownie"
@@ -231,10 +270,10 @@ export default function AdminAccountSettings() {
         )}
 
         {isEditing && (
-          <div className="account-actions">
+          <div className={styles.accountSettings__actions}>
             <button
               type="button"
-              className="account-save-btn"
+              className={styles.accountSettings__saveBtn}
               onClick={handleSave}
               disabled={!canSave || isSaving}
             >

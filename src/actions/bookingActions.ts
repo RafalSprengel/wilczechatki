@@ -237,14 +237,14 @@ export async function getBlockedDates(): Promise<{ date: string }[]> {
 
     const bookings = didMutateBookings
       ? await Booking.find({
-          $or: [
-            { status: 'blocked' },
-            { status: 'confirmed' },
-            { status: 'pending' },
-          ],
-        })
-          .select('startDate endDate')
-          .lean()
+        $or: [
+          { status: 'blocked' },
+          { status: 'confirmed' },
+          { status: 'pending' },
+        ],
+      })
+        .select('startDate endDate')
+        .lean()
       : bookingsForCleanup;
 
     const blockedSet = new Set<string>();
@@ -263,7 +263,7 @@ export async function getBlockedDates(): Promise<{ date: string }[]> {
       // Jeśli nie pozwalamy na zameldowanie w dniu zameldowania i wymeldowania
       if (!allowCheckinOnDepartureDay) {
         blockedSet.add(end.format('YYYY-MM-DD'));
-        blockedSet.add(start.format('YYYY-MM-DD')); 
+        blockedSet.add(start.format('YYYY-MM-DD'));
       }
     }
 

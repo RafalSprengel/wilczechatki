@@ -1,26 +1,27 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFacebook } from '@fortawesome/free-brands-svg-icons';
 import styles from './TopBar.module.css';
-import { SITE_CONFIG } from '@/config/site';
+import { getCachedSiteSettings } from '@/db/services/siteSettingsService';
 
-export default function TopBar() {
+export default async function TopBar() {
+    const siteSettings = await getCachedSiteSettings();
     return (
         <div className={styles.container}>
             <div className={styles.inner}>
                 <div className={styles.contactInfo}>
-                    <a href={`tel:${SITE_CONFIG.phoneHref}`}>{SITE_CONFIG.phoneDisplay}</a>
-                    <a href={`mailto:${SITE_CONFIG.email}`}>{SITE_CONFIG.email}</a>
+                    <a href={`tel:${siteSettings.phoneHref}`}>{siteSettings.phoneDisplay}</a>
+                    <a href={`mailto:${siteSettings.email}`}>{siteSettings.email}</a>
                 </div>
                 <div className={styles.socialIcons}>
-                    <a 
-                        href={SITE_CONFIG.facebookUrl}
-                        target="_blank" 
+                    <a
+                        href={siteSettings.facebookUrl}
+                        target="_blank"
                         rel="noopener noreferrer"
                         aria-label="Facebook"
                     >
-                        <FontAwesomeIcon 
-                            icon={faFacebook} 
-                            style={{ width: '20px', height: '20px' }} 
+                        <FontAwesomeIcon
+                            icon={faFacebook}
+                            style={{ width: '20px', height: '20px' }}
                         />
                     </a>
                 </div>

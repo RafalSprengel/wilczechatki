@@ -3,9 +3,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone } from '@fortawesome/free-solid-svg-icons';
 import { faFacebook } from '@fortawesome/free-brands-svg-icons';
 import Image from 'next/image';
-import { SITE_CONFIG } from '@/config/site';
+import { getCachedSiteSettings } from '@/db/services/siteSettingsService';
 
-export default function Footer() {
+export default async function Footer() {
+  const siteSettings = await getCachedSiteSettings();
   return (
     <footer className={styles.container}>
       <div className={styles.inner}>
@@ -23,7 +24,7 @@ export default function Footer() {
           <div className={styles.contact}>
             <p>
               <FontAwesomeIcon icon={faPhone} color={'#c9b363'} />
-              <a href={`tel:${SITE_CONFIG.phoneHref}`} className={styles.footerContactLink}>{SITE_CONFIG.phoneDisplay}</a>
+              <a href={`tel:${siteSettings.phoneHref}`} className={styles.footerContactLink}>{siteSettings.phoneDisplay}</a>
             </p>
             {/* <p>
               <FontAwesomeIcon icon={faEnvelope} /> kontakt@wilczechatki.pl
@@ -34,7 +35,7 @@ export default function Footer() {
 
         <div className={styles.social}>
           <a
-            href={SITE_CONFIG.facebookUrl}
+            href={siteSettings.facebookUrl}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Facebook"
@@ -49,7 +50,7 @@ export default function Footer() {
         <p><a href='admin' className={styles.creatorLink}>Admin</a></p>
         <p>&copy; {new Date().getFullYear()} Wilcze Chatki. Wszelkie prawa zastrzeżone.</p>
         <div className={styles.creator}>
-          Realizacja strony: &nbsp; 
+          Realizacja strony: &nbsp;
           <a
             href="https://rafalsprengel.com"
             target="_blank"

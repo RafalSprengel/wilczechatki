@@ -4,9 +4,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMapMarkerAlt, faPhone } from '@fortawesome/free-solid-svg-icons';
 import styles from './Contact.module.css';
 import ContactForm from './ContactForm';
-import { SITE_CONFIG } from '@/config/site';
+import { ISiteSettings } from '@/db/models/SiteSettings';
 
-export default function Contact() {
+export default function Contact({ siteSettings }: { siteSettings: Partial<ISiteSettings> }) {
   const lat = 54.157354;
   const lng = 18.241247;
 
@@ -38,7 +38,7 @@ export default function Contact() {
 
               <div className={styles.contactItem}>
                 <FontAwesomeIcon icon={faPhone} className={styles.detailIcon} />
-                <span><a href={`tel:${SITE_CONFIG.phoneHref}`} className={styles.contactLink}>{SITE_CONFIG.phoneDisplay}</a></span>
+                <span><a href={`tel:${siteSettings.phoneHref}`} className={styles.contactLink}>{siteSettings.phoneDisplay}</a></span>
               </div>
               
               {/* <p className={styles.contactItem}>
@@ -50,7 +50,7 @@ export default function Contact() {
             <div className={styles.payment}>
               <div className={styles.paymentTitle} >Dane do przelewu:</div>
               <div>Numer konta PKO BP</div>
-              <div className={styles.bankAccountNumber}>{SITE_CONFIG.bankAccountNumber}</div>
+              <div className={styles.bankAccountNumber}>{siteSettings.bankAccountNumber}</div>
             </div>
           </div>
 

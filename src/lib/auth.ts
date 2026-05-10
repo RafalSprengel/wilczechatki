@@ -5,7 +5,8 @@ import mongoose from "mongoose";
 import dbConnect from "@/db/connection";
 import { sendEmail } from "@/lib/sendEmail";
 import { PasswordReset } from "@/emails/PasswordReset";
-import {Db} from "mongodb";
+import { getSiteSettings } from "@/actions/siteSettingsActions";
+import { Db } from "mongodb";
 
 function createAuth(db: Db) {
     return betterAuth({
@@ -15,10 +16,11 @@ function createAuth(db: Db) {
             enabled: true,
             minPasswordLength: 5,
             sendResetPassword: async ({ url, user }) => {
+                const siteSettings = await getSiteSettings();
                 await sendEmail({
                     to: user.email,
                     subject: "Reset hasła - Wilcze Chatki",
-                    react: PasswordReset({ url })
+                    react: PasswordReset({ url, siteSettings })
                 });
             }
         },

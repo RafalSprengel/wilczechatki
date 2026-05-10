@@ -7,6 +7,7 @@ import BookingConfirmation from "@/emails/BookingConfirmation";
 import BookingFailure from "@/emails/BookingFailure";
 import { sendBookingEmail } from "@/lib/sendEmail";
 import { stripe } from "@/lib/stripe";
+import { getSiteSettings } from "@/actions/siteSettingsActions";
 
 export const runtime = "nodejs";
 
@@ -118,6 +119,7 @@ export async function POST(request: Request) {
       if (booking) {
         try {
           console.log("[WEBHOOK] Wysyłam maila potwierdzającego rezerwację do:", booking.guestEmail, booking.orderId);
+          const siteSettings = await getSiteSettings();
           await sendBookingEmail({
             to: booking.guestEmail,
             subject: "Potwierdzenie rezerwacji w Wilcze Chatki",
@@ -127,6 +129,7 @@ export async function POST(request: Request) {
               checkIn: booking.startDate.toISOString().split('T')[0],
               checkOut: booking.endDate.toISOString().split('T')[0],
               totalPrice: booking.totalPrice,
+              siteSettings,
             }),
           });
           console.log("[WEBHOOK] Mail potwierdzający wysłany");
@@ -167,6 +170,7 @@ export async function POST(request: Request) {
     if (booking) {
       try {
         console.log("[WEBHOOK] Wysyłam maila o nieudanej płatności do:", booking.guestEmail, booking.orderId);
+        const siteSettings = await getSiteSettings();
         await sendBookingEmail({
           to: booking.guestEmail,
           subject: "Nieudana płatność za rezerwację w Wilcze Chatki",
@@ -175,6 +179,7 @@ export async function POST(request: Request) {
             orderNumber: booking.orderId ?? '',
             checkIn: booking.startDate.toISOString().split('T')[0],
             checkOut: booking.endDate.toISOString().split('T')[0],
+            siteSettings,
           }),
         });
         console.log("[WEBHOOK] Mail o nieudanej płatności wysłany");

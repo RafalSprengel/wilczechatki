@@ -2,28 +2,30 @@ import { getSystemConfig } from '@/actions/adminConfigActions';
 import ToggleSwitch from './ToggleSwitchClient';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
 import AdminAccountSettings from './AdminAccountSettings';
+import SiteSettingsForm from './SiteSettingsForm';
+import styles from './settings.module.css';
 
 export default async function SettingsPage() {
   const config = await getSystemConfig();
   return (
-    <div className="admin-settings-container">
+    <div className={styles.adminSettingsContainer}>
       <FloatingBackButton />
-      <header className="admin-header">
-        <h1 className="admin-title">Ustawienia Systemu</h1>
-        <p className="admin-subtitle">Zarządzaj globalną polityką wynajmu obiektu.</p>
+      <header className={styles.adminHeader}>
+        <h1 className={styles.adminTitle}>Ustawienia Systemu</h1>
+        <p className={styles.adminSubtitle}>Zarządzaj globalną polityką wynajmu obiektu.</p>
       </header>
 
-      <section className="settings-card">
-        <div className="card-header">
-          <h2 className="card-title">Polityka wynajmu</h2>
-          <span className="card-badge">Globalne</span>
+      <section className={styles.settingsCard}>
+        <div className={styles.cardHeader}>
+          <h2 className={styles.cardTitle}>Polityka wynajmu</h2>
+          <span className={styles.cardBadge}>Globalne</span>
         </div>
-        <div className="setting-row">
-          <div className="setting-content">
-            <label className="setting-label" htmlFor="auto-block-toggle">Automatyczna blokada drugiego domku</label>
-            <p className="setting-description">Gdy ta opcja jest <strong>włączona</strong>, rezerwacja jednego domku automatycznie blokuje wszystkie pozostałe na te same daty (zasada &quot;jedna grupa na terenie&quot;).<br />Gdy <strong>wyłączona</strong>, klienci mogą rezerwować domek niezależnie, mimo że drugi jest już zarezerwowany przez innego klienta.</p>
+        <div className={styles.settingRow}>
+          <div className={styles.settingContent}>
+            <label className={styles.settingLabel} htmlFor="auto-block-toggle">Automatyczna blokada drugiego domku</label>
+            <p className={styles.settingDescription}>Gdy ta opcja jest <strong>włączona</strong>, rezerwacja jednego domku automatycznie blokuje wszystkie pozostałe na te same daty (zasada &quot;jedna grupa na terenie&quot;).<br />Gdy <strong>wyłączona</strong>, klienci mogą rezerwować domek niezależnie, mimo że drugi jest już zarezerwowany przez innego klienta.</p>
           </div>
-          <div className="setting-control">
+          <div className={styles.settingControl}>
             <ToggleSwitch
               initialState={config.autoBlockOtherCabins}
               settingKey="autoBlockOtherCabins"
@@ -32,6 +34,7 @@ export default async function SettingsPage() {
         </div>
       </section>
 
+      <SiteSettingsForm />
       <AdminAccountSettings />
     </div>
   );

@@ -9,14 +9,16 @@ import {
   Link
 } from '@react-email/components';
 import * as React from 'react';
-import { SITE_CONFIG } from '../config/site';
+import { ISiteSettings } from '../db/models/SiteSettings';
 
 interface UsernameReminderEmailProps {
   username: string;
+  siteSettings: Partial<ISiteSettings>;
 }
 
 export const UsernameReminder = ({
   username,
+  siteSettings,
 }: UsernameReminderEmailProps) => {
   const mainStyle = {
     backgroundColor: '#f6f9fc',
@@ -85,7 +87,7 @@ export const UsernameReminder = ({
 
           <Hr style={footerHrStyle} />
           <Text style={footerTextStyle}>
-            W razie pytań prosimy o kontakt na {SITE_CONFIG.email} lub telefonicznie pod numerem {SITE_CONFIG.phoneDisplay}.
+            W razie pytań prosimy o kontakt na {siteSettings.email} lub telefonicznie pod numerem {siteSettings.phoneDisplay}.
           </Text>
           <Link href="https://rafalsprengel.com" style={footerLinkStyle}>
             rafalsprengel.com

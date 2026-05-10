@@ -9,16 +9,18 @@ import {
   Section,
   Text,
 } from "@react-email/components";
-import { SITE_CONFIG } from "../config/site";
+import { ISiteSettings } from "../db/models/SiteSettings";
 
 interface ContactAutoReplyProps {
   customerName: string;
   message: string;
+  siteSettings: Partial<ISiteSettings>;
 }
 
 export const ContactAutoReply = ({
   customerName,
   message,
+  siteSettings,
 }: ContactAutoReplyProps) => {
   const mainStyle = {
     backgroundColor: "#f6f9fc",
@@ -104,14 +106,14 @@ export const ContactAutoReply = ({
           <Text style={textStyle}>
             Jeśli sprawa jest pilna, możesz skontaktować się z nami również
             telefonicznie:{" "}
-            <Link href={`tel:${SITE_CONFIG.phoneHref}`}>
-              {SITE_CONFIG.phoneDisplay}
+            <Link href={`tel:${siteSettings.phoneHref}`}>
+              {siteSettings.phoneDisplay}
             </Link>
             .
           </Text>
           <Text style={textStyle}>Pozdrawiamy,</Text>
           <Text style={textStyle}>Wilcze Chatki</Text>
-          <Text style={footerTextStyle}>E-mail: {SITE_CONFIG.email}</Text>
+          <Text style={footerTextStyle}>E-mail: {siteSettings.email}</Text>
           <Hr style={footerHrStyle} />
           <Link href="https://wilczechatki.pl" style={footerLinkStyle}>
             wilczechatki.pl

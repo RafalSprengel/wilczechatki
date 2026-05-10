@@ -1,4 +1,4 @@
-import './settings.css';
+
 
 export default function SettingsLayout({
   children,

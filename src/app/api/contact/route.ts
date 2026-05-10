@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { SITE_CONFIG } from "@/config/site";
+import { getSiteSettings } from "@/actions/siteSettingsActions";
 import ContactAdminNotification from "@/emails/ContactAdminNotification";
 import ContactAutoReply from "@/emails/ContactAutoReply";
 import { sendEmail } from "@/lib/sendEmail";
@@ -30,8 +30,10 @@ export async function POST(request: Request) {
 
     const { name, email, message } = parsedBody.data;
 
+    const siteSettings = await getSiteSettings();
+
     await sendEmail({
-      to: SITE_CONFIG.email,
+      to: siteSettings.email || '',
       subject: `Formularz kontaktowy: ${name}`,
       react: ContactAdminNotification({
         senderName: name,
@@ -47,6 +49,7 @@ export async function POST(request: Request) {
       react: ContactAutoReply({
         customerName: name,
         message,
+        siteSettings,
       }),
     });
 

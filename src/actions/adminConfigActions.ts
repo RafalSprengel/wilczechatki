@@ -42,7 +42,7 @@ export async function getSystemConfig() {
   try {
     await dbConnect();
     const config = await SystemConfig.findById('main');
-    
+
     if (!config) {
       return {
         autoBlockOtherCabins: true,
@@ -72,12 +72,12 @@ export async function updateSystemConfigSetting(
       { [settingKey]: value },
       { upsert: true, new: true, runValidators: true }
     );
-    
+
     // Revalidate specified paths
     pathsToRevalidate.forEach(path => revalidatePath(path));
-    
-    return { 
-      success: true, 
+
+    return {
+      success: true,
       currentValue: config[settingKey as keyof typeof config],
       message: value ? "Włączono." : "Wyłączono."
     };

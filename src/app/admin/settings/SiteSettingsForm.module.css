@@ -1,0 +1,88 @@
+.siteSettings__card {
+  margin-top: 30px;
+}
+
+.siteSettings__editHeader {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 20px 0;
+}
+
+.siteSettings__toggleEdit {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  cursor: pointer;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  padding: 0;
+  font-weight: 500;
+}
+
+.siteSettings__form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.siteSettings__inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.siteSettings__inputGroup label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-primary);
+}
+
+.siteSettings__input {
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.siteSettings__input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.siteSettings__input:disabled {
+  background-color: #f9f9f9;
+  color: #7f8c8d;
+  cursor: not-allowed;
+}
+
+.siteSettings__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.siteSettings__saveBtn {
+  padding: 10px 25px;
+  background-color: var(--color-success);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.siteSettings__saveBtn:hover:not(:disabled) {
+  background-color: #27ae60;
+}
+
+.siteSettings__saveBtn:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+  opacity: 0.7;
+}

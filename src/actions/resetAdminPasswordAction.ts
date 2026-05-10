@@ -5,6 +5,7 @@ import dbConnect from "@/db/connection";
 import { sendEmail } from "@/lib/sendEmail";
 import mongoose from "mongoose";
 import { UsernameReminder } from "@/emails/UsernameReminder";
+import { getSiteSettings } from "@/actions/siteSettingsActions";
 
 export async function requestPasswordResetByUsername(username: string) {
     try {
@@ -65,10 +66,12 @@ export async function requestUsernameReminderByEmail(email: string) {
             return { success: true };
         }
 
+        const siteSettings = await getSiteSettings();
+
         await sendEmail({
             to: normalizedEmail,
             subject: "Przypomnienie loginu - Wilcze Chatki",
-            react: UsernameReminder({ username: userDoc.username }),
+            react: UsernameReminder({ username: userDoc.username, siteSettings }),
         });
 
         return { success: true };

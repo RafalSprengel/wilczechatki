@@ -13,7 +13,7 @@
 
 /* Layout */
 
-.admin-settings-container {
+.adminSettingsContainer {
   max-width: 900px;
   margin: 0 auto;
   padding: 20px 15px;
@@ -25,20 +25,20 @@
 
 /* Header */
 
-.admin-header {
+.adminHeader {
   margin-bottom: 30px;
   border-bottom: 2px solid var(--color-border);
   padding-bottom: 20px;
 }
 
-.admin-title {
+.adminTitle {
   font-size: 1.5rem;
   color: var(--color-primary);
   margin: 0 0 10px 0;
   line-height: 1.2;
 }
 
-.admin-subtitle {
+.adminSubtitle {
   font-size: 0.9rem;
   color: var(--color-secondary);
   margin: 0;
@@ -46,7 +46,7 @@
 
 /* Cards */
 
-.settings-card {
+.settingsCard {
   background: #ffffff;
   border-radius: 6px;
   box-shadow: var(--shadow-card);
@@ -57,7 +57,7 @@
   padding: 0;
 }
 
-.card-header {
+.cardHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -69,18 +69,18 @@
   gap: 10px;
 }
 
-.card-header-spaced {
+.cardHeaderSpaced {
   margin-top: 20px;
 }
 
-.card-title {
+.cardTitle {
   font-size: 1.1rem;
   margin: 0;
   color: var(--color-primary);
   font-weight: 700;
 }
 
-.card-badge {
+.cardBadge {
   background-color: var(--color-accent);
   color: white;
   padding: 4px 12px;
@@ -94,7 +94,7 @@
 
 /* Setting rows */
 
-.setting-row {
+.settingRow {
   padding: 15px;
   display: flex;
   justify-content: space-between;
@@ -103,12 +103,12 @@
   gap: 20px;
 }
 
-.setting-content {
+.settingContent {
   flex: 1;
   min-width: 0;
 }
 
-.setting-label {
+.settingLabel {
   display: block;
   font-size: 1rem;
   font-weight: 600;
@@ -118,20 +118,20 @@
   min-width: 0;
 }
 
-.setting-description {
+.settingDescription {
   font-size: 0.9rem;
   line-height: 1.6;
   color: #555;
   margin: 0 0 15px 0;
 }
 
-.setting-info-text {
+.settingInfoText {
   font-size: 1rem;
   margin: 10px 0;
   color: #444;
 }
 
-.setting-control {
+.settingControl {
   width: 100%;
   flex-shrink: 0;
   display: flex;
@@ -146,7 +146,7 @@
   padding-top: 15px;
 }
 
-.settings-editNameAndDesc {
+.settingsEditNameAndDesc {
   background-color: #f1f1f1;
   margin-left: 20px;
   margin-right: 5px;
@@ -155,7 +155,7 @@
 
 /* Toggle */
 
-.toggle-wrapper {
+.toggleWrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -163,7 +163,7 @@
   width: 100%;
 }
 
-.toggle-switch {
+.toggleSwitch {
   position: relative;
   display: inline-block;
   width: 60px;
@@ -177,29 +177,29 @@
   flex-shrink: 0;
 }
 
-.toggle-switch:active {
+.toggleSwitch:active {
   transform: scale(0.98);
 }
 
-.toggle-switch:focus-visible {
+.toggleSwitch:focus-visible {
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.4);
 }
 
-.toggle-on {
+.toggleOn {
   background-color: var(--color-success);
 }
 
-.toggle-off {
+.toggleOff {
   background-color: #bdc3c7;
 }
 
-.toggle-disabled {
+.toggleDisabled {
   opacity: 0.6;
   cursor: not-allowed;
   pointer-events: none;
 }
 
-.toggle-knob {
+.toggleKnob {
   position: absolute;
   content: "";
   top: 4px;
@@ -212,11 +212,11 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.toggle-on .toggle-knob {
+.toggleOn .toggleKnob {
   transform: translateX(26px);
 }
 
-.toggle-status-label {
+.toggleStatusLabel {
   font-size: 0.85rem;
   font-weight: bold;
   text-transform: uppercase;
@@ -224,17 +224,17 @@
   min-height: 1.2em;
 }
 
-.status-active {
+.statusActive {
   color: var(--color-success);
 }
 
-.status-inactive {
+.statusInactive {
   color: var(--color-secondary);
 }
 
 /* Status messages */
 
-.status-message {
+.statusMessage {
   font-size: 0.8rem;
   margin-top: 8px;
   padding: 6px 10px;
@@ -245,19 +245,19 @@
   box-sizing: border-box;
 }
 
-.msg-success {
+.msgSuccess {
   background-color: #d4edda;
   color: #155724;
   border: 1px solid #c3e6cb;
 }
 
-.msg-error {
+.msgError {
   background-color: #f8d7da;
   color: #721c24;
   border: 1px solid #f5c6cb;
 }
 
-.loading-container {
+.loadingContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -282,7 +282,7 @@
   }
 }
 
-.loading-text {
+.loadingText {
   font-size: 1rem;
   color: var(--color-accent);
   font-weight: 500;
@@ -290,7 +290,7 @@
 
 /* Buttons */
 
-.btn-primary {
+.btnPrimary {
   background-color: var(--color-accent, #3498db);
   color: white;
   border: 1px solid var(--color-accent, #3498db);
@@ -301,11 +301,11 @@
   cursor: pointer;
 }
 
-.btn-primary:hover {
+.btnPrimary:hover {
   background-color: #2980b9;
 }
 
-.btn-secondary {
+.btnSecondary {
   background-color: #ecf0f1;
   color: var(--color-primary);
   border: 1px solid #bdc3c7;
@@ -319,16 +319,16 @@
   text-align: center;
 }
 
-.btn-secondary:hover:not(:disabled) {
+.btnSecondary:hover:not(:disabled) {
   background-color: #bdc3c7;
 }
 
-.btn-secondary:disabled {
+.btnSecondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.btn-danger {
+.btnDanger {
   background-color: var(--color-danger);
   color: #fff;
   border: 1px solid var(--color-danger);
@@ -341,16 +341,16 @@
   text-align: center;
 }
 
-.btn-danger:hover:not(:disabled) {
+.btnDanger:hover:not(:disabled) {
   background-color: #c0392b;
 }
 
-.btn-danger:disabled {
+.btnDanger:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.btn-toggle-edit {
+.btnToggleEdit {
   background: none;
   border: none;
   color: #3b82f6;
@@ -363,8 +363,8 @@
 
 /* Inputs */
 
-.number-input,
-.date-input {
+.numberInput,
+.dateInput {
   padding: 8px;
   border: 1px solid #bdc3c7;
   border-radius: 4px;
@@ -372,31 +372,31 @@
   width: 150px;
 }
 
-.season-select-full {
+.seasonSelectFull {
   width: 100%;
   padding: 8px;
 }
 
-.season-date-input {
+.seasonDateInput {
   width: 100%;
 }
 
-.order-control-group {
+.orderControlGroup {
   display: flex;
   gap: 10px;
   align-items: center;
 }
 
-.order-input-small {
+.orderInputSmall {
   width: 80px;
 }
 
-.input-error {
+.inputError {
   border-color: var(--color-danger) !important;
   background-color: #fff5f5;
 }
 
-.error-text {
+.errorText {
   display: block;
   color: var(--color-danger);
   font-size: 0.8rem;
@@ -413,13 +413,13 @@
   font-weight: 500;
 }
 
-.alert-success {
+.alertSuccess {
   background-color: #d4edda;
   color: #155724;
   border: 1px solid #c3e6cb;
 }
 
-.alert-error {
+.alertError {
   background-color: #f8d7da;
   color: #721c24;
   border: 1px solid #f5c6cb;
@@ -427,24 +427,24 @@
 
 /* Form actions */
 
-.form-actions {
+.formActions {
   padding: 20px;
   border-top: 1px solid #eee;
 }
 
-.form-message {
+.formMessage {
   margin-top: 15px;
   padding: 10px;
   border-radius: 4px;
 }
 
-.success-message {
+.successMessage {
   background-color: #d4edda;
   color: #155724;
   border: 1px solid #c3e6cb;
 }
 
-.error-message {
+.errorMessage {
   background-color: #f8d7da;
   color: #721c24;
   border: 1px solid #f5c6cb;
@@ -452,7 +452,7 @@
 
 /* Floating save bar */
 
-.floating-save-bar {
+.floatingSaveBar {
   position: fixed;
   bottom: -100px;
   left: 0;
@@ -465,11 +465,11 @@
   border-top: 1px solid var(--color-border);
 }
 
-.floating-save-bar.visible {
+.floatingSaveBar.visible {
   bottom: 0;
 }
 
-.floating-save-content {
+.floatingSaveContent {
   max-width: 900px;
   margin: 0 auto;
   display: flex;
@@ -480,13 +480,13 @@
   gap: 10px;
 }
 
-.floating-save-text {
+.floatingSaveText {
   margin: 0;
   font-weight: 500;
   color: var(--color-primary);
 }
 
-.floating-save-actions {
+.floatingSaveActions {
   display: flex;
   gap: 12px;
   align-items: center;
@@ -494,8 +494,8 @@
   justify-content: center;
 }
 
-.floating-save-actions .btn-secondary,
-.floating-save-actions .btn-primary {
+.floatingSaveActions .btnSecondary,
+.floatingSaveActions .btnPrimary {
   margin-top: 0;
   width: 50%;
 }
@@ -517,107 +517,107 @@
 /* Media queries */
 
 @media (min-width: 481px) {
-  .admin-title {
+  .adminTitle {
     font-size: 1.75rem;
   }
 
-  .admin-subtitle {
+  .adminSubtitle {
     font-size: 1rem;
   }
 
-  .settings-card {
+  .settingsCard {
     border-radius: 8px;
     margin-bottom: 25px;
   }
 
-  .card-header {
+  .cardHeader {
     padding: 15px 20px;
   }
 
-  .card-title {
+  .cardTitle {
     font-size: 1.25rem;
   }
 
-  .setting-row {
+  .settingRow {
     padding: 20px;
     gap: 25px;
   }
 
-  .setting-label {
+  .settingLabel {
     font-size: 1.1rem;
   }
 
-  .setting-description {
+  .settingDescription {
     font-size: 0.95rem;
   }
 
-  .setting-control {
+  .settingControl {
     align-items: flex-start;
     padding-top: 20px;
   }
 
-  .toggle-wrapper {
+  .toggleWrapper {
     align-items: flex-start;
     flex-direction: row;
     justify-content: space-between;
     gap: 12px;
   }
 
-  .toggle-status-label {
+  .toggleStatusLabel {
     font-size: 0.85rem;
   }
 
-  .btn-secondary {
+  .btnSecondary {
     width: auto;
     text-align: initial;
   }
 
-  .status-message {
+  .statusMessage {
     font-size: 0.85rem;
     padding: 8px 12px;
   }
 }
 
 @media (min-width: 601px) {
-  .floating-save-content {
+  .floatingSaveContent {
     flex-direction: row;
     justify-content: space-between;
     text-align: left;
     gap: 20px;
   }
 
-  .floating-save-actions {
+  .floatingSaveActions {
     width: auto;
     justify-content: center;
   }
 
-  .floating-save-actions .btn-secondary,
-  .floating-save-actions .btn-primary {
+  .floatingSaveActions .btnSecondary,
+  .floatingSaveActions .btnPrimary {
     width: auto;
   }
 }
 
 @media (min-width: 769px) {
-  .admin-settings-container {
+  .adminSettingsContainer {
     padding: 40px 20px;
   }
 
-  .admin-title {
+  .adminTitle {
     font-size: 2rem;
   }
 
-  .card-header {
+  .cardHeader {
     padding: 20px 25px;
     flex-direction: row;
     align-items: center;
   }
 
-  .setting-row {
+  .settingRow {
     padding: 25px;
     gap: 20px;
   }
 
-  .setting-control {
+  .settingControl {
     width: auto;
     min-width: 300px;
     padding-left: 20px;
@@ -627,92 +627,13 @@
     align-items: end;
   }
 
-  .setting-label {
+  .settingLabel {
     min-width: 200px;
   }
 }
 
-/* Admin Account Settings Styles */
-.account-settings-card {
-  margin-top: 30px;
-}
-
-.account-edit-header {
-  display: flex;
-  justify-content: flex-end;
-  padding: 10px 20px 0;
-}
-
-.account-form {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.account-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.account-input-group label {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: var(--color-primary);
-}
-
-.account-input {
-  padding: 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.account-input:focus {
-  outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-}
-
-.account-input:disabled {
-  background-color: #f9f9f9;
-  color: #7f8c8d;
-  cursor: not-allowed;
-}
-
-.account-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 10px;
-}
-
-.account-save-btn {
-  padding: 10px 25px;
-  background-color: var(--color-success);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s, opacity 0.2s;
-}
-
-.account-save-btn:hover:not(:disabled) {
-  background-color: #27ae60;
-}
-
-.account-save-btn:disabled {
-  background-color: #bdc3c7;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
 @media (min-width: 982px) {
-  .setting-row {
+  .settingRow {
     flex-direction: row;
   }
 }

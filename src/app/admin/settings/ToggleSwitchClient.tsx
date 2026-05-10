@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { updateSystemConfigSetting } from '@/actions/adminConfigActions';
 import { ISystemConfig } from '@/db/models/SystemConfig';
+import styles from './settings.module.css';
 
 interface ToggleSwitchProps {
   initialState: boolean;
@@ -36,30 +37,30 @@ export default function ToggleSwitch({ initialState, settingKey }: ToggleSwitchP
   };
 
   return (
-    <div className="toggle-wrapper">
+    <div className={styles.toggleWrapper}>
       <button
         type="button"
         onClick={handleToggle}
         disabled={isPending}
-        className={`toggle-switch ${state ? 'toggle-on' : 'toggle-off'} ${isPending ? 'toggle-disabled' : ''}`}
+        className={`${styles.toggleSwitch} ${state ? styles.toggleOn : styles.toggleOff} ${isPending ? styles.toggleDisabled : ''}`}
         aria-pressed={state}
         aria-label="Przełącz ustawienie"
       >
-        <span className="toggle-knob" />
+        <span className={styles.toggleKnob} />
       </button>
       
-      <span className={`toggle-status-label ${state ? 'status-active' : 'status-inactive'}`}>
+      <span className={`${styles.toggleStatusLabel} ${state ? styles.statusActive : styles.statusInactive}`}>
         {state ? 'WŁĄCZONE' : 'WYŁĄCZONE'}
       </span>
 
       {statusMessage && (
-        <div className={`status-message ${statusMessage.includes('Włączono') || statusMessage.includes('W') ? 'msg-success' : 'msg-error'}`}>
+        <div className={`${styles.statusMessage} ${statusMessage.includes('Włączono') || statusMessage.includes('W') ? styles.msgSuccess : styles.msgError}`}>
           {statusMessage}
         </div>
       )}
       
       {isPending && (
-        <span className="loading-spinner">Zapisywanie...</span>
+        <span className={styles.loadingText}>Zapisywanie...</span>
       )}
     </div>
   );
