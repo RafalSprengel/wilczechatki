@@ -112,11 +112,16 @@ export default function BookingDetailsPage() {
       if (!formData.invoiceData?.city.trim()) {
         newErrors.invoiceCity = 'Miejscowość jest wymagana dla faktury VAT';
       }
-      if (!formData.invoiceData?.postalCode.trim()) {
-        newErrors.postalCode = 'Kod pocztowy jest wymagany dla faktury VAT';
-      } else if (!/^\d{2}-\d{3}$/.test(formData.invoiceData.postalCode)) {
-        newErrors.postalCode = 'Nieprawidłowy format kodu pocztowego (XX-XXX)';
-      }
+        if (!formData.invoiceData?.postalCode.trim()) {
+          newErrors.postalCode = 'Kod pocztowy jest wymagany dla faktury VAT';
+        } else {
+          const polishPostal = /^\d{2}-\d{3}$/;
+          // UK: https://stackoverflow.com/a/164994/65387
+          const ukPostal = /^([A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2})$/i;
+          if (!polishPostal.test(formData.invoiceData.postalCode) && !ukPostal.test(formData.invoiceData.postalCode)) {
+            newErrors.postalCode = 'Nieprawidłowy format kodu pocztowego (PL: XX-XXX lub UK: SW1A 1AA)';
+          }
+        }
     }
 
     if (!formData.termsAccepted) newErrors.termsAccepted = 'Musisz zaakceptować regulamin';
@@ -250,8 +255,8 @@ export default function BookingDetailsPage() {
     <div className={styles.container}>
       <FloatingBackButton />
       <header className={styles.header}>
-        <h1>Dane Gości</h1>
-        <p>Wypełnij formularz, aby kontynuować rezerwację</p>
+        <h1>Dane gości</h1>
+        <p>Wypełnij formularz, aby kontynuować rezerwację.</p>
       </header>
 
       <div className={styles.summaryCard}>

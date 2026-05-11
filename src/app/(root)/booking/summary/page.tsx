@@ -99,7 +99,7 @@ export default function BookingSummaryPage() {
 
       <header className={styles.header}>
         <h1>Podsumowanie rezerwacji</h1>
-        <p>Sprawdź dane przed potwierdzeniem</p>
+        <p>Sprawdź dane przed potwierdzeniem.</p>
       </header>
 
       <div className={styles.summaryCard}>
