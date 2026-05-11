@@ -26,6 +26,8 @@ interface BookingOrderItem {
   propertyId: string
   displayName: string
   guests: number
+  adults: number
+  children: number
   extraBeds: number
   price: number
 }
@@ -34,6 +36,8 @@ interface CombinedOrderSelection {
   propertyId: string
   displayName: string
   guests: number
+  adults: number
+  children: number
   extraBeds: number
   price: number
 }
@@ -57,6 +61,8 @@ interface InvoiceData {
 interface BookingDraft {
   startDate: string
   endDate: string
+  adults: number
+  children: number
   clientData: ClientData
   invoiceData: InvoiceData
   orders: BookingOrderItem[]
@@ -179,7 +185,7 @@ export default function BookingClient({
   })
 
   const handleSearch = () => {
-    if (!bookingDates.start || !bookingDates.end || totalGuests === 0) return
+    if (!bookingDates.start || !bookingDates.end || totalGuests === 0 || adults < 1) return
 
     setIsSearching(true)
     setExtraBedsMap({})
@@ -213,6 +219,8 @@ export default function BookingClient({
     const draft: BookingDraft = {
       startDate: bookingDates.start!,
       endDate: bookingDates.end!,
+      adults,
+      children,
       clientData: {
         firstName: '',
         lastName: '',
@@ -249,6 +257,8 @@ export default function BookingClient({
       propertyId: option.propertyId,
       displayName: option.displayName,
       guests: totalGuests,
+      adults,
+      children,
       extraBeds,
       price: totalPrice
     }])
@@ -259,6 +269,8 @@ export default function BookingClient({
       propertyId: order.propertyId,
       displayName: order.displayName,
       guests: order.guests,
+      adults: order.adults,
+      children: order.children,
       extraBeds: order.extraBeds,
       price: order.price,
     }))
@@ -324,9 +336,9 @@ export default function BookingClient({
               <span className={styles.label}>Dorośli i dzieci od 13 lat:</span>
               <QuantityPicker
                 onIncrement={() => setAdults(adults + 1)}
-                onDecrement={() => setAdults(adults > 0 ? adults - 1 : 0)}
+                onDecrement={() => setAdults(adults > 1 ? adults - 1 : 1)}
                 value={adults}
-                min={0}
+                min={1}
                 max={maxTotalGuests}
                 disableIncrement={atMaxGuests}
               />
@@ -343,6 +355,7 @@ export default function BookingClient({
               />
             </div>
             <span className={styles.info}>*  Dzieci do {childrenFreeAgeLimit} roku życia bezpłatnie.</span>
+            <span className={styles.info}>** Istnieje możliwość dokupienia dostawek w kolejnych krokach rezerwacji.</span>
             <button className={styles.buttOk} onClick={closeAllBoxes}>Gotowe</button>
           </div>
         </div>
@@ -414,12 +427,12 @@ export default function BookingClient({
                     const seasonRange = `${formatSeasonMonthDay(season.startDate)} - ${formatSeasonMonthDay(season.endDate)}`
                     const separator = index < overlappingSeasons.length - 1 ? ', ' : ''
                     return (
-                      <>
-                        <span key={season.seasonId}>
+                      <React.Fragment key={season.seasonId}>
+                        <span>
                           "{season.name} ({seasonRange})"{separator}
                         </span>
                         <br></br>
-                      </>
+                      </React.Fragment>
                     )
                   })}
                   Ceny w tym okresie mogą być droższe niż w okresie poza sezonem.
@@ -565,6 +578,7 @@ export default function BookingClient({
                           guestsMap={guestsMap}
                           onGuestsChange={handleGuestsChange}
                           totalGuestsLimit={totalGuests}
+                          adultsLimit={adults}
                           startDate={bookingDates.start}
                           endDate={bookingDates.end}
                           onSelectAll={handleAllSelect}

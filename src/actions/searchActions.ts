@@ -76,6 +76,7 @@ interface SearchParams {
   startDate: string;
   endDate: string;
   baseGuests: number;
+  adults: number;
   extraBeds: number;
 }
 
@@ -224,8 +225,9 @@ async function getDailyPrice({
 export async function getMaxTotalGuests() {
   try {
     await dbConnect();
-    const properties = await Property.find({ isActive: true }).sort({ baseCapacity: -1 });
-    return properties.length > 0 ? properties[0].baseCapacity : 6;
+    const properties = await Property.find({ isActive: true });
+    const totalCapacity = properties.reduce((sum, prop) => sum + prop.baseCapacity, 0);
+    return totalCapacity > 0 ? totalCapacity : 6;
   } catch (error) {
     console.error('Błąd podczas pobierania maksymalnej pojemności:', error);
     return 6;
@@ -316,7 +318,10 @@ export async function calculateTotalPrice(
 // ─── Wyszukiwanie dostępności ─────────────────────────────────────────────────
 
 export async function searchAction(params: SearchParams): Promise<SearchResults> {
-  const { startDate, endDate, baseGuests, extraBeds } = params;
+  const { startDate, endDate, baseGuests, adults, extraBeds } = params;
+  if (adults < 1) {
+    throw new Error('Liczba platnych gosci musi byc wieksza od zera.');
+  }
   try {
     await dbConnect();
     const start = dayjs.utc(startDate, 'YYYY-MM-DD', true);
@@ -406,7 +411,7 @@ export async function searchAction(params: SearchParams): Promise<SearchResults>
       const price = await calculateTotalPrice({ //calculate price for selected cabin
         startDate,
         endDate,
-        baseGuests,
+        baseGuests: adults,
         extraBeds,
         propertySelection: property._id.toString(),
       });
@@ -417,7 +422,7 @@ export async function searchAction(params: SearchParams): Promise<SearchResults>
           (await calculateTotalPrice({
             startDate,
             endDate,
-            baseGuests,
+            baseGuests: adults,
             extraBeds: extraBeds + 1,
             propertySelection: property._id.toString(),
           })) - price

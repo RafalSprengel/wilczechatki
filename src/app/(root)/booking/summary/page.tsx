@@ -25,7 +25,14 @@ export default function BookingSummaryPage() {
     try {
       const parsed: BookingData = JSON.parse(saved);
       const hasOrders = Array.isArray(parsed.orders) && parsed.orders.length > 0;
-      if (!parsed.clientData?.firstName || !hasOrders) {
+      if (
+        !parsed.clientData?.firstName ||
+        !hasOrders ||
+        !Number.isInteger(parsed.adults) ||
+        parsed.adults < 1 ||
+        !Number.isInteger(parsed.children) ||
+        parsed.children < 0
+      ) {
         router.push('/booking/details');
         return;
       }

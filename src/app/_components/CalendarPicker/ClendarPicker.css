@@ -19,7 +19,8 @@
 
 .navigation {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    gap: 8px;
     height: 3em;
     margin-bottom: 1em;
 }

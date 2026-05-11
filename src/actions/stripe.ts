@@ -13,11 +13,15 @@ import { formatDisplayDate } from "@/utils/formatDate";
 export async function createCheckoutSession(bookingData: BookingData) {
   if (!bookingData) throw new Error("Brak danych rezerwacji.");
 
-  const { startDate, endDate, clientData, orders } = bookingData;
+  const { startDate, endDate, adults, children, clientData, orders } = bookingData;
 
   if (
     !startDate ||
     !endDate ||
+    !Number.isInteger(adults) ||
+    adults < 1 ||
+    !Number.isInteger(children) ||
+    children < 0 ||
     !clientData?.firstName ||
     !clientData?.lastName ||
     !clientData?.email ||
@@ -46,6 +50,18 @@ export async function createCheckoutSession(bookingData: BookingData) {
       throw new Error("Nieprawidłowa liczba gości w zamówieniu.");
     }
 
+    if (!Number.isInteger(order.adults) || order.adults < 1) {
+      throw new Error("Nieprawidłowa liczba płatnych gości w zamówieniu.");
+    }
+
+    if (!Number.isInteger(order.children) || order.children < 0) {
+      throw new Error("Nieprawidłowa liczba dzieci w zamówieniu.");
+    }
+
+    if (order.adults + order.children !== order.guests) {
+      throw new Error("Niespójne dane gości w zamówieniu.");
+    }
+
     if (!Number.isInteger(order.extraBeds) || order.extraBeds < 0) {
       throw new Error("Nieprawidłowa liczba dostawek w zamówieniu.");
     }
@@ -65,6 +81,13 @@ export async function createCheckoutSession(bookingData: BookingData) {
   }
 
   const amount = orders.reduce((sum, item) => sum + item.price, 0);
+  const totalAdults = orders.reduce((sum, item) => sum + item.adults, 0);
+  const totalChildren = orders.reduce((sum, item) => sum + item.children, 0);
+
+  if (totalAdults !== adults || totalChildren !== children) {
+    throw new Error("Niespójne dane liczby dorosłych i dzieci w rezerwacji.");
+  }
+
   const propertyIds = orders.map((order) => order.propertyId).join(",");
   const orderDisplayName = orders.length === 1
     ? orders[0].displayName
@@ -94,8 +117,8 @@ export async function createCheckoutSession(bookingData: BookingData) {
     guestEmail: clientData.email,
     guestPhone: clientData.phone,
     guestAddress: clientData.address,
-    adults: order.guests,
-    children: 0,
+    adults: order.adults,
+    children: order.children,
     extraBedsCount: order.extraBeds,
     totalPrice: order.price,
     depositAmount: order.price,
@@ -136,6 +159,8 @@ export async function createCheckoutSession(bookingData: BookingData) {
         propertyIds,
         guestEmail: clientData.email,
         guests: totalGuests.toString(),
+        adults: adults.toString(),
+        children: children.toString(),
         extraBeds: totalExtraBeds.toString(),
         bookingIds: bookingIds.join(","),
       },
