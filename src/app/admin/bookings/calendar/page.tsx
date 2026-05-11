@@ -168,7 +168,7 @@ export default function Calendar() {
                   <td className={`${styles.stickyCol} ${styles.dateCell} ${[0, 6].includes(date.day()) ? styles.weekendCell : ''}`}>
                     <div className={styles.dateContent}>
                       <span className={styles.dateDay}>{row.datePL}</span>
-                      <span className={styles.dateWeekday}>({date.format('dd')})</span>
+                      <span className={styles.dateWeekday}>({date.format('ddd')})</span>
                     </div>
                   </td>
                   {cabinNames.map(cabin => {

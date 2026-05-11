@@ -1301,7 +1301,7 @@ export default function PriceSettingsForm({
                   onClick={handleRemoveCustomPrice}
                   disabled={isSaving || isDeletingCustom}
                 >
-                  {isDeletingCustom ? 'Przywracanie...' : '🗑️ Przywróć cenę sezonową dla zaznaczonego dnia'}
+                  {isDeletingCustom ? 'Przywracanie...' : '🗑️ Usuń cenę indywidualną'}
                 </button>
               </div>
             </>
