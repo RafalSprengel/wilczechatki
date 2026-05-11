@@ -37,37 +37,56 @@ export interface CustomPriceEntry {
   extraBedPrice?: number;
 }
 
-export async function updatePriceConfig(prevState: any, formData: FormData) {
-  try {
-    await dbConnect();
-
-    const seasonIndex = formData.get('seasonIndex') as string;
-    const weekdayTiers = JSON.parse(formData.get('weekdayTiers') as string) as PriceTier[];
-    const weekendTiers = JSON.parse(formData.get('weekendTiers') as string) as PriceTier[];
-    const weekdayExtraBedPrice = parseInt(formData.get('weekdayExtraBedPrice') as string) || 50;
-    const weekendExtraBedPrice = parseInt(formData.get('weekendExtraBedPrice') as string) || 70;
-    const childrenFreeAgeLimit = parseInt(formData.get('childrenFreeAgeLimit') as string) || 13;
-
-    const updateData: any = {};
-    updateData[`${seasonIndex}.weekday`] = weekdayTiers;
-    updateData[`${seasonIndex}.weekend`] = weekendTiers;
-    updateData[`${seasonIndex}.weekdayExtraBedPrice`] = weekdayExtraBedPrice;
-    updateData[`${seasonIndex}.weekendExtraBedPrice`] = weekendExtraBedPrice;
-    updateData.childrenFreeAgeLimit = childrenFreeAgeLimit;
-
-    await PriceConfig.findByIdAndUpdate(
-      'main',
-      { $set: updateData },
-      { upsert: true, new: true }
-    );
-
-    revalidatePath('/admin/prices');
-    return { success: true, message: `Zapisano konfigurację dla ${seasonIndex}.` };
-  } catch (error) {
-    console.error('Błąd zapisu cen:', error);
-    return { success: false, message: 'Wystąpił błąd podczas zapisu.' };
-  }
-}
+// Tymczasowo wyłączona funkcja updatePriceConfig
+// export async function updatePriceConfig(prevState: any, formData: FormData) {
+//   try {
+//     await dbConnect();
+//
+//     const seasonIndex = formData.get('seasonIndex') as string;
+//     const weekdayTiers = JSON.parse(formData.get('weekdayTiers') as string) as PriceTier[];
+//     const weekendTiers = JSON.parse(formData.get('weekendTiers') as string) as PriceTier[];
+//     const weekdayExtraBedPrice = parseInt(formData.get('weekdayExtraBedPrice') as string) || 50;
+//     const weekendExtraBedPrice = parseInt(formData.get('weekendExtraBedPrice') as string) || 70;
+//     const childrenFreeAgeLimit = parseInt(formData.get('childrenFreeAgeLimit') as string) || 13;
+//
+//     // Wymuś godzinę 12:00 dla startDate i endDate jeśli są obecne w formData
+//     const startDateRaw = formData.get('startDate') as string | undefined;
+//     const endDateRaw = formData.get('endDate') as string | undefined;
+//     let startDate: Date | undefined;
+//     let endDate: Date | undefined;
+//     if (startDateRaw) {
+//       const d = new Date(startDateRaw);
+//       d.setHours(12, 0, 0, 0);
+//       startDate = d;
+//     }
+//     if (endDateRaw) {
+//       const d = new Date(endDateRaw);
+//       d.setHours(12, 0, 0, 0);
+//       endDate = d;
+//     }
+//
+//     const updateData: any = {};
+//     if (startDate) updateData[`${seasonIndex}.startDate`] = startDate;
+//     if (endDate) updateData[`${seasonIndex}.endDate`] = endDate;
+//     updateData[`${seasonIndex}.weekday`] = weekdayTiers;
+//     updateData[`${seasonIndex}.weekend`] = weekendTiers;
+//     updateData[`${seasonIndex}.weekdayExtraBedPrice`] = weekdayExtraBedPrice;
+//     updateData[`${seasonIndex}.weekendExtraBedPrice`] = weekendExtraBedPrice;
+//     updateData.childrenFreeAgeLimit = childrenFreeAgeLimit;
+//
+//     await PriceConfig.findByIdAndUpdate(
+//       'main',
+//       { $set: updateData },
+//       { upsert: true, new: true }
+//     );
+//
+//     revalidatePath('/admin/prices');
+//     return { success: true, message: `Zapisano konfigurację dla ${seasonIndex}.` };
+//   } catch (error) {
+//     console.error('Błąd zapisu cen:', error);
+//     return { success: false, message: 'Wystąpił błąd podczas zapisu.' };
+//   }
+// }
 
 
 export async function updateCustompriceForDate(data: CustomPriceUpdate) {
