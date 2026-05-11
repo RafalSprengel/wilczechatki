@@ -407,7 +407,7 @@ export default function BookingClient({
             {hasSeasonOverlap && (
               <>
                 <div className={styles.seasonAlert} role="status" aria-live="polite">
-                  <strong>Uwaga:</strong> Wybrany termin zahacza o sezon wysoki:
+                  <strong>Uwaga!</strong> Wybrany termin obejmuje sezon wysoki:
                   <br></br>
                   {' '}
                   {overlappingSeasons.map((season, index) => {
@@ -430,7 +430,7 @@ export default function BookingClient({
                       onClick={() => setIsSeasonPriceListOpen((prev) => !prev)}
                       aria-expanded={isSeasonPriceListOpen}
                     >
-                      Kliknij tu
+                      Kliknij tutaj,
                     </button>
                     <span>aby zobaczyć ceny w sezonie wysokim.</span>
                   </div>
