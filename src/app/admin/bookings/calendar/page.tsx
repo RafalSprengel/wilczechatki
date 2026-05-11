@@ -72,7 +72,7 @@ const BookingTooltip = ({ details }: { details: BookingDetails }) => {
         <span className={styles.valueText}>{details.adults}</span>
       </div>
       <div className={styles.tooltipRow}>
-        <span className={styles.label}>🧒 Dzieci:</span>
+        <span className={styles.label}>🧒 Dzieci (bezpłatnie):</span>
         <span className={styles.valueText}>{details.children}</span>
       </div>
       <div className={styles.tooltipRow}>

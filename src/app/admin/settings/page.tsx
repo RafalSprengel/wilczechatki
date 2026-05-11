@@ -11,7 +11,7 @@ export default async function SettingsPage() {
     <div className={styles.adminSettingsContainer}>
       <FloatingBackButton />
       <header className={styles.adminHeader}>
-        <h1 className={styles.adminTitle}>Ustawienia Systemu</h1>
+        <h1 className={styles.adminTitle}>Ustawienia systemu</h1>
         <p className={styles.adminSubtitle}>Zarządzaj globalną polityką wynajmu obiektu.</p>
       </header>
 
