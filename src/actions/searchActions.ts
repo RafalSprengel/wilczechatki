@@ -433,6 +433,12 @@ export async function searchAction(params: SearchParams): Promise<SearchResults>
     }
     const result = options.sort((a, b) => a.totalPrice - b.totalPrice);
 
+    // Jeśli wybrano tylko jednego dorosłego, nie pokazuj opcji kilku domków
+    let areAllAvailable = result.length === totalActiveProperties;
+    if (adults === 1 && result.length > 1) {
+      areAllAvailable = false;
+    }
+
     if (overlappingSeasons.length > 0 && result.length > 0) {
       const seasonIds = overlappingSeasons.map((season) => new Types.ObjectId(season.seasonId));
       const propertyIds = result.map((option) => new Types.ObjectId(option.propertyId));
@@ -473,7 +479,7 @@ export async function searchAction(params: SearchParams): Promise<SearchResults>
 
     return {
       propertiesAvailable: result,
-      areAllAvailable: result.length === totalActiveProperties,
+      areAllAvailable,
       overlappingSeasons,
     };
   } catch (error) {
