@@ -217,6 +217,7 @@
   font-size: 1rem;
   width: 100%;
   margin-top: 5px;
+  transition: background 0.3s, color 0.3s;
   font-family: var(--font-body);
 }
 
@@ -229,7 +230,7 @@
   font-size: 1.1rem;
   font-weight: bold;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.3s, color 0.3s;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -240,7 +241,7 @@
 }
 
 .button:hover:not(:disabled) {
-  background: #a6934a;
+  background: #b39b4a;
 }
 
 .button:disabled {
@@ -650,7 +651,7 @@
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.3s, color 0.3s;
   font-size: 1rem;
   margin-top: 10px;
   font-family: var(--font-body);
@@ -662,7 +663,11 @@
 }
 
 .btnSelect:hover {
-  background: #bc9e2eba;
+  background: #b39b4a;
+}
+
+.buttOk:hover {
+  background: #b39b4a;
 }
 
 .btnSelectDisabledLook:hover {
