@@ -282,7 +282,8 @@
   color: #6e4f10;
   font-size: 0.92rem;
   line-height: 1.45;
-  margin-bottom: 25px;;
+  margin-bottom: 25px;
+  ;
 }
 
 .seasonAlert strong {
@@ -321,7 +322,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-bottom: 20px;;
+  margin-bottom: 20px;
+  ;
 }
 
 .seasonPriceSection {
@@ -729,7 +731,7 @@
 
   .resultsGrid {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 25px;
+    gap: 30px;
   }
 
   .modeSelector {

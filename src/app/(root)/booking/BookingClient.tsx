@@ -355,7 +355,7 @@ export default function BookingClient({
               />
             </div>
             <span className={styles.info}>*  Dzieci do {childrenFreeAgeLimit} roku życia bezpłatnie.</span>
-            <span className={styles.info}>** Istnieje możliwość dokupienia dostawek w kolejnych krokach rezerwacji.</span>
+            <span className={styles.info}>** Istnieje możliwość zakwaterowania dodatkowych osób na dostawkach na dalszym etapie rezerwacji.</span>
             <button className={styles.buttOk} onClick={closeAllBoxes}>Gotowe</button>
           </div>
         </div>
@@ -420,7 +420,7 @@ export default function BookingClient({
             {hasSeasonOverlap && (
               <>
                 <div className={styles.seasonAlert} role="status" aria-live="polite">
-                  <strong>Uwaga!</strong> Wybrany termin obejmuje sezon wysoki:
+                  <strong>Uwaga!</strong> Twoja rezerwacja obejmuje dni w sezonie wysokim:
                   <br></br>
                   {' '}
                   {overlappingSeasons.map((season, index) => {
@@ -435,7 +435,7 @@ export default function BookingClient({
                       </React.Fragment>
                     )
                   })}
-                  Ceny w tym okresie mogą być droższe niż w okresie poza sezonem.
+                  Ceny w tym okresie mogą być wyższe niż w okresie poza sezonem.
                   <div className={styles.seasonAlertAction}>
                     <button
                       type="button"
@@ -570,7 +570,6 @@ export default function BookingClient({
                   {showModeSelector && bookingMode === 'double' && (
                     searchResults.areAllAvailable ? (
                       <div className={styles.allAvailableNote}>
-                        <h3>Zarezerwuj {searchResults.propertiesAvailable.length} domki teraz</h3>
                         <AllPropertiesCard
                           searchResults={searchResults}
                           extraBedsMap={extraBedsMap}
