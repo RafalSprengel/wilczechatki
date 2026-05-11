@@ -89,6 +89,9 @@ export async function updateSeasonDates(
 
     const start = new Date(startDate);
     const end = new Date(endDate);
+    // Ustaw godzinę na 12:00 dla obu dat
+    start.setHours(12, 0, 0, 0);
+    end.setHours(12, 0, 0, 0);
 
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
       return { success: false, message: 'Nieprawidłowe daty sezonu' };
@@ -100,9 +103,9 @@ export async function updateSeasonDates(
     const endDay = end.getDate();
 
     // Canonical yearly range: year is ignored in pricing logic.
-    const normalizedStartDate = new Date(2000, startMonth, startDay);
+    const normalizedStartDate = new Date(2000, startMonth, startDay, 12, 0, 0, 0);
     const isCrossYear = (endMonth + 1) * 100 + endDay < (startMonth + 1) * 100 + startDay;
-    const normalizedEndDate = new Date(isCrossYear ? 2001 : 2000, endMonth, endDay);
+    const normalizedEndDate = new Date(isCrossYear ? 2001 : 2000, endMonth, endDay, 12, 0, 0, 0);
 
     const candidateStart = toMonthDayValue(normalizedStartDate);
     const candidateEnd = toMonthDayValue(normalizedEndDate);
@@ -169,8 +172,8 @@ export async function createSeason(name: string, description: string, order: num
       name: normalizedName,
       description: description.trim(),
       order,
-      startDate: new Date(2000, 0, 1),
-      endDate: new Date(2000, 0, 1),
+      startDate: new Date(2000, 0, 1, 12, 0, 0, 0),
+      endDate: new Date(2000, 0, 1, 12, 0, 0, 0),
       isActive: true,
     });
 
