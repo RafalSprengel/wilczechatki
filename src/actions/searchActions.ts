@@ -318,7 +318,9 @@ export async function calculateTotalPrice(
 // ─── Wyszukiwanie dostępności ─────────────────────────────────────────────────
 
 export async function searchAction(params: SearchParams): Promise<SearchResults> {
-  const { startDate, endDate, baseGuests, adults, extraBeds } = params;
+  const { startDate, endDate, adults, extraBeds } = params;
+  // Dzieci nie mają wpływu na wyszukiwanie domków, tylko dorośli
+  const effectiveGuests = adults;
   if (adults < 1) {
     throw new Error('Liczba platnych gosci musi byc wieksza od zera.');
   }
@@ -395,19 +397,10 @@ export async function searchAction(params: SearchParams): Promise<SearchResults>
 
     const options: SearchOption[] = [];
 
-    for (const property of availableProperties) { //loop for each available property
-      if (baseGuests > property.baseCapacity + property.maxExtraBeds) continue;
+    for (const property of availableProperties) {
+      if (effectiveGuests > property.baseCapacity + property.maxExtraBeds) continue;
 
-      // console.log('Zmienne wyszukiwania:', {
-      //   startDate,
-      //   endDate,
-      //   guests,
-      //   extraBeds,
-      //   propertyName: property.name,
-      //   propertyId: property._id.toString(),
-      // });
-
-      const price = await calculateTotalPrice({ //calculate price for selected cabin
+      const price = await calculateTotalPrice({
         startDate,
         endDate,
         baseGuests: adults,
@@ -417,15 +410,15 @@ export async function searchAction(params: SearchParams): Promise<SearchResults>
 
       const extraBedPrice = property.maxExtraBeds > extraBeds
         ? Math.max(
-          0,
-          (await calculateTotalPrice({
-            startDate,
-            endDate,
-            baseGuests: adults,
-            extraBeds: extraBeds + 1,
-            propertySelection: property._id.toString(),
-          })) - price
-        )
+            0,
+            (await calculateTotalPrice({
+              startDate,
+              endDate,
+              baseGuests: adults,
+              extraBeds: extraBeds + 1,
+              propertySelection: property._id.toString(),
+            })) - price
+          )
         : 0;
 
       options.push({
