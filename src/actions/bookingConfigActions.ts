@@ -76,15 +76,15 @@ export async function updateAllowCheckinOnDepartureDay(allow: boolean) {
   }
 }
 
-export async function updateBookingConfig(prevState: any, formData: FormData) {
+export async function updateBookingConfig(_prevState: Record<string, unknown>, formData: FormData) {
   try {
     await dbConnect();
-    const minBookingDays = parseInt(formData.get('minBookingDays') as string) || 1;
-    const maxBookingDays = parseInt(formData.get('maxBookingDays') as string) || 30;
-    const childrenFreeAgeLimit = parseInt(formData.get('childrenFreeAgeLimit') as string) || 13;
+    const minBookingDays = parseInt(formData.get('minBookingDays') as string, 10) || 1;
+    const maxBookingDays = parseInt(formData.get('maxBookingDays') as string, 10) || 30;
+    const childrenFreeAgeLimit = parseInt(formData.get('childrenFreeAgeLimit') as string, 10) || 13;
     const allowCheckinOnDepartureDay = formData.get('allowCheckinOnDepartureDay') === 'on';
-    const checkInHour = parseInt(formData.get('checkInHour') as string) || 15;
-    const checkOutHour = parseInt(formData.get('checkOutHour') as string) || 12;
+    const checkInHour = parseInt(formData.get('checkInHour') as string, 10) || 15;
+    const checkOutHour = parseInt(formData.get('checkOutHour') as string, 10) || 12;
 
     if (checkInHour < 0 || checkInHour > 23 || checkOutHour < 0 || checkOutHour > 23) {
       return { success: false, message: 'Godziny muszą być w zakresie 0-23.' };

@@ -13,14 +13,6 @@ interface PriceTier {
   price: number;
 }
 
-interface SeasonUpdate {
-  seasonIndex: string; // "season0", "season1", etc.
-  weekday: PriceTier[];
-  weekend: PriceTier[];
-  weekdayExtraBedPrice: number;
-  weekendExtraBedPrice: number;
-  childrenFreeAgeLimit: number;
-}
 
 interface CustomPriceUpdate {
   propertyId: string;
@@ -121,7 +113,7 @@ export async function updateCustompriceForDate(data: CustomPriceUpdate) {
       }
     }));
 
-    await CustomPrice.collection.bulkWrite(operations as any[]);
+    await CustomPrice.collection.bulkWrite(operations);
     revalidatePath('/admin/prices');
     
     return { success: true, message: `Zapisano ceny dla zaznaczonych dni.` };
@@ -166,7 +158,7 @@ export async function getCustomPrices(propertyId: string): Promise<CustomPriceEn
       propertyId: p.propertyId.toString(),
       extraBedPrice: p.extraBedPrice,
     }));
-  } catch (error) {
+  } catch (_error) {
     return [];
   }
 }

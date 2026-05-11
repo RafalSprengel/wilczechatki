@@ -1,7 +1,7 @@
 'use server'
 
 import dbConnect from '@/db/connection';
-import SystemConfig, { ISystemConfig } from '@/db/models/SystemConfig';
+import SystemConfig, { type ISystemConfig } from '@/db/models/SystemConfig';
 import { revalidatePath } from 'next/cache';
 
 async function ensureSystemConfigExists() {
@@ -21,7 +21,7 @@ async function ensureSystemConfigExists() {
     }
 
     let needsUpdate = false;
-    const updates: any = {};
+    const updates: Record<string, unknown> = {};
 
     if (typeof existingConfig.autoBlockOtherCabins !== 'boolean') {
       updates.autoBlockOtherCabins = defaultConfig.autoBlockOtherCabins;

@@ -1,7 +1,6 @@
 import User from "@/db/models/Users"
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import dbConnect from "@/db/connection"
-import { sendBookingEmail } from "@/lib/sendEmail";
 
 export async function resetAdminPassword(username: string) {
     await dbConnect();
@@ -33,7 +32,7 @@ export async function resetAdminPassword(username: string) {
             success: true,
             message: "Hasło zostało zresetowane"
         }
-    } catch (error) {
+    } catch (_error) {
         return {
             success: false,
             error: "Wystąpił błąd. Spróbuj ponownie."

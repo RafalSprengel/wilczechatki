@@ -13,10 +13,6 @@
       "!.next",
       "!dist",
       "!build"
-    ],
-    "ignore": [
-      "**/*.scss",
-      "**/*.sass"
     ]
   },
   "formatter": {

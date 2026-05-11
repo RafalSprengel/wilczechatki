@@ -27,7 +27,7 @@ export interface AdminPaymentsData {
   offline: AdminPaymentRow[]
 }
 
-function normalizePaymentRow(row: any): AdminPaymentRow {
+function normalizePaymentRow(row: Record<string, unknown>): AdminPaymentRow {
   if (!row._id) {
     throw new Error('Brak identyfikatora rezerwacji podczas mapowania płatności.')
   }

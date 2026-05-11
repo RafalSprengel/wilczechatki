@@ -5,7 +5,7 @@ export async function hasSeasonOverlap(
   startDate: Date,
   endDate: Date,
   excludeSeasonId?: string
-): Promise<{ hasOverlap: boolean; overlappingSeason?: any }> {
+): Promise<{ hasOverlap: boolean; overlappingSeason?: Record<string, unknown> }> {
   await dbConnect();
 
   const query: any = {

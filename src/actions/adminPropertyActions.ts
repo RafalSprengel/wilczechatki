@@ -49,9 +49,9 @@ export async function getPropertyById(id: string): Promise<PropertyType | null> 
 
   return {
     ...property,
-    _id: (property._id as any).toString(),
-    createdAt: (property as any).createdAt?.toISOString(),
-    updatedAt: (property as any).updatedAt?.toISOString(),
+    _id: property._id?.toString(),
+    createdAt: property.createdAt?.toISOString(),
+    updatedAt: property.updatedAt?.toISOString(),
   } as PropertyType;
 }
 
