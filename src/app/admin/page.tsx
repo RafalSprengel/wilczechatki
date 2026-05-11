@@ -4,12 +4,12 @@ import { getAdminBookingsList } from '@/actions/adminBookingActions';
 
 export default async function AdminDashboard() {
   const allBookings = await getAdminBookingsList();
-  
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   const upcomingBookings = allBookings
-    .filter((b: any) => new Date(b.endDate) >= today && b.status !== 'cancelled')
+    .filter((b: any) => new Date(b.endDate) >= today && b.status === 'confirmed')
     .sort((a: any, b: any) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
     .slice(0, 5);
 
@@ -39,7 +39,7 @@ export default async function AdminDashboard() {
               const end = new Date(booking.endDate);
               const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
               const dateRange = `${start.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' })} – ${end.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
-              
+
               return (
                 <Link
                   key={booking._id}
@@ -64,7 +64,9 @@ export default async function AdminDashboard() {
       </section>
 
       <section className={styles.section}>
-        <h2>Szybki dostęp</h2>
+        <div className={styles.sectionHeader}>
+          <h2> Szybki dostęp</h2>
+        </div>
         <div className={styles.quickActions}>
           <Link href="/admin/bookings/add" className={styles.actionCard}>
             <span className={styles.actionIcon}>➕</span>
