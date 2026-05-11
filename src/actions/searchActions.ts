@@ -387,7 +387,6 @@ export async function searchAction(params: SearchParams): Promise<SearchResults>
     const availableProperties = await Property.find({
       isActive: true,
       _id: { $nin: occupiedIds },
-      baseCapacity: { $gte: baseGuests - extraBeds }
     }).select('-createdAt -updatedAt').sort({ name: 1 });
 
     if (availableProperties.length === 0) {
