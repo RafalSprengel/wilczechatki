@@ -328,7 +328,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
 
   const handleBlurChildrenFreeAge = () => {
     if (localChildrenFreeAge === "" || isNaN(Number(localChildrenFreeAge)) || Number(localChildrenFreeAge) < 0) {
-      toast.error("Wiek dziecka musi być liczbą nieujemną");
+      toast.error("Wiek dziecka musi być liczbą wieksze od zera");
       setLocalChildrenFreeAge(initialConfig.childrenFreeAgeLimit);
     }
   };
@@ -659,7 +659,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
             <p className={styles.settingDescription}>Od której godziny można się zameldować w dniu przyjazdu.</p>
           </div>
           <div className={styles.settingControl}>
-            <input type="number" id="checkInHour" min={0} value={localCheckInHour} onChange={(e) => setLocalCheckInHour(parseInt(e.target.value) || 0)} onBlur={handleBlurCheckIn} className={styles.numberInput} />
+            <input type="number" id="checkInHour" min={0} value={localCheckInHour} onChange={e => setLocalCheckInHour(e.target.value === "" ? "" : parseInt(e.target.value, 10))} onBlur={handleBlurCheckIn} className={styles.numberInput} />
             <input type="hidden" name="checkInHour" value={localCheckInHour === "" ? "" : localCheckInHour} />
           </div>
         </div>
@@ -669,7 +669,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
             <p className={styles.settingDescription}>Do której godziny trzeba opuścić obiekt w dniu wyjazdu.</p>
           </div>
           <div className={styles.settingControl}>
-            <input type="number" id="checkOutHour" min={0} value={localCheckOutHour} onChange={(e) => setLocalCheckOutHour(parseInt(e.target.value) || 0)} onBlur={handleBlurCheckOut} className={styles.numberInput} />
+            <input type="number" id="checkOutHour" min={0} value={localCheckOutHour} onChange={e => setLocalCheckOutHour(e.target.value === "" ? "" : parseInt(e.target.value, 10))} onBlur={handleBlurCheckOut} className={styles.numberInput} />
             <input type="hidden" name="checkOutHour" value={localCheckOutHour === "" ? "" : localCheckOutHour} />
           </div>
         </div>
@@ -680,7 +680,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         <div className={styles.settingRow}>
           <div className={styles.settingContent}><label htmlFor="childrenFreeAgeLimit" className={styles.settingLabel}>Bezpłatny pobyt dzieci do lat:</label></div>
           <div className={styles.settingControl}>
-            <input type="number" id="childrenFreeAgeLimit" min={0} value={localChildrenFreeAge} onChange={(e) => setLocalChildrenFreeAge(parseInt(e.target.value) || 0)} onBlur={handleBlurChildrenFreeAge} className={styles.numberInput} />
+            <input type="number" id="childrenFreeAgeLimit" min={0} value={localChildrenFreeAge} onChange={e => setLocalChildrenFreeAge(e.target.value === "" ? "" : parseInt(e.target.value, 10))} onBlur={handleBlurChildrenFreeAge} className={styles.numberInput} />
             <input type="hidden" name="childrenFreeAgeLimit" value={localChildrenFreeAge === "" ? "" : localChildrenFreeAge} />
           </div>
         </div>
