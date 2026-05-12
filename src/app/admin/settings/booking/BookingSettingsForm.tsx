@@ -677,7 +677,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
                   isDeletingSeason || isCreatingSeason || isUpdatingSeason
                 }
               >
-                Edytuj sezon
+                Edytuj nazwę i opis sezonu
               </button>
               <button
                 type="button"
