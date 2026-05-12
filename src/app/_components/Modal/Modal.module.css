@@ -23,6 +23,10 @@
   animation: slideUp 0.3s ease-out;
 }
 
+.modalWide {
+  max-width: 420px;
+}
+
 .header {
   padding: 20px 24px 12px;
   border-bottom: 1px solid #f1f5f9;
@@ -71,14 +75,35 @@
   background: #e2e8f0;
 }
 
+
 .btnConfirm {
-  background: #ef4444;
   color: white;
+  transition: background 0.2s;
 }
 
-.btnConfirm:hover:not(:disabled) {
+.btnOk {
+  background: #16a34a;
+}
+.btnOk:hover:not(:disabled) {
+  background: #15803d;
+}
+
+.btnDanger {
+  background: #ef4444;
+}
+.btnDanger:hover:not(:disabled) {
   background: #dc2626;
 }
+
+.btnWarning {
+  background: #facc15;
+  color: #92400e;
+}
+.btnWarning:hover:not(:disabled) {
+  background: #eab308;
+  color: #78350f;
+}
+
 
 .btnCancel:disabled,
 .btnConfirm:disabled {
@@ -123,5 +148,11 @@
   .btnCancel,
   .btnConfirm {
     width: 100%;
+  }
+}
+
+@media (min-width: 992px) {
+  .modalWide {
+    max-width: 980px;
   }
 }

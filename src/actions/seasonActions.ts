@@ -159,7 +159,7 @@ export async function updateSeasonOrder(seasonId: string, order: number) {
   }
 }
 
-export async function createSeason(name: string, description: string, order: number) {
+export async function createSeason(name: string, description: string, order: number, startDate: string, endDate: string) {
   try {
     await dbConnect();
 
@@ -167,13 +167,25 @@ export async function createSeason(name: string, description: string, order: num
     if (!normalizedName) {
       return { success: false, message: 'Nazwa sezonu jest wymagana' };
     }
+    if (!startDate || !endDate) {
+      return { success: false, message: 'Daty sezonu są wymagane' };
+    }
+
+    const parsedStartDate = new Date(startDate);
+    const parsedEndDate = new Date(endDate);
+    parsedStartDate.setHours(12, 0, 0, 0);
+    parsedEndDate.setHours(12, 0, 0, 0);
+
+    if (Number.isNaN(parsedStartDate.getTime()) || Number.isNaN(parsedEndDate.getTime())) {
+      return { success: false, message: 'Nieprawidłowe daty sezonu' };
+    }
 
     const season = await Season.create({
       name: normalizedName,
       description: description.trim(),
       order,
-      startDate: new Date(2000, 0, 1, 12, 0, 0, 0),
-      endDate: new Date(2000, 0, 1, 12, 0, 0, 0),
+      startDate: parsedStartDate,
+      endDate: parsedEndDate,
       isActive: true,
     });
 

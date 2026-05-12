@@ -469,13 +469,13 @@
   font-family: var(--font-body);
 }
 
-.btnPrimary {
-  background-color: #3182ce;
+
+.btnOk {
+  background-color: #16a34a;
   color: #fff;
 }
-
-.btnPrimary:hover:not(:disabled) {
-  background-color: #2b6cb0;
+.btnOk:hover:not(:disabled) {
+  background-color: #15803d;
 }
 
 .btnSecondary {

@@ -1371,7 +1371,7 @@ export default function PriceSettingsForm({
             </button>
             <button
               type="button"
-              className={`${styles.btn} ${styles.btnPrimary}`}
+              className={`${styles.btn} ${styles.btnOk}`}
               onClick={handleSaveAll}
               disabled={isSaving || isLoadingPrices || isDeletingCustom || isDiscarding}
             >

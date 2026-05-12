@@ -13,8 +13,9 @@ interface ModalProps {
   confirmText?: string
   cancelText?: string
   loadingText?: string
-  confirmVariant?: 'danger' | 'primary'
+  confirmVariant?: 'ok' | 'danger' | 'warning'
   isLoading?: boolean
+  modalSize?: 'default' | 'wide'
 }
 
 export default function Modal({
@@ -27,7 +28,8 @@ export default function Modal({
   cancelText = 'Anuluj',
   loadingText = 'Chwileczkę...',
   confirmVariant = 'danger',
-  isLoading = false
+  isLoading = false,
+  modalSize = 'default'
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null)
 
@@ -60,13 +62,19 @@ export default function Modal({
     if (e.target === e.currentTarget) onClose()
   }
 
-  const confirmClass = confirmVariant === 'danger' 
-    ? styles.btnConfirm 
-    : `${styles.btnConfirm} ${styles.btnPrimary}`
+
+  let confirmClass = styles.btnConfirm;
+  if (confirmVariant === 'ok') confirmClass += ' ' + styles.btnOk;
+  if (confirmVariant === 'danger') confirmClass += ' ' + styles.btnDanger;
+  if (confirmVariant === 'warning') confirmClass += ' ' + styles.btnWarning;
+
+  const modalClass = modalSize === 'wide'
+    ? `${styles.modal} ${styles.modalWide}`
+    : styles.modal
 
   return createPortal(
     <div className={styles.overlay} onClick={handleOverlayClick} role="dialog" aria-modal="true">
-      <div className={styles.modal} ref={modalRef}>
+      <div className={modalClass} ref={modalRef}>
         <div className={styles.header}>
           <h2 className={styles.title}>{title}</h2>
         </div>
