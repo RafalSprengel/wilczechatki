@@ -76,7 +76,7 @@ export default function AdminLayout({
 
         <aside className={`${styles.adminSidebar} ${isMobileMenuOpen ? styles.mobileOpen : ''}`}>
           <div className={styles.sidebarHeader}>
-            <h2>Panel Admina</h2>
+            <Link href='/admin' onClick={handleMenuLinkClick}><h2>Panel Admina</h2></Link>
           </div>
 
           <nav className={styles.sidebarNav}>
