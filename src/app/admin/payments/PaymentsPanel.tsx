@@ -175,7 +175,7 @@ export default function PaymentsPanel({ initialData, mode }: PaymentsPanelProps)
         <table className={styles['payments-panel__table']}>
           <thead>
             <tr>
-              {mode === 'online' ? <th>Zamówienie nr.</th> : null}
+              {mode === 'online' ? <th>Zamówienie nr</th> : null}
               <th>Data płatności</th>
               <th>Klient</th>
               <th>Kwota</th>
