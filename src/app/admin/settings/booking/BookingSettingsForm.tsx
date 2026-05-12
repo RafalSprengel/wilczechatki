@@ -5,6 +5,7 @@ import {
   useActionState,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useTransition,
 } from "react";
@@ -78,6 +79,7 @@ function getSeasonDescriptionValue(
 
 export default function BookingSettingsForm({ initialConfig }: Props) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, isPending] = useActionState(updateBookingConfig, {
     message: "",
     success: false,
@@ -175,7 +177,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
     seasonOrder,
   ]);
 
-  const isAnyDirty = isConfigDirty;
+  const isAnyDirty = isConfigDirty || isSeasonDirty;
 
   useEffect(() => {
     const loadSeasons = async () => {
@@ -514,6 +516,16 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
     resetSelectedSeasonForm();
   };
 
+  const handleSaveAll = async () => {
+    if (isSeasonDirty) {
+      const saved = await handleUpdateSeasonSilent();
+      if (!saved) return;
+    }
+    if (isConfigDirty) {
+      formRef.current?.requestSubmit();
+    }
+  };
+
   const startDayOptions = useMemo(
     () =>
       Array.from(
@@ -551,7 +563,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
 
   return (
     <>
-      <form action={formAction} className={styles.settingsCard}>
+      <form ref={formRef} action={formAction} className={styles.settingsCard}>
         <input type="hidden" name="minBookingDays" value={localMinDays} />
         <input type="hidden" name="maxBookingDays" value={localMaxDays} />
         <input
@@ -1002,9 +1014,10 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
                 Odrzuć
               </button>
               <button
-                type="submit"
+                type="button"
                 className={styles.btnPrimary}
                 disabled={isPending || isUpdatingSeason}
+                onClick={handleSaveAll}
               >
                 {isPending || isUpdatingSeason
                   ? "Zapisywanie..."

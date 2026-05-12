@@ -13,7 +13,6 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 10px;
 }
 
 .extraBedsHeader,
@@ -564,7 +563,6 @@
 
 /* Extra beds */
 .extraBedsSection {
-  margin: 15px 0;
   padding: 12px;
   background: #f8fafc;
   border-radius: 8px;
@@ -764,7 +762,6 @@
 }
 
 .extraBedsSection {
-  margin: 15px 0;
   padding: 12px;
   background: #f8fafc;
   border-radius: 8px;
@@ -816,10 +813,10 @@
 
 @media (min-width: 850px) {
   .allPropertiesResultCard {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 12px;
-    align-items: start;
+    align-items: stretch;
   }
 
   .allPropertiesResultCard>.cardHeader,
@@ -829,9 +826,7 @@
     grid-column: 1 / -1;
   }
 
-  .allPropertiesResultCard>.extraBedsSection {
-    margin: 0;
-  }
+
 }
 
 @media (max-width: 600px) {
