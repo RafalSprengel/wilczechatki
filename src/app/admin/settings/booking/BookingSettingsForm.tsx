@@ -1,14 +1,28 @@
-
-
-'use client';
-import { useActionState, useEffect, useState, useTransition, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { updateBookingConfig, updateAllowCheckinOnDepartureDay } from '@/actions/bookingConfigActions';
-import { createSeason, deleteSeason, getAllSeasons, updateSeasonDates, updateSeasonOrder, ISeasonData } from '@/actions/seasonActions';
-import dayjs from 'dayjs';
-import { toast } from 'react-hot-toast';
-import Modal from '@/app/_components/Modal/Modal';
-import styles from './booking.module.css';
+"use client";
+import dayjs from "dayjs";
+import { useRouter } from "next/navigation";
+import {
+  useActionState,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react";
+import { toast } from "react-hot-toast";
+import {
+  updateAllowCheckinOnDepartureDay,
+  updateBookingConfig,
+} from "@/actions/bookingConfigActions";
+import {
+  createSeason,
+  deleteSeason,
+  getAllSeasons,
+  type ISeasonData,
+  updateSeasonDates,
+  updateSeasonOrder,
+} from "@/actions/seasonActions";
+import Modal from "@/app/_components/Modal/Modal";
+import styles from "./booking.module.css";
 
 interface BookingConfig {
   minBookingDays: number;
@@ -26,18 +40,18 @@ interface Props {
 }
 
 const MONTH_OPTIONS = [
-  { value: 1, label: 'Styczeń' },
-  { value: 2, label: 'Luty' },
-  { value: 3, label: 'Marzec' },
-  { value: 4, label: 'Kwiecień' },
-  { value: 5, label: 'Maj' },
-  { value: 6, label: 'Czerwiec' },
-  { value: 7, label: 'Lipiec' },
-  { value: 8, label: 'Sierpień' },
-  { value: 9, label: 'Wrzesień' },
-  { value: 10, label: 'Październik' },
-  { value: 11, label: 'Listopad' },
-  { value: 12, label: 'Grudzień' },
+  { value: 1, label: "Styczeń" },
+  { value: 2, label: "Luty" },
+  { value: 3, label: "Marzec" },
+  { value: 4, label: "Kwiecień" },
+  { value: 5, label: "Maj" },
+  { value: 6, label: "Czerwiec" },
+  { value: 7, label: "Lipiec" },
+  { value: 8, label: "Sierpień" },
+  { value: 9, label: "Wrzesień" },
+  { value: 10, label: "Październik" },
+  { value: 11, label: "Listopad" },
+  { value: 12, label: "Grudzień" },
 ];
 
 function getMaxDaysInMonth(month: number): number {
@@ -47,53 +61,77 @@ function getMaxDaysInMonth(month: number): number {
 }
 
 function toIsoDate(month: number, day: number): string {
-  const mm = String(month).padStart(2, '0');
-  const dd = String(day).padStart(2, '0');
+  const mm = String(month).padStart(2, "0");
+  const dd = String(day).padStart(2, "0");
   return `2000-${mm}-${dd}`;
+}
+
+function getSeasonDescriptionValue(
+  description: string | null | undefined,
+): string {
+  if (description === null || description === undefined) {
+    return "";
+  }
+
+  return description;
 }
 
 export default function BookingSettingsForm({ initialConfig }: Props) {
   const router = useRouter();
   const [state, formAction, isPending] = useActionState(updateBookingConfig, {
-    message: '',
+    message: "",
     success: false,
   });
 
-  const [localMinDays, setLocalMinDays] = useState<number | "">(initialConfig.minBookingDays);
-  const [localMaxDays, setLocalMaxDays] = useState<number | "">(initialConfig.maxBookingDays);
-  const [localChildrenFreeAge, setLocalChildrenFreeAge] = useState<number | "">(initialConfig.childrenFreeAgeLimit);
-  const [localCheckInHour, setLocalCheckInHour] = useState<number | "">(initialConfig.checkInHour);
-  const [localCheckOutHour, setLocalCheckOutHour] = useState<number | "">(initialConfig.checkOutHour);
-  const [allowCheckin, setAllowCheckin] = useState(initialConfig.allowCheckinOnDepartureDay);
+  const [localMinDays, setLocalMinDays] = useState<number | "">(
+    initialConfig.minBookingDays,
+  );
+  const [localMaxDays, setLocalMaxDays] = useState<number | "">(
+    initialConfig.maxBookingDays,
+  );
+  const [localChildrenFreeAge, setLocalChildrenFreeAge] = useState<number | "">(
+    initialConfig.childrenFreeAgeLimit,
+  );
+  const [localCheckInHour, setLocalCheckInHour] = useState<number | "">(
+    initialConfig.checkInHour,
+  );
+  const [localCheckOutHour, setLocalCheckOutHour] = useState<number | "">(
+    initialConfig.checkOutHour,
+  );
+  const [allowCheckin, setAllowCheckin] = useState(
+    initialConfig.allowCheckinOnDepartureDay,
+  );
 
   const [togglePending, startToggleTransition] = useTransition();
   const [seasons, setSeasons] = useState<ISeasonData[]>([]);
-  const [selectedSeasonId, setSelectedSeasonId] = useState<string>('');
-  const [selectedSeason, setSelectedSeason] = useState<ISeasonData | null>(null);
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string>("");
+  const [selectedSeason, setSelectedSeason] = useState<ISeasonData | null>(
+    null,
+  );
   const [isLoadingSeasons, setIsLoadingSeasons] = useState(true);
   const [isUpdatingSeason, setIsUpdatingSeason] = useState(false);
-  const [seasonName, setSeasonName] = useState('');
-  const [seasonDesc, setSeasonDesc] = useState('');
+  const [seasonName, setSeasonName] = useState("");
+  const [seasonDesc, setSeasonDesc] = useState("");
   const [seasonStartDay, setSeasonStartDay] = useState(1);
   const [seasonStartMonth, setSeasonStartMonth] = useState(1);
   const [seasonEndDay, setSeasonEndDay] = useState(1);
   const [seasonEndMonth, setSeasonEndMonth] = useState(1);
-  const [seasonOrder, setSeasonOrder] = useState<number>(0);
+  const [seasonOrder, setSeasonOrder] = useState<number | "">(0);
   const [isEditExpanded, setIsEditExpanded] = useState(false);
   const [isAddExpanded, setIsAddExpanded] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeletingSeason, setIsDeletingSeason] = useState(false);
   const [isCreatingSeason, setIsCreatingSeason] = useState(false);
-  const [newSeasonName, setNewSeasonName] = useState('');
-  const [newSeasonDesc, setNewSeasonDesc] = useState('');
-  const [newSeasonOrder, setNewSeasonOrder] = useState('');
+  const [newSeasonName, setNewSeasonName] = useState("");
+  const [newSeasonDesc, setNewSeasonDesc] = useState("");
+  const [newSeasonOrder, setNewSeasonOrder] = useState("");
   const [seasonDateErrors, setSeasonDateErrors] = useState<{
     startDate?: string;
     endDate?: string;
   }>({});
 
-  const [newSeasonStartDate, setNewSeasonStartDate] = useState<string>('');
-  const [newSeasonEndDate, setNewSeasonEndDate] = useState<string>('');
+  const [newSeasonStartDate, setNewSeasonStartDate] = useState<string>("");
+  const [newSeasonEndDate, setNewSeasonEndDate] = useState<string>("");
 
   const isConfigDirty = useMemo(() => {
     return (
@@ -103,7 +141,14 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
       localCheckInHour !== initialConfig.checkInHour ||
       localCheckOutHour !== initialConfig.checkOutHour
     );
-  }, [localMinDays, localMaxDays, localChildrenFreeAge, localCheckInHour, localCheckOutHour, initialConfig]);
+  }, [
+    localMinDays,
+    localMaxDays,
+    localChildrenFreeAge,
+    localCheckInHour,
+    localCheckOutHour,
+    initialConfig,
+  ]);
 
   const isSeasonDirty = useMemo(() => {
     if (!selectedSeason) return false;
@@ -112,16 +157,25 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
 
     return (
       seasonName !== selectedSeason.name ||
-      seasonDesc !== (selectedSeason.description || '') ||
+      seasonDesc !== (selectedSeason.description || "") ||
       seasonStartDay !== originalStart.date() ||
       seasonStartMonth !== originalStart.month() + 1 ||
       seasonEndDay !== originalEnd.date() ||
       seasonEndMonth !== originalEnd.month() + 1 ||
       seasonOrder !== selectedSeason.order
     );
-  }, [selectedSeason, seasonName, seasonDesc, seasonStartDay, seasonStartMonth, seasonEndDay, seasonEndMonth, seasonOrder]);
+  }, [
+    selectedSeason,
+    seasonName,
+    seasonDesc,
+    seasonStartDay,
+    seasonStartMonth,
+    seasonEndDay,
+    seasonEndMonth,
+    seasonOrder,
+  ]);
 
-  const isAnyDirty = isConfigDirty || isSeasonDirty;
+  const isAnyDirty = isConfigDirty;
 
   useEffect(() => {
     const loadSeasons = async () => {
@@ -138,12 +192,12 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
       setSelectedSeasonId(seasons[0]._id);
       return;
     }
-    const season = seasons.find(s => s._id === selectedSeasonId);
+    const season = seasons.find((s) => s._id === selectedSeasonId);
     setSelectedSeason(season || null);
     if (season) {
       setSeasonDateErrors({});
       setSeasonName(season.name);
-      setSeasonDesc(season.description || '');
+      setSeasonDesc(getSeasonDescriptionValue(season.description));
       const start = dayjs(season.startDate);
       const end = dayjs(season.endDate);
       setSeasonStartDay(start.date());
@@ -170,6 +224,10 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
 
   const handleUpdateSeasonSilent = async () => {
     if (!seasonName || !selectedSeasonId) return false;
+    if (seasonOrder === "") {
+      toast.error("Kolejność jest wymagana");
+      return false;
+    }
     if (!isSeasonDirty) return true;
 
     setSeasonDateErrors({});
@@ -187,7 +245,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         seasonDesc,
         selectedSeasonId,
         startDateToSave,
-        endDateToSave
+        endDateToSave,
       );
 
       if (result.success) {
@@ -195,11 +253,11 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         setSeasons(updatedSeasons);
         setSeasonDateErrors({});
         toast.success(`Zapisano zmiany w sezonie: ${seasonName}`);
-        setIsEditExpanded(false);
         return true;
       } else {
         const messageLower = result.message.toLowerCase();
-        const isDateRangeConflict = messageLower.includes('nakłada') || messageLower.includes('naklada');
+        const isDateRangeConflict =
+          messageLower.includes("nakłada") || messageLower.includes("naklada");
         if (isDateRangeConflict) {
           setSeasonDateErrors({
             startDate: result.message,
@@ -209,15 +267,17 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         toast.error(result.message);
         return false;
       }
-    } catch (error) {
-      toast.error('Wystąpił błąd podczas automatycznego zapisu');
+    } catch (_error) {
+      toast.error("Wystąpił błąd podczas automatycznego zapisu");
       return false;
     } finally {
       setIsUpdatingSeason(false);
     }
   };
 
-  const handleSeasonChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleSeasonChange = async (
+    e: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
     const nextId = e.target.value;
     if (isSeasonDirty) {
       const saved = await handleUpdateSeasonSilent();
@@ -234,17 +294,17 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         setAllowCheckin(newValue);
         toast.success(result.message);
       } else {
-        toast.error(result.message || 'Błąd zapisu');
+        toast.error(result.message || "Błąd zapisu");
       }
     });
   };
 
   const resetAddSeasonForm = () => {
-    setNewSeasonName('');
-    setNewSeasonDesc('');
-    setNewSeasonOrder('');
-    setNewSeasonStartDate('');
-    setNewSeasonEndDate('');
+    setNewSeasonName("");
+    setNewSeasonDesc("");
+    setNewSeasonOrder("");
+    setNewSeasonStartDate("");
+    setNewSeasonEndDate("");
   };
 
   const handleToggleAddSeason = () => {
@@ -256,37 +316,88 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
     setIsAddExpanded(true);
   };
 
-  const handleCreateSeason = async () => {
-    if (!newSeasonName.trim()) {
-      toast.error('Nazwa sezonu jest wymagana');
+  const resetSelectedSeasonForm = () => {
+    if (!selectedSeason) {
       return;
     }
-    if (newSeasonOrder.trim() === '') {
-      toast.error('Kolejność jest wymagana');
+
+    setSeasonDateErrors({});
+    setSeasonName(selectedSeason.name);
+    setSeasonDesc(getSeasonDescriptionValue(selectedSeason.description));
+
+    const start = dayjs(selectedSeason.startDate);
+    const end = dayjs(selectedSeason.endDate);
+
+    setSeasonStartDay(start.date());
+    setSeasonStartMonth(start.month() + 1);
+    setSeasonEndDay(end.date());
+    setSeasonEndMonth(end.month() + 1);
+    setSeasonOrder(selectedSeason.order);
+  };
+
+  const handleOpenEditSeasonModal = () => {
+    if (!selectedSeason) {
+      return;
+    }
+
+    resetSelectedSeasonForm();
+    setIsEditExpanded(true);
+  };
+
+  const handleCloseEditSeasonModal = () => {
+    if (isUpdatingSeason) {
+      return;
+    }
+
+    resetSelectedSeasonForm();
+    setIsEditExpanded(false);
+  };
+
+  const handleConfirmEditSeason = async () => {
+    const saved = await handleUpdateSeasonSilent();
+
+    if (saved) {
+      setIsEditExpanded(false);
+    }
+  };
+
+  const handleCreateSeason = async () => {
+    if (!newSeasonName.trim()) {
+      toast.error("Nazwa sezonu jest wymagana");
+      return;
+    }
+    if (newSeasonOrder.trim() === "") {
+      toast.error("Kolejność jest wymagana");
       return;
     }
     if (!newSeasonStartDate) {
-      toast.error('Data rozpoczęcia jest wymagana');
+      toast.error("Data rozpoczęcia jest wymagana");
       return;
     }
     if (!newSeasonEndDate) {
-      toast.error('Data zakończenia jest wymagana');
+      toast.error("Data zakończenia jest wymagana");
       return;
     }
     if (newSeasonEndDate < newSeasonStartDate) {
-      toast.error('Data zakończenia nie może być wcześniejsza niż rozpoczęcia');
+      toast.error("Data zakończenia nie może być wcześniejsza niż rozpoczęcia");
       return;
     }
     const parsedOrder = parseInt(newSeasonOrder, 10);
     if (Number.isNaN(parsedOrder)) {
-      toast.error('Kolejność musi być liczbą');
+      toast.error("Kolejność musi być liczbą");
       return;
     }
     setIsCreatingSeason(true);
     try {
-      const result = await createSeason(newSeasonName, newSeasonDesc, parsedOrder, newSeasonStartDate, newSeasonEndDate);
+      const result = await createSeason(
+        newSeasonName,
+        newSeasonDesc,
+        parsedOrder,
+        newSeasonStartDate,
+        newSeasonEndDate,
+      );
       if (!result.success) {
-        toast.error(result.message || 'Nie udało się dodać sezonu');
+        toast.error(result.message || "Nie udało się dodać sezonu");
         return;
       }
       const updatedSeasons = await getAllSeasons();
@@ -296,8 +407,8 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
       }
       setIsAddExpanded(false);
       toast.success(result.message);
-    } catch (error) {
-      toast.error('Wystąpił błąd podczas dodawania sezonu');
+    } catch (_error) {
+      toast.error("Wystąpił błąd podczas dodawania sezonu");
     } finally {
       setIsCreatingSeason(false);
     }
@@ -310,54 +421,86 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
     try {
       const result = await deleteSeason(selectedSeasonId);
       if (!result.success) {
-        toast.error(result.message || 'Nie udało się usunąć sezonu');
+        toast.error(result.message || "Nie udało się usunąć sezonu");
         return;
       }
 
       const updatedSeasons = await getAllSeasons();
       setSeasons(updatedSeasons);
-      setSelectedSeasonId(updatedSeasons[0]?._id || '');
+      setSelectedSeasonId(updatedSeasons[0]?._id || "");
       setIsDeleteModalOpen(false);
       setIsEditExpanded(false);
       toast.success(result.message);
-    } catch (error) {
-      toast.error('Wystąpił błąd podczas usuwania sezonu');
+    } catch (_error) {
+      toast.error("Wystąpił błąd podczas usuwania sezonu");
     } finally {
       setIsDeletingSeason(false);
     }
   };
 
   const handleBlurMinDays = () => {
-    if (localMinDays === "" || isNaN(Number(localMinDays)) || Number(localMinDays) < 1) {
-      toast.error("Minimalna liczba nocy jest wymagana i musi być większa od zera");
+    if (
+      localMinDays === "" ||
+      Number.isNaN(Number(localMinDays)) ||
+      Number(localMinDays) < 1
+    ) {
+      toast.error(
+        "Minimalna liczba nocy jest wymagana i musi być większa od zera",
+      );
       setLocalMinDays(initialConfig.minBookingDays);
     }
   };
 
   const handleBlurMaxDays = () => {
-    if (localMaxDays === "" || isNaN(Number(localMaxDays)) || Number(localMaxDays) < 1) {
-      toast.error("Maksymalna liczba nocy jest wymagana i musi być większa od zera");
+    if (
+      localMaxDays === "" ||
+      Number.isNaN(Number(localMaxDays)) ||
+      Number(localMaxDays) < 1
+    ) {
+      toast.error(
+        "Maksymalna liczba nocy jest wymagana i musi być większa od zera",
+      );
       setLocalMaxDays(initialConfig.maxBookingDays);
     }
   };
 
   const handleBlurChildrenFreeAge = () => {
-    if (localChildrenFreeAge === "" || isNaN(Number(localChildrenFreeAge)) || Number(localChildrenFreeAge) < 0) {
+    if (
+      localChildrenFreeAge === "" ||
+      Number.isNaN(Number(localChildrenFreeAge)) ||
+      Number(localChildrenFreeAge) < 0
+    ) {
       toast.error("Wiek dziecka musi być liczbą wieksze od zera");
       setLocalChildrenFreeAge(initialConfig.childrenFreeAgeLimit);
     }
   };
 
   const handleBlurCheckIn = () => {
-    if (localCheckInHour === "" || isNaN(Number(localCheckInHour)) || Number(localCheckInHour) < 0 || Number(localCheckInHour) > 23 || Number(localCheckInHour) < Number(localCheckOutHour)) {
-      toast.error("Godzina rozpoczęcia doby nie może być wcześniejsza niż zakończenia i musi być z zakresu 0-23");
+    if (
+      localCheckInHour === "" ||
+      Number.isNaN(Number(localCheckInHour)) ||
+      Number(localCheckInHour) < 0 ||
+      Number(localCheckInHour) > 23 ||
+      Number(localCheckInHour) < Number(localCheckOutHour)
+    ) {
+      toast.error(
+        "Godzina rozpoczęcia doby nie może być wcześniejsza niż zakończenia i musi być z zakresu 0-23",
+      );
       setLocalCheckInHour(initialConfig.checkInHour);
     }
   };
 
   const handleBlurCheckOut = () => {
-    if (localCheckOutHour === "" || isNaN(Number(localCheckOutHour)) || Number(localCheckOutHour) < 0 || Number(localCheckOutHour) > 23 || Number(localCheckOutHour) > Number(localCheckInHour)) {
-      toast.error("Godzina zakończenia doby nie może być późniejsza niż rozpoczęcia i musi być z zakresu 0-23");
+    if (
+      localCheckOutHour === "" ||
+      Number.isNaN(Number(localCheckOutHour)) ||
+      Number(localCheckOutHour) < 0 ||
+      Number(localCheckOutHour) > 23 ||
+      Number(localCheckOutHour) > Number(localCheckInHour)
+    ) {
+      toast.error(
+        "Godzina zakończenia doby nie może być późniejsza niż rozpoczęcia i musi być z zakresu 0-23",
+      );
       setLocalCheckOutHour(initialConfig.checkOutHour);
     }
   };
@@ -368,27 +511,24 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
     setLocalChildrenFreeAge(initialConfig.childrenFreeAgeLimit);
     setLocalCheckInHour(initialConfig.checkInHour);
     setLocalCheckOutHour(initialConfig.checkOutHour);
-    if (selectedSeason) {
-      setSeasonDateErrors({});
-      setSeasonName(selectedSeason.name);
-      setSeasonDesc(selectedSeason.description || '');
-      const start = dayjs(selectedSeason.startDate);
-      const end = dayjs(selectedSeason.endDate);
-      setSeasonStartDay(start.date());
-      setSeasonStartMonth(start.month() + 1);
-      setSeasonEndDay(end.date());
-      setSeasonEndMonth(end.month() + 1);
-      setSeasonOrder(selectedSeason.order);
-    }
+    resetSelectedSeasonForm();
   };
 
   const startDayOptions = useMemo(
-    () => Array.from({ length: getMaxDaysInMonth(seasonStartMonth) }, (_, i) => i + 1),
-    [seasonStartMonth]
+    () =>
+      Array.from(
+        { length: getMaxDaysInMonth(seasonStartMonth) },
+        (_, i) => i + 1,
+      ),
+    [seasonStartMonth],
   );
   const endDayOptions = useMemo(
-    () => Array.from({ length: getMaxDaysInMonth(seasonEndMonth) }, (_, i) => i + 1),
-    [seasonEndMonth]
+    () =>
+      Array.from(
+        { length: getMaxDaysInMonth(seasonEndMonth) },
+        (_, i) => i + 1,
+      ),
+    [seasonEndMonth],
   );
 
   const handleStartMonthChange = (monthValue: number) => {
@@ -414,7 +554,11 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
       <form action={formAction} className={styles.settingsCard}>
         <input type="hidden" name="minBookingDays" value={localMinDays} />
         <input type="hidden" name="maxBookingDays" value={localMaxDays} />
-        <input type="hidden" name="childrenFreeAgeLimit" value={localChildrenFreeAge} />
+        <input
+          type="hidden"
+          name="childrenFreeAgeLimit"
+          value={localChildrenFreeAge}
+        />
         <input type="hidden" name="checkInHour" value={localCheckInHour} />
         <input type="hidden" name="checkOutHour" value={localCheckOutHour} />
 
@@ -423,36 +567,60 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         </div>
         <div className={styles.settingRow}>
           <div className={styles.settingContent}>
-            <label htmlFor="minBookingDays" className={styles.settingLabel}>Minimalna liczba nocy:</label>
-            <p className={styles.settingDescription}>Klient nie może wybrać okresu krótszego.</p>
+            <label htmlFor="minBookingDays" className={styles.settingLabel}>
+              Minimalna liczba nocy:
+            </label>
+            <p className={styles.settingDescription}>
+              Klient nie może wybrać okresu krótszego.
+            </p>
           </div>
           <div className={styles.settingControl}>
             <input
               type="number"
               id="minBookingDays"
               value={localMinDays}
-              onChange={e => setLocalMinDays(e.target.value === "" ? "" : Number(e.target.value))}
+              onChange={(e) =>
+                setLocalMinDays(
+                  e.target.value === "" ? "" : Number(e.target.value),
+                )
+              }
               onBlur={handleBlurMinDays}
               className={styles.numberInput}
             />
-            <input type="hidden" name="minBookingDays" value={localMinDays === "" ? "" : localMinDays} />
+            <input
+              type="hidden"
+              name="minBookingDays"
+              value={localMinDays === "" ? "" : localMinDays}
+            />
           </div>
         </div>
         <div className={styles.settingRow}>
           <div className={styles.settingContent}>
-            <label htmlFor="maxBookingDays" className={styles.settingLabel}>Maksymalna liczba nocy:</label>
-            <p className={styles.settingDescription}>Klient nie może wybrać okresu dłuższego.</p>
+            <label htmlFor="maxBookingDays" className={styles.settingLabel}>
+              Maksymalna liczba nocy:
+            </label>
+            <p className={styles.settingDescription}>
+              Klient nie może wybrać okresu dłuższego.
+            </p>
           </div>
           <div className={styles.settingControl}>
             <input
               type="number"
               id="maxBookingDays"
               value={localMaxDays}
-              onChange={e => setLocalMaxDays(e.target.value === "" ? "" : Number(e.target.value))}
+              onChange={(e) =>
+                setLocalMaxDays(
+                  e.target.value === "" ? "" : Number(e.target.value),
+                )
+              }
               onBlur={handleBlurMaxDays}
               className={styles.numberInput}
             />
-            <input type="hidden" name="maxBookingDays" value={localMaxDays === "" ? "" : localMaxDays} />
+            <input
+              type="hidden"
+              name="maxBookingDays"
+              value={localMaxDays === "" ? "" : localMaxDays}
+            />
           </div>
         </div>
 
@@ -461,11 +629,15 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         </div>
         <div className={styles.settingRow}>
           <div className={styles.settingContent}>
-            <label className={styles.settingLabel}>Wybierz sezon:</label>
-            <p className={styles.settingDescription}>Zmiana sezonu automatycznie zapisuje edytowane dane. Daty sezonu działają cyklicznie co roku.</p>
+            <p className={styles.settingLabel}>Wybierz sezon:</p>
+            <p className={styles.settingDescription}>
+              Dane sezonu edytujesz w oknie modalnym. Daty sezonu działają
+              cyklicznie co roku.
+            </p>
           </div>
           <div className={styles.settingControl}>
             <select
+              id="selectedSeason"
               value={selectedSeasonId}
               onChange={handleSeasonChange}
               disabled={isUpdatingSeason || isLoadingSeasons}
@@ -476,15 +648,13 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
               ) : (
                 seasons.map((season) => (
                   <option key={season._id} value={season._id}>
-                    {season.name} {!season.isActive && '(nieaktywny)'}
+                    {season.name} {!season.isActive && "(nieaktywny)"}
                   </option>
                 ))
               )}
             </select>
             {isLoadingSeasons && (
-              <p className={styles.loadingText}>
-                Wczytywanie...
-              </p>
+              <p className={styles.loadingText}>Wczytywanie...</p>
             )}
           </div>
         </div>
@@ -501,17 +671,21 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
               </button>
               <button
                 type="button"
-                onClick={() => setIsEditExpanded(!isEditExpanded)}
+                onClick={handleOpenEditSeasonModal}
                 className={styles.btnActionLink}
-                disabled={isDeletingSeason || isCreatingSeason || isUpdatingSeason}
+                disabled={
+                  isDeletingSeason || isCreatingSeason || isUpdatingSeason
+                }
               >
-                {isEditExpanded ? 'Anuluj edycję' : 'Edytuj nazwę i opis sezonu'}
+                Edytuj sezon
               </button>
               <button
                 type="button"
                 onClick={() => setIsDeleteModalOpen(true)}
                 className={`${styles.btnActionLink} ${styles.btnActionLinkDanger}`}
-                disabled={isDeletingSeason || isCreatingSeason || isUpdatingSeason}
+                disabled={
+                  isDeletingSeason || isCreatingSeason || isUpdatingSeason
+                }
               >
                 Usuń ten sezon
               </button>
@@ -519,112 +693,156 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
                 type="button"
                 onClick={handleToggleAddSeason}
                 className={styles.btnActionLink}
-                disabled={isDeletingSeason || isCreatingSeason || isUpdatingSeason}
+                disabled={
+                  isDeletingSeason || isCreatingSeason || isUpdatingSeason
+                }
               >
                 Dodaj nowy sezon
               </button>
             </div>
 
+            {selectedSeason.description &&
+              selectedSeason.description.trim() !== "" && (
+                <div className={styles.settingRow}>
+                  <div className={styles.settingContent}>
+                    <p className={styles.settingLabel}>Opis sezonu:</p>
+                    <p className={styles.settingDescription}>
+                      {selectedSeason.description}
+                    </p>
+                  </div>
+                </div>
+              )}
 
-            {isEditExpanded && (
-              <div className={styles.settingsEditNameAndDesc}>
-                <div className={styles.seasonEditRow}>
-                  <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Nazwa sezonu:</label></div>
-                  <div className={styles.seasonEditControlCol}>
-                    <input className={styles.seasonEditInput} value={seasonName} onChange={(e) => setSeasonName(e.target.value)} />
-                  </div>
-                </div>
-                <div className={styles.seasonEditRow}>
-                  <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Opis sezonu:</label></div>
-                  <div className={styles.seasonEditControlCol}>
-                    <input className={styles.seasonEditInput} value={seasonDesc} onChange={(e) => setSeasonDesc(e.target.value)} />
-                  </div>
-                </div>
-                <div className={styles.seasonEditRow}>
-                  <div className={styles.seasonEditLabelCol}>
-                    <label className={styles.seasonEditLabel}>Kolejność na liście:</label>
-                  </div>
-                  <div className={styles.seasonEditControlCol}>
-                    <input type="number" value={seasonOrder} onChange={(e) => setSeasonOrder(parseInt(e.target.value) || 0)} className={styles.seasonEditInput} />
-                  </div>
-                </div>
-              </div>
-            )}
             <div className={styles.settingRow}>
-              <div className={styles.settingContent}><label className={styles.settingLabel}>Data rozpoczęcia:</label></div>
+              <div className={styles.settingContent}>
+                <label htmlFor="seasonStartDay" className={styles.settingLabel}>
+                  Data rozpoczęcia:
+                </label>
+              </div>
               <div className={styles.settingControl}>
                 <div className={styles.seasonDateGrid}>
                   <div className={styles.seasonDateCol}>
-                    <label className={`${styles.settingDescription} ${styles.settingsDateDescription}`}>Dzień:</label>
+                    <label
+                      htmlFor="seasonStartDay"
+                      className={`${styles.settingDescription} ${styles.settingsDateDescription}`}
+                    >
+                      Dzień:
+                    </label>
                     <select
+                      id="seasonStartDay"
                       value={seasonStartDay}
                       onChange={(e) => {
                         setSeasonStartDay(parseInt(e.target.value, 10));
-                        if (seasonDateErrors.startDate || seasonDateErrors.endDate) {
+                        if (
+                          seasonDateErrors.startDate ||
+                          seasonDateErrors.endDate
+                        ) {
                           setSeasonDateErrors({});
                         }
                       }}
-                      className={`${styles.dateInput} ${seasonDateErrors.startDate ? styles.inputError : ''}`}
+                      className={`${styles.dateInput} ${seasonDateErrors.startDate ? styles.inputError : ""}`}
                     >
                       {startDayOptions.map((day) => (
-                        <option key={day} value={day}>{day}</option>
+                        <option key={day} value={day}>
+                          {day}
+                        </option>
                       ))}
                     </select>
                   </div>
                   <div className={styles.seasonDateCol}>
-                    <label className={`${styles.settingDescription} ${styles.settingsDateDescription}`}>Miesiąc:</label>
+                    <label
+                      htmlFor="seasonStartMonth"
+                      className={`${styles.settingDescription} ${styles.settingsDateDescription}`}
+                    >
+                      Miesiąc:
+                    </label>
                     <select
+                      id="seasonStartMonth"
                       value={seasonStartMonth}
-                      onChange={(e) => handleStartMonthChange(parseInt(e.target.value, 10))}
-                      className={`${styles.dateInput} ${seasonDateErrors.startDate ? styles.inputError : ''}`}
+                      onChange={(e) =>
+                        handleStartMonthChange(parseInt(e.target.value, 10))
+                      }
+                      className={`${styles.dateInput} ${seasonDateErrors.startDate ? styles.inputError : ""}`}
                     >
                       {MONTH_OPTIONS.map((month) => (
-                        <option key={month.value} value={month.value}>{month.label}</option>
+                        <option key={month.value} value={month.value}>
+                          {month.label}
+                        </option>
                       ))}
                     </select>
                   </div>
                 </div>
                 {seasonDateErrors.startDate && (
-                  <span className={styles.errorText}>{seasonDateErrors.startDate}</span>
+                  <span className={styles.errorText}>
+                    {seasonDateErrors.startDate}
+                  </span>
                 )}
               </div>
             </div>
+
             <div className={styles.settingRow}>
-              <div className={styles.settingContent}><label className={styles.settingLabel}>Data zakończenia:</label></div>
+              <div className={styles.settingContent}>
+                <label htmlFor="seasonEndDay" className={styles.settingLabel}>
+                  Data zakończenia:
+                </label>
+              </div>
               <div className={styles.settingControl}>
                 <div className={styles.seasonDateGrid}>
                   <div className={styles.seasonDateCol}>
-                    <label className={`${styles.settingDescription} ${styles.settingsDateDescription}`}>Dzień:</label>
+                    <label
+                      htmlFor="seasonEndDay"
+                      className={`${styles.settingDescription} ${styles.settingsDateDescription}`}
+                    >
+                      Dzień:
+                    </label>
                     <select
+                      id="seasonEndDay"
                       value={seasonEndDay}
                       onChange={(e) => {
                         setSeasonEndDay(parseInt(e.target.value, 10));
-                        if (seasonDateErrors.startDate || seasonDateErrors.endDate) {
+                        if (
+                          seasonDateErrors.startDate ||
+                          seasonDateErrors.endDate
+                        ) {
                           setSeasonDateErrors({});
                         }
                       }}
-                      className={`${styles.dateInput} ${seasonDateErrors.endDate ? styles.inputError : ''}`}
+                      className={`${styles.dateInput} ${seasonDateErrors.endDate ? styles.inputError : ""}`}
                     >
                       {endDayOptions.map((day) => (
-                        <option key={day} value={day}>{day}</option>
+                        <option key={day} value={day}>
+                          {day}
+                        </option>
                       ))}
                     </select>
                   </div>
                   <div className={styles.seasonDateCol}>
-                    <label className={`${styles.settingDescription} ${styles.settingsDateDescription}`}>Miesiąc:</label>
+                    <label
+                      htmlFor="seasonEndMonth"
+                      className={`${styles.settingDescription} ${styles.settingsDateDescription}`}
+                    >
+                      Miesiąc:
+                    </label>
                     <select
+                      id="seasonEndMonth"
                       value={seasonEndMonth}
-                      onChange={(e) => handleEndMonthChange(parseInt(e.target.value, 10))}
-                      className={`${styles.dateInput} ${seasonDateErrors.endDate ? styles.inputError : ''}`}
+                      onChange={(e) =>
+                        handleEndMonthChange(parseInt(e.target.value, 10))
+                      }
+                      className={`${styles.dateInput} ${seasonDateErrors.endDate ? styles.inputError : ""}`}
                     >
                       {MONTH_OPTIONS.map((month) => (
-                        <option key={month.value} value={month.value}>{month.label}</option>
+                        <option key={month.value} value={month.value}>
+                          {month.label}
+                        </option>
                       ))}
                     </select>
                   </div>
                 </div>
                 {seasonDateErrors.endDate && (
-                  <span className={styles.errorText}>{seasonDateErrors.endDate}</span>
+                  <span className={styles.errorText}>
+                    {seasonDateErrors.endDate}
+                  </span>
                 )}
               </div>
             </div>
@@ -636,22 +854,62 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         </div>
         <div className={styles.settingRow}>
           <div className={styles.settingContent}>
-            <label htmlFor="checkInHour" className={styles.settingLabel}>Godzina rozpoczęcia doby (check-in):</label>
-            <p className={styles.settingDescription}>Od której godziny można się zameldować w dniu przyjazdu.</p>
+            <label htmlFor="checkInHour" className={styles.settingLabel}>
+              Godzina rozpoczęcia doby (check-in):
+            </label>
+            <p className={styles.settingDescription}>
+              Od której godziny można się zameldować w dniu przyjazdu.
+            </p>
           </div>
           <div className={styles.settingControl}>
-            <input type="number" id="checkInHour" min={0} value={localCheckInHour} onChange={e => setLocalCheckInHour(e.target.value === "" ? "" : parseInt(e.target.value, 10))} onBlur={handleBlurCheckIn} className={styles.numberInput} />
-            <input type="hidden" name="checkInHour" value={localCheckInHour === "" ? "" : localCheckInHour} />
+            <input
+              type="number"
+              id="checkInHour"
+              min={0}
+              value={localCheckInHour}
+              onChange={(e) =>
+                setLocalCheckInHour(
+                  e.target.value === "" ? "" : parseInt(e.target.value, 10),
+                )
+              }
+              onBlur={handleBlurCheckIn}
+              className={styles.numberInput}
+            />
+            <input
+              type="hidden"
+              name="checkInHour"
+              value={localCheckInHour === "" ? "" : localCheckInHour}
+            />
           </div>
         </div>
         <div className={styles.settingRow}>
           <div className={styles.settingContent}>
-            <label htmlFor="checkOutHour" className={styles.settingLabel}>Godzina zakończenia doby (check-out):</label>
-            <p className={styles.settingDescription}>Do której godziny trzeba opuścić obiekt w dniu wyjazdu.</p>
+            <label htmlFor="checkOutHour" className={styles.settingLabel}>
+              Godzina zakończenia doby (check-out):
+            </label>
+            <p className={styles.settingDescription}>
+              Do której godziny trzeba opuścić obiekt w dniu wyjazdu.
+            </p>
           </div>
           <div className={styles.settingControl}>
-            <input type="number" id="checkOutHour" min={0} value={localCheckOutHour} onChange={e => setLocalCheckOutHour(e.target.value === "" ? "" : parseInt(e.target.value, 10))} onBlur={handleBlurCheckOut} className={styles.numberInput} />
-            <input type="hidden" name="checkOutHour" value={localCheckOutHour === "" ? "" : localCheckOutHour} />
+            <input
+              type="number"
+              id="checkOutHour"
+              min={0}
+              value={localCheckOutHour}
+              onChange={(e) =>
+                setLocalCheckOutHour(
+                  e.target.value === "" ? "" : parseInt(e.target.value, 10),
+                )
+              }
+              onBlur={handleBlurCheckOut}
+              className={styles.numberInput}
+            />
+            <input
+              type="hidden"
+              name="checkOutHour"
+              value={localCheckOutHour === "" ? "" : localCheckOutHour}
+            />
           </div>
         </div>
 
@@ -659,10 +917,33 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
           <h2 className={styles.cardTitle}>Dzieci</h2>
         </div>
         <div className={styles.settingRow}>
-          <div className={styles.settingContent}><label htmlFor="childrenFreeAgeLimit" className={styles.settingLabel}>Bezpłatny pobyt dzieci do lat:</label></div>
+          <div className={styles.settingContent}>
+            <label
+              htmlFor="childrenFreeAgeLimit"
+              className={styles.settingLabel}
+            >
+              Bezpłatny pobyt dzieci do lat:
+            </label>
+          </div>
           <div className={styles.settingControl}>
-            <input type="number" id="childrenFreeAgeLimit" min={0} value={localChildrenFreeAge} onChange={e => setLocalChildrenFreeAge(e.target.value === "" ? "" : parseInt(e.target.value, 10))} onBlur={handleBlurChildrenFreeAge} className={styles.numberInput} />
-            <input type="hidden" name="childrenFreeAgeLimit" value={localChildrenFreeAge === "" ? "" : localChildrenFreeAge} />
+            <input
+              type="number"
+              id="childrenFreeAgeLimit"
+              min={0}
+              value={localChildrenFreeAge}
+              onChange={(e) =>
+                setLocalChildrenFreeAge(
+                  e.target.value === "" ? "" : parseInt(e.target.value, 10),
+                )
+              }
+              onBlur={handleBlurChildrenFreeAge}
+              className={styles.numberInput}
+            />
+            <input
+              type="hidden"
+              name="childrenFreeAgeLimit"
+              value={localChildrenFreeAge === "" ? "" : localChildrenFreeAge}
+            />
           </div>
         </div>
 
@@ -671,12 +952,18 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         </div>
         <div className={styles.settingRow}>
           <div className={styles.settingContent}>
-            <label className={styles.settingLabel}>
+            <p className={styles.settingLabel}>
               Zezwalaj na zameldowanie w dniu wymeldowania poprzednich gości
-            </label>
+            </p>
             <p className={styles.settingDescription}>
-              Jeśli <strong>włączone</strong>, nowi goście mogą przyjechać tego samego dnia, w którym poprzedni wyjeżdżają (po {localCheckOutHour}:00).<br />
-              Jeśli <strong>wyłączone</strong>, dzień rozpoczęcia i dzień zakończenia istniejących rezerwacji pokazują się w kalendarzu jako niedostępne do zarezerwowania dla nowych gości (zasada "sprzątanie obiektu bez pośpiechu").
+              Jeśli <strong>włączone</strong>, nowi goście mogą przyjechać tego
+              samego dnia, w którym poprzedni wyjeżdżają (po {localCheckOutHour}
+              :00).
+              <br />
+              Jeśli <strong>wyłączone</strong>, dzień rozpoczęcia i dzień
+              zakończenia istniejących rezerwacji pokazują się w kalendarzu jako
+              niedostępne do zarezerwowania dla nowych gości (zasada "sprzątanie
+              obiektu bez pośpiechu").
             </p>
           </div>
           <div className={styles.settingControl}>
@@ -685,33 +972,43 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
                 type="button"
                 onClick={handleToggle}
                 disabled={togglePending}
-                className={`${styles.toggleSwitch} ${allowCheckin ? styles.toggleOn : styles.toggleOff} ${togglePending ? styles.toggleDisabled : ''}`}
+                className={`${styles.toggleSwitch} ${allowCheckin ? styles.toggleOn : styles.toggleOff} ${togglePending ? styles.toggleDisabled : ""}`}
               >
                 <span className={styles.toggleKnob} />
               </button>
-              <span className={`${styles.toggleStatusLabel} ${allowCheckin ? styles.statusActive : styles.statusInactive}`}>
-                {allowCheckin ? 'WŁĄCZONE' : 'WYŁĄCZONE'}
+              <span
+                className={`${styles.toggleStatusLabel} ${allowCheckin ? styles.statusActive : styles.statusInactive}`}
+              >
+                {allowCheckin ? "WŁĄCZONE" : "WYŁĄCZONE"}
               </span>
             </div>
           </div>
         </div>
 
-        <div className={`${styles.floatingSaveBar} ${isAnyDirty ? styles.visible : ''}`}>
+        <div
+          className={`${styles.floatingSaveBar} ${isAnyDirty ? styles.visible : ""}`}
+        >
           <div className={styles.floatingSaveContent}>
             <p className={styles.floatingSaveText}>
-              {isConfigDirty && isSeasonDirty ? 'Masz niezapisane zmiany w ustawieniach i sezonie.' :
-                isSeasonDirty ? `Niezapisane zmiany w sezonie: ${selectedSeason?.name}` :
-                  'Masz niezapisane zmiany w ustawieniach głównych.'}
+              Masz niezapisane zmiany w ustawieniach głównych.
             </p>
             <div className={styles.floatingSaveActions}>
-              <button type="button" className={styles.btnSecondary} onClick={handleReset} disabled={isPending || isUpdatingSeason}>Odrzuć</button>
               <button
-                type={isConfigDirty ? "submit" : "button"}
+                type="button"
+                className={styles.btnSecondary}
+                onClick={handleReset}
+                disabled={isPending || isUpdatingSeason}
+              >
+                Odrzuć
+              </button>
+              <button
+                type="submit"
                 className={styles.btnPrimary}
                 disabled={isPending || isUpdatingSeason}
-                onClick={() => { if (!isConfigDirty && isSeasonDirty) handleUpdateSeasonSilent() }}
               >
-                {isPending || isUpdatingSeason ? 'Zapisywanie...' : 'Zapisz wszystko'}
+                {isPending || isUpdatingSeason
+                  ? "Zapisywanie..."
+                  : "Zapisz wszystko"}
               </button>
             </div>
           </div>
@@ -730,35 +1027,178 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
         isLoading={isCreatingSeason}
         modalSize="wide"
       >
-        <div className={`${styles.settingsEditNameAndDesc} ${styles.addSeasonForm}`}>
+        <div
+          className={`${styles.settingsEditNameAndDesc} ${styles.addSeasonForm}`}
+        >
           <div className={styles.seasonEditRow}>
-            <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Nazwa sezonu:</label></div>
+            <div className={styles.seasonEditLabelCol}>
+              <label htmlFor="newSeasonName" className={styles.seasonEditLabel}>
+                Nazwa sezonu:
+              </label>
+            </div>
             <div className={styles.seasonEditControlCol}>
-              <input className={styles.seasonEditInput} value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} />
+              <input
+                id="newSeasonName"
+                className={styles.seasonEditInput}
+                value={newSeasonName}
+                onChange={(e) => setNewSeasonName(e.target.value)}
+              />
             </div>
           </div>
           <div className={styles.seasonEditRow}>
-            <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Opis sezonu:</label></div>
+            <div className={styles.seasonEditLabelCol}>
+              <label htmlFor="newSeasonDesc" className={styles.seasonEditLabel}>
+                Opis sezonu:
+              </label>
+            </div>
             <div className={styles.seasonEditControlCol}>
-              <input className={styles.seasonEditInput} value={newSeasonDesc} onChange={(e) => setNewSeasonDesc(e.target.value)} />
+              <input
+                id="newSeasonDesc"
+                className={styles.seasonEditInput}
+                value={newSeasonDesc}
+                onChange={(e) => setNewSeasonDesc(e.target.value)}
+              />
             </div>
           </div>
           <div className={styles.seasonEditRow}>
-            <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Kolejność na liście:</label></div>
+            <div className={styles.seasonEditLabelCol}>
+              <label
+                htmlFor="newSeasonOrder"
+                className={styles.seasonEditLabel}
+              >
+                Kolejność na liście:
+              </label>
+            </div>
             <div className={styles.seasonEditControlCol}>
-              <input type="number" value={newSeasonOrder} onChange={(e) => setNewSeasonOrder(e.target.value)} className={styles.seasonEditInput} />
+              <input
+                id="newSeasonOrder"
+                type="number"
+                value={newSeasonOrder}
+                onChange={(e) => setNewSeasonOrder(e.target.value)}
+                className={styles.seasonEditInput}
+              />
             </div>
           </div>
           <div className={styles.seasonEditRow}>
-            <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Data rozpoczęcia:</label></div>
+            <div className={styles.seasonEditLabelCol}>
+              <label
+                htmlFor="newSeasonStartDate"
+                className={styles.seasonEditLabel}
+              >
+                Data rozpoczęcia:
+              </label>
+            </div>
             <div className={styles.seasonEditControlCol}>
-              <input type="date" className={styles.seasonEditInput} value={newSeasonStartDate} onChange={(e) => setNewSeasonStartDate(e.target.value)} />
+              <input
+                id="newSeasonStartDate"
+                type="date"
+                className={styles.seasonEditInput}
+                value={newSeasonStartDate}
+                onChange={(e) => setNewSeasonStartDate(e.target.value)}
+              />
             </div>
           </div>
           <div className={styles.seasonEditRow}>
-            <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Data zakończenia:</label></div>
+            <div className={styles.seasonEditLabelCol}>
+              <label
+                htmlFor="newSeasonEndDate"
+                className={styles.seasonEditLabel}
+              >
+                Data zakończenia:
+              </label>
+            </div>
             <div className={styles.seasonEditControlCol}>
-              <input type="date" className={styles.seasonEditInput} value={newSeasonEndDate} onChange={(e) => setNewSeasonEndDate(e.target.value)} />
+              <input
+                id="newSeasonEndDate"
+                type="date"
+                className={styles.seasonEditInput}
+                value={newSeasonEndDate}
+                onChange={(e) => setNewSeasonEndDate(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={isEditExpanded}
+        onClose={handleCloseEditSeasonModal}
+        onConfirm={handleConfirmEditSeason}
+        title="Edytuj sezon"
+        confirmText="Zapisz zmiany"
+        cancelText="Anuluj"
+        loadingText="Zapisywanie..."
+        confirmVariant="ok"
+        isLoading={isUpdatingSeason}
+        modalSize="wide"
+      >
+        <div
+          className={`${styles.settingsEditNameAndDesc} ${styles.addSeasonForm}`}
+        >
+          <div className={styles.seasonEditRow}>
+            <div className={styles.seasonEditLabelCol}>
+              <label
+                htmlFor="editSeasonName"
+                className={styles.seasonEditLabel}
+              >
+                Nazwa sezonu:
+              </label>
+            </div>
+            <div className={styles.seasonEditControlCol}>
+              <input
+                id="editSeasonName"
+                className={styles.seasonEditInput}
+                value={seasonName}
+                onChange={(e) => setSeasonName(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className={styles.seasonEditRow}>
+            <div className={styles.seasonEditLabelCol}>
+              <label
+                htmlFor="editSeasonDesc"
+                className={styles.seasonEditLabel}
+              >
+                Opis sezonu:
+              </label>
+            </div>
+            <div className={styles.seasonEditControlCol}>
+              <input
+                id="editSeasonDesc"
+                className={styles.seasonEditInput}
+                value={seasonDesc}
+                onChange={(e) => setSeasonDesc(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className={styles.seasonEditRow}>
+            <div className={styles.seasonEditLabelCol}>
+              <label
+                htmlFor="editSeasonOrder"
+                className={styles.seasonEditLabel}
+              >
+                Kolejność na liście:
+              </label>
+            </div>
+            <div className={styles.seasonEditControlCol}>
+              <input
+                id="editSeasonOrder"
+                type="number"
+                value={seasonOrder}
+                onChange={(e) => {
+                  if (e.target.value === "") {
+                    setSeasonOrder("");
+                    return;
+                  }
+
+                  const nextOrder = parseInt(e.target.value, 10);
+
+                  if (!Number.isNaN(nextOrder)) {
+                    setSeasonOrder(nextOrder);
+                  }
+                }}
+                className={styles.seasonEditInput}
+              />
             </div>
           </div>
         </div>
