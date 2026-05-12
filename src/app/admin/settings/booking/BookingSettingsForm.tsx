@@ -1,3 +1,5 @@
+
+
 'use client';
 import { useActionState, useEffect, useState, useTransition, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -89,6 +91,9 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
     startDate?: string;
     endDate?: string;
   }>({});
+
+  const [newSeasonStartDate, setNewSeasonStartDate] = useState<string>('');
+  const [newSeasonEndDate, setNewSeasonEndDate] = useState<string>('');
 
   const isConfigDirty = useMemo(() => {
     return (
@@ -238,6 +243,8 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
     setNewSeasonName('');
     setNewSeasonDesc('');
     setNewSeasonOrder('');
+    setNewSeasonStartDate('');
+    setNewSeasonEndDate('');
   };
 
   const handleToggleAddSeason = () => {
@@ -254,26 +261,34 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
       toast.error('Nazwa sezonu jest wymagana');
       return;
     }
-
     if (newSeasonOrder.trim() === '') {
       toast.error('Kolejność jest wymagana');
       return;
     }
-
+    if (!newSeasonStartDate) {
+      toast.error('Data rozpoczęcia jest wymagana');
+      return;
+    }
+    if (!newSeasonEndDate) {
+      toast.error('Data zakończenia jest wymagana');
+      return;
+    }
+    if (newSeasonEndDate < newSeasonStartDate) {
+      toast.error('Data zakończenia nie może być wcześniejsza niż rozpoczęcia');
+      return;
+    }
     const parsedOrder = parseInt(newSeasonOrder, 10);
     if (Number.isNaN(parsedOrder)) {
       toast.error('Kolejność musi być liczbą');
       return;
     }
-
     setIsCreatingSeason(true);
     try {
-      const result = await createSeason(newSeasonName, newSeasonDesc, parsedOrder);
+      const result = await createSeason(newSeasonName, newSeasonDesc, parsedOrder, newSeasonStartDate, newSeasonEndDate);
       if (!result.success) {
         toast.error(result.message || 'Nie udało się dodać sezonu');
         return;
       }
-
       const updatedSeasons = await getAllSeasons();
       setSeasons(updatedSeasons);
       if (result.seasonId) {
@@ -506,44 +521,10 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
                 className={styles.btnActionLink}
                 disabled={isDeletingSeason || isCreatingSeason || isUpdatingSeason}
               >
-                {isAddExpanded ? 'Anuluj dodawanie nowego sezonu' : 'Dodaj nowy sezon'}
+                Dodaj nowy sezon
               </button>
             </div>
 
-            {isAddExpanded && (
-              <div className={styles.settingsEditNameAndDesc}>
-                <div className={styles.seasonEditRow}>
-                  <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Nazwa sezonu:</label></div>
-                  <div className={styles.seasonEditControlCol}>
-                    <input className={styles.seasonEditInput} value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} />
-                  </div>
-                </div>
-                <div className={styles.seasonEditRow}>
-                  <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Opis sezonu:</label></div>
-                  <div className={styles.seasonEditControlCol}>
-                    <input className={styles.seasonEditInput} value={newSeasonDesc} onChange={(e) => setNewSeasonDesc(e.target.value)} />
-                  </div>
-                </div>
-                <div className={styles.seasonEditRow}>
-                  <div className={styles.seasonEditLabelCol}>
-                    <label className={styles.seasonEditLabel}>Kolejność na liście:</label>
-                  </div>
-                  <div className={styles.seasonEditControlCol}>
-                    <input type="number" value={newSeasonOrder} onChange={(e) => setNewSeasonOrder(e.target.value)} className={styles.seasonEditInput} />
-                  </div>
-                </div>
-                <div className={styles.addSeasonActions}>
-                  <button
-                    type="button"
-                    className={styles.btnPrimary+' '+styles.createSeasonButt}
-                    onClick={handleCreateSeason}
-                    disabled={isCreatingSeason}
-                  >
-                    {isCreatingSeason ? 'Dodawanie...' : 'Utwórz sezon'}
-                  </button>
-                </div>
-              </div>
-            )}
 
             {isEditExpanded && (
               <div className={styles.settingsEditNameAndDesc}>
@@ -736,6 +717,52 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
           </div>
         </div>
       </form>
+
+      <Modal
+        isOpen={isAddExpanded}
+        onClose={() => setIsAddExpanded(false)}
+        onConfirm={handleCreateSeason}
+        title="Dodaj nowy sezon"
+        confirmText="Utwórz sezon"
+        cancelText="Anuluj"
+        loadingText="Dodawanie..."
+        confirmVariant="ok"
+        isLoading={isCreatingSeason}
+        modalSize="wide"
+      >
+        <div className={`${styles.settingsEditNameAndDesc} ${styles.addSeasonForm}`}>
+          <div className={styles.seasonEditRow}>
+            <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Nazwa sezonu:</label></div>
+            <div className={styles.seasonEditControlCol}>
+              <input className={styles.seasonEditInput} value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} />
+            </div>
+          </div>
+          <div className={styles.seasonEditRow}>
+            <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Opis sezonu:</label></div>
+            <div className={styles.seasonEditControlCol}>
+              <input className={styles.seasonEditInput} value={newSeasonDesc} onChange={(e) => setNewSeasonDesc(e.target.value)} />
+            </div>
+          </div>
+          <div className={styles.seasonEditRow}>
+            <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Kolejność na liście:</label></div>
+            <div className={styles.seasonEditControlCol}>
+              <input type="number" value={newSeasonOrder} onChange={(e) => setNewSeasonOrder(e.target.value)} className={styles.seasonEditInput} />
+            </div>
+          </div>
+          <div className={styles.seasonEditRow}>
+            <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Data rozpoczęcia:</label></div>
+            <div className={styles.seasonEditControlCol}>
+              <input type="date" className={styles.seasonEditInput} value={newSeasonStartDate} onChange={(e) => setNewSeasonStartDate(e.target.value)} />
+            </div>
+          </div>
+          <div className={styles.seasonEditRow}>
+            <div className={styles.seasonEditLabelCol}><label className={styles.seasonEditLabel}>Data zakończenia:</label></div>
+            <div className={styles.seasonEditControlCol}>
+              <input type="date" className={styles.seasonEditInput} value={newSeasonEndDate} onChange={(e) => setNewSeasonEndDate(e.target.value)} />
+            </div>
+          </div>
+        </div>
+      </Modal>
 
       <Modal
         isOpen={isDeleteModalOpen}

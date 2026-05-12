@@ -120,28 +120,26 @@
     margin-top: 10px;
 }
 
+
+/* --- MEDIA QUERIES --- */
 @media (min-width: 992px) {
     .adminSettingsContainer {
         padding: 40px 20px;
     }
-
     .adminTitle {
         font-size: 2rem;
     }
-
     .cardHeader {
         justify-content: space-between;
         align-items: center;
         flex-direction: row;
         padding: 20px 25px;
     }
-
     .settingRow {
         padding: 25px;
         flex-direction: row;
         gap: 30px;
     }
-
     .settingControl {
         width: auto;
         min-width: 200px;
@@ -152,6 +150,31 @@
         border-top: none;
         border-left: 1px solid var(--color-border);
         align-items: flex-end;
+    }
+    .toggleWrapper {
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+    }
+    .seasonDateGrid {
+        flex-direction: row;
+    }
+    .seasonDateCol {
+        display: flex;
+        flex-direction: column;
+        justify-content: end;
+    }
+    .addSeasonForm .seasonEditRow {
+        flex-direction: row;
+        align-items: center;
+        gap: 20px;
+    }
+    .addSeasonForm .seasonEditLabelCol {
+        flex: 0 0 auto;
+    }
+    .addSeasonForm .seasonEditControlCol {
+        flex: 1;
+        min-width: 0;
     }
 }
 
@@ -322,6 +345,44 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
+.addSeasonForm {
+    display: flex;
+    flex-direction: column;
+    gap: 45px;
+    max-width: 100%;
+    margin: 0;
+}
+
+.addSeasonForm .seasonEditRow {
+    padding: 0;
+    border-bottom: none;
+    gap: 5px;
+}
+
+.addSeasonForm {
+    width: auto;
+}
+
+.addSeasonForm .seasonEditLabel {
+    white-space: nowrap;
+}
+
+.addSeasonForm .seasonEditControlCol {
+    width: 100%;
+    flex: 1;
+}
+
+.addSeasonForm .seasonEditInput {
+    width: 100%;
+    min-width: 220px;
+    max-width: 420px;
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 1.05rem;
+    margin: 0 auto;
+    display: block;
+}
+
 .ettingsEditNameAndDescControl {
     flex: 1;
 }
@@ -353,7 +414,7 @@
     }
 
     .seasonEditLabelCol {
-        width: 240px;
+        width: 140px;
         flex: 0 0 240px;
     }
 
@@ -609,5 +670,22 @@
     .floatingSaveActions {
         width: auto;
         justify-content: center;
+    }
+}
+
+@media (min-width: 992px) {
+    .addSeasonForm .seasonEditRow {
+        flex-direction: row;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .addSeasonForm .seasonEditLabelCol {
+        flex: 0 0 auto;
+    }
+
+    .addSeasonForm .seasonEditControlCol {
+        flex: 1;
+        min-width: 0;
     }
 }
