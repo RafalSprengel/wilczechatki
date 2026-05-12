@@ -9,6 +9,8 @@ interface CombinedOrderSelection {
   propertyId: string
   displayName: string
   guests: number
+  adults: number
+  children: number
   extraBeds: number
   price: number
 }
@@ -20,6 +22,9 @@ export default function AllPropertiesCard({
   guestsMap,
   onGuestsChange,
   totalGuestsLimit,
+  childrenMap,
+  onChildrenChange,
+  totalChildrenLimit,
   startDate,
   endDate,
   onSelectAll
@@ -30,6 +35,9 @@ export default function AllPropertiesCard({
   guestsMap: Record<string, number>,
   onGuestsChange: (displayName: string, value: number) => void,
   totalGuestsLimit: number,
+  childrenMap: Record<string, number>,
+  onChildrenChange: (displayName: string, value: number) => void,
+  totalChildrenLimit: number,
   startDate: string | null,
   endDate: string | null,
   onSelectAll: (orders: CombinedOrderSelection[]) => void
@@ -96,6 +104,14 @@ export default function AllPropertiesCard({
     [searchResults, guestsMap]
   )
 
+  const totalAssignedChildren = useMemo(
+    () => searchResults.propertiesAvailable.reduce(
+      (sum: number, option: any) => sum + (childrenMap[option.displayName] || 0),
+      0
+    ),
+    [searchResults, childrenMap]
+  )
+
   const canSelectAll = totalAssignedGuests === totalGuestsLimit && totalGuestsLimit > 0
 
   useEffect(() => {
@@ -111,7 +127,8 @@ export default function AllPropertiesCard({
     }
 
     const orders: CombinedOrderSelection[] = searchResults.propertiesAvailable.map((option: any) => {
-      const guests = Math.max(1, guestsMap[option.displayName] || 1)
+      const adults = Math.max(1, guestsMap[option.displayName] || 1)
+      const children = childrenMap[option.displayName] || 0
       const extraBeds = extraBedsMap[option.displayName] || 0
       const price = priceMap[option.displayName]
 
@@ -122,7 +139,9 @@ export default function AllPropertiesCard({
       return {
         propertyId: option.propertyId,
         displayName: option.displayName,
-        guests,
+        guests: adults + children,
+        adults,
+        children,
         extraBeds,
         price,
       }
@@ -138,6 +157,7 @@ export default function AllPropertiesCard({
         {searchResults.propertiesAvailable.map((option: any) => {
           const extraBeds = extraBedsMap[option.displayName] || 0
           const guests = Math.max(1, guestsMap[option.displayName] || 1)
+          const childrenForOption = childrenMap[option.displayName] || 0
           const canIncrementGuests = totalAssignedGuests < totalGuestsLimit
 
           return (
@@ -161,7 +181,7 @@ export default function AllPropertiesCard({
               <div className={styles.extraBedsSection}>
                 <div className={styles.extraBedsHeader}>
                   <FontAwesomeIcon icon={faUser} className={styles.bedIcon} />
-                  <span className={styles.extraBedsLabel}>Ilość gości:</span>
+                  <span className={styles.extraBedsLabel}>Ilość dorosłych:</span>
                 </div>
                 <QuantityPicker
                   value={guests}
@@ -170,6 +190,21 @@ export default function AllPropertiesCard({
                   min={1}
                   max={option.maxGuests}
                   disableIncrement={!canIncrementGuests}
+                />
+              </div>
+
+              <div className={styles.extraBedsSection}>
+                <div className={styles.extraBedsHeader}>
+                  <FontAwesomeIcon icon={faUser} className={styles.bedIcon} />
+                  <span className={styles.extraBedsLabel}>Ilość dzieci do 13 lat:</span>
+                </div>
+                <QuantityPicker
+                  value={childrenForOption}
+                  onIncrement={() => onChildrenChange(option.displayName, childrenForOption + 1)}
+                  onDecrement={() => onChildrenChange(option.displayName, childrenForOption - 1)}
+                  min={0}
+                  max={20}
+                  disableIncrement={totalAssignedChildren >= totalChildrenLimit}
                 />
               </div>
 
@@ -196,12 +231,12 @@ export default function AllPropertiesCard({
           <span className={styles.priceValue}>{combinedTotalPrice} zł</span>
         </div>
 
-        <div className={`${styles.extraBedsNote} ${showGuestsValidation && !canSelectAll ? styles.extraBedsNoteError : ''}`}>
-          Przydzielono gości: <strong>{totalAssignedGuests}</strong> / {totalGuestsLimit}
+        <div className={`${styles.extraBedsNote} ${showGuestsValidation && totalAssignedGuests !== totalGuestsLimit ? styles.extraBedsNoteError : ''}`}>
+          Przydzielono dorosłych: <strong>{totalAssignedGuests}</strong> / {totalGuestsLimit}
         </div>
 
-        {showGuestsValidation && !canSelectAll && (
-          <div className={styles.allocationErrorText}>Najpierw rozdziel wszystkich gości</div>
+        {showGuestsValidation && totalAssignedGuests !== totalGuestsLimit && (
+          <div className={styles.allocationErrorText}>Najpierw rozdziel wszystkich dorosłych</div>
         )}
 
         <button

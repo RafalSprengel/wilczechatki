@@ -109,6 +109,7 @@ export default function BookingClient({
   const [isSearching, setIsSearching] = useState(false)
   const [extraBedsMap, setExtraBedsMap] = useState<Record<string, number>>({})
   const [guestsMap, setGuestsMap] = useState<Record<string, number>>({})
+  const [childrenMap, setChildrenMap] = useState<Record<string, number>>({})
   const [hasDraft, setHasDraft] = useState(false)
   const [bookingMode, setBookingMode] = useState<'single' | 'double' | null>(null)
   const [isSeasonPriceListOpen, setIsSeasonPriceListOpen] = useState(false)
@@ -171,7 +172,7 @@ export default function BookingClient({
   })
 
   const totalGuests = adults + children
-  const atMaxGuests = totalGuests >= maxTotalGuests
+  const atMaxGuests = adults >= maxTotalGuests
 
   const toggleBox = (boxName: string) => {
     setActiveBox(activeBox === boxName ? null : boxName)
@@ -190,6 +191,7 @@ export default function BookingClient({
     setIsSearching(true)
     setExtraBedsMap({})
     setGuestsMap({})
+    setChildrenMap({})
     closeAllBoxes()
 
     const params = new URLSearchParams()
@@ -212,6 +214,13 @@ export default function BookingClient({
     setGuestsMap(prev => ({
       ...prev,
       [optionDisplayName]: Math.max(1, value)
+    }))
+  }
+
+  const handleChildrenChange = (optionDisplayName: string, value: number) => {
+    setChildrenMap(prev => ({
+      ...prev,
+      [optionDisplayName]: Math.max(0, value)
     }))
   }
 
@@ -245,13 +254,7 @@ export default function BookingClient({
 
   const handleSingleSelect = (option: SearchOption) => {
     const extraBeds = extraBedsMap[option.displayName] || 0
-    const maxCapacity = option.maxGuests + extraBeds;
     const totalPrice = option.totalPrice + (extraBeds * option.extraBedPrice)
-
-    if (totalGuests > maxCapacity) {
-      alert(`Liczba osób (${totalGuests}) przekracza pojemność dla "${option.displayName}" (max ${maxCapacity}). Proszę wybrać inną opcję lub zmniejszyć liczbę osób.`);
-      return;
-    }
 
     handleConfirmBooking([{
       propertyId: option.propertyId,
@@ -350,8 +353,7 @@ export default function BookingClient({
                 onDecrement={() => setChildren(children > 0 ? children - 1 : 0)}
                 value={children}
                 min={0}
-                max={maxTotalGuests}
-                disableIncrement={atMaxGuests}
+                max={20}
               />
             </div>
             <span className={styles.info}>*  Dzieci do {childrenFreeAgeLimit} roku życia bezpłatnie.</span>
@@ -403,10 +405,10 @@ export default function BookingClient({
           </div>
         )}
 
-        {(adults + children !== initialAdults + initialChildren || bookingDates.start !== initialStart || bookingDates.end !== initialEnd) && searchResults && searchResults.propertiesAvailable && (
+        {(adults !== initialAdults || children !== initialChildren || bookingDates.start !== initialStart || bookingDates.end !== initialEnd) && searchResults && searchResults.propertiesAvailable && (
           <div className={styles.emptyState}>
-            {adults + children !== initialAdults + initialChildren && (
-              <p>Zmieniłeś liczbę osób z {initialAdults + initialChildren} na {adults + children}.</p>
+            {(adults !== initialAdults || children !== initialChildren) && (
+              <p>Zmieniłeś liczbę osób.</p>
             )}
             {(bookingDates.start !== initialStart || bookingDates.end !== initialEnd) && (
               <p>Zmieniłeś wyszukiwane daty.</p>
@@ -415,7 +417,7 @@ export default function BookingClient({
           </div>
         )}
 
-        {!isSearching && searchResults && searchResults.propertiesAvailable && adults + children === initialAdults + initialChildren && bookingDates.start === initialStart && bookingDates.end === initialEnd && (
+        {!isSearching && searchResults && searchResults.propertiesAvailable && adults === initialAdults && children === initialChildren && bookingDates.start === initialStart && bookingDates.end === initialEnd && (
           <>
             {hasSeasonOverlap && (
               <>
@@ -576,8 +578,10 @@ export default function BookingClient({
                           onExtraBedsChange={handleExtraBedsChange}
                           guestsMap={guestsMap}
                           onGuestsChange={handleGuestsChange}
-                          totalGuestsLimit={totalGuests}
-                          adultsLimit={adults}
+                          totalGuestsLimit={adults}
+                          childrenMap={childrenMap}
+                          onChildrenChange={handleChildrenChange}
+                          totalChildrenLimit={children}
                           startDate={bookingDates.start}
                           endDate={bookingDates.end}
                           onSelectAll={handleAllSelect}

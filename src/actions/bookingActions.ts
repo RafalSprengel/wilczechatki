@@ -163,7 +163,7 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
       const recalculatedPrice = await calculateTotalPrice({
         startDate,
         endDate,
-        baseGuests: numberOfGuests,
+        baseGuests: adults,
         extraBeds,
         propertySelection: property._id.toString(),
       });
@@ -174,7 +174,8 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
       bookings.push({
         ...baseBookingData,
         propertyId: new Types.ObjectId(property._id.toString()),
-        numberOfGuests,
+        adults,
+        children,
         extraBedsCount: extraBeds,
         totalPrice: recalculatedPrice,
         depositAmount: recalculatedPrice,
