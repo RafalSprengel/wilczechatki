@@ -4,11 +4,15 @@ import { Types } from "mongoose";
 import { headers } from "next/headers";
 import dbConnect from "@/db/connection";
 import Booking from "@/db/models/Booking";
+import BookingConfig from "@/db/models/BookingConfig";
 import Property from "@/db/models/Property";
 import { stripe } from "@/lib/stripe";
 import type { BookingData } from "@/types/booking";
 import { generateOrderId } from "@/utils/generateOrderId";
 import { formatDisplayDate } from "@/utils/formatDate";
+import { calculateTotalPrice } from "@/actions/searchActions";
+import { buildBookingOverlapFilter } from "@/utils/bookingOverlap";
+import { resolveOccupiedPropertyIdsFromBookings } from "@/utils/lazyAvailabilityCleanup";
 
 export async function createCheckoutSession(bookingData: BookingData) {
   if (!bookingData) throw new Error("Brak danych rezerwacji.");
@@ -67,33 +71,74 @@ export async function createCheckoutSession(bookingData: BookingData) {
     }
   }
 
-  const uniquePropertyIds = [...new Set(orders.map((order) => order.propertyId))];
+  const bookingConfig = await BookingConfig.findById("main").lean();
+  const allowCheckinOnDepartureDay = bookingConfig?.allowCheckinOnDepartureDay ?? true;
+  const overlapFilter = buildBookingOverlapFilter(new Date(startDate), new Date(endDate), allowCheckinOnDepartureDay);
 
-  const existingProperties = await Property.find({
-    _id: { $in: uniquePropertyIds.map((id) => new Types.ObjectId(id)) },
-    isActive: true,
+  const overlappingBookings = await Booking.find({
+    $or: [{ status: "blocked" }, { status: "confirmed" }, { status: "pending" }],
+    ...overlapFilter,
   })
-    .select("_id")
+    .select("_id propertyId status createdAt stripeSessionId source adminNotes")
     .lean();
 
-  if (existingProperties.length !== uniquePropertyIds.length) {
-    throw new Error("Co najmniej jeden obiekt z zamówienia nie istnieje lub jest nieaktywny.");
-  }
+  const { occupiedPropertyIds } = await resolveOccupiedPropertyIdsFromBookings(overlappingBookings);
 
-  const amount = orders.reduce((sum, item) => sum + item.price, 0);
-  const totalAdults = orders.reduce((sum, item) => sum + item.adults, 0);
-  const totalChildren = orders.reduce((sum, item) => sum + item.children, 0);
+  const verifiedOrders: Array<{ propertyId: string; displayName: string; adults: number; children: number; extraBeds: number; guests: number; price: number }> = [];
+  let totalAdults = 0;
+  let totalChildren = 0;
+
+  for (const order of orders) {
+    if (occupiedPropertyIds.has(order.propertyId)) {
+      throw new Error(`Obiekt "${order.displayName}" jest niedostępny w wybranym terminie.`);
+    }
+
+    const property = await Property.findOne({ _id: order.propertyId, isActive: true })
+      .select("_id maxAdults maxExtraBeds maxChildren")
+      .lean();
+
+    if (!property) {
+      throw new Error(`Obiekt "${order.displayName}" nie istnieje lub jest nieaktywny.`);
+    }
+
+    if (order.adults > property.maxAdults) {
+      throw new Error(`Liczba dorosłych (${order.adults}) przekracza pojemność obiektu "${order.displayName}" (max ${property.maxAdults}).`);
+    }
+
+    if (order.extraBeds > property.maxExtraBeds) {
+      throw new Error(`Liczba dostawek (${order.extraBeds}) przekracza pojemność obiektu "${order.displayName}" (max ${property.maxExtraBeds}).`);
+    }
+
+    const recalculatedPrice = await calculateTotalPrice({
+      startDate,
+      endDate,
+      baseGuests: order.adults,
+      extraBeds: order.extraBeds,
+      propertySelection: order.propertyId,
+    });
+
+    if (recalculatedPrice <= 0) {
+      throw new Error(`Nie udało się wyliczyć ceny dla obiektu "${order.displayName}".`);
+    }
+
+    totalAdults += order.adults;
+    totalChildren += order.children;
+
+    verifiedOrders.push({ ...order, price: recalculatedPrice });
+  }
 
   if (totalAdults !== adults || totalChildren !== children) {
     throw new Error("Niespójne dane liczby dorosłych i dzieci w rezerwacji.");
   }
 
-  const propertyIds = orders.map((order) => order.propertyId).join(",");
-  const orderDisplayName = orders.length === 1
-    ? orders[0].displayName
-    : `${orders.length} obiekty`;
-  const totalGuests = orders.reduce((sum, item) => sum + item.guests, 0);
-  const totalExtraBeds = orders.reduce((sum, item) => sum + item.extraBeds, 0);
+  const amount = verifiedOrders.reduce((sum, item) => sum + item.price, 0);
+
+  const propertyIds = verifiedOrders.map((order) => order.propertyId).join(",");
+  const orderDisplayName = verifiedOrders.length === 1
+    ? verifiedOrders[0].displayName
+    : `${verifiedOrders.length} obiekty`;
+  const totalGuests = verifiedOrders.reduce((sum, item) => sum + item.guests, 0);
+  const totalExtraBeds = verifiedOrders.reduce((sum, item) => sum + item.extraBeds, 0);
 
   if (amount <= 0) {
     console.error("Błąd: Nieprawidłowa kwota rezerwacji:", amount);
@@ -109,7 +154,7 @@ export async function createCheckoutSession(bookingData: BookingData) {
 
   const orderId = await generateOrderId();
 
-  const bookingDocs = orders.map((order) => ({
+  const bookingDocs = verifiedOrders.map((order) => ({
     propertyId: new Types.ObjectId(order.propertyId),
     startDate: new Date(startDate),
     endDate: new Date(endDate),

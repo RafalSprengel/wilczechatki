@@ -4,7 +4,8 @@ export interface Property {
   slug: string;
   description?: string;
   images: string[];
-  baseCapacity: number;
+  maxAdults: number;
+  maxChildren: number;
   maxExtraBeds: number;
   isActive: boolean;
   createdAt: string;

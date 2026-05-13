@@ -59,17 +59,30 @@ export default function AddPropertyForm() {
           <h2 className={styles.sectionTitle}>Pojemność</h2>
           <div className={styles.grid}>
             <div className={styles.inputGroup}>
-              <label htmlFor="baseCapacity">Bazowa pojemność *</label>
+              <label htmlFor="maxAdults">Max. dorosłych *</label>
               <input
-                id="baseCapacity"
-                name="baseCapacity"
+                id="maxAdults"
+                name="maxAdults"
                 type="number"
                 min="1"
                 max="20"
+                defaultValue={4}
+                required
+              />
+              <small className={styles.hint}>Maksymalna liczba dorosłych gości</small>
+            </div>
+            <div className={styles.inputGroup}>
+              <label htmlFor="maxChildren">Max. dzieci *</label>
+              <input
+                id="maxChildren"
+                name="maxChildren"
+                type="number"
+                min="0"
+                max="30"
                 defaultValue={6}
                 required
               />
-              <small className={styles.hint}>Maksymalna liczba osób na podstawowych łóżkach</small>
+              <small className={styles.hint}>Maksymalna liczba dzieci</small>
             </div>
             <div className={styles.inputGroup}>
               <label htmlFor="maxExtraBeds">Maksymalna liczba dostawek *</label>

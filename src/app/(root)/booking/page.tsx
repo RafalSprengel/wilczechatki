@@ -1,8 +1,9 @@
 import React from 'react'
-import { searchAction, getMaxTotalGuests, SearchResults } from '@/actions/searchActions'
+import { searchAction, getMaxCapacity, SearchResults } from '@/actions/searchActions'
 import { getBookingConfig } from '@/actions/bookingConfigActions'
 import { getBlockedDates } from '@/actions/bookingActions'
 import BookingClient from './BookingClient'
+import styles from './page.module.css'
 
 interface SearchParams {
   start?: string
@@ -24,11 +25,22 @@ export default async function BookingPage({
 
   const totalGuests = adults + children
 
-  const [maxTotalGuests, bookingConfig, blockedDates] = await Promise.all([
-    getMaxTotalGuests(),
+  const [maxCapacityResult, bookingConfig, blockedDates] = await Promise.all([
+    getMaxCapacity().catch((err: unknown) => (err instanceof Error ? err : new Error(String(err)))),
     getBookingConfig(),
     getBlockedDates()
   ])
+
+  if (maxCapacityResult instanceof Error) {
+    return (
+      <div className={styles.errorState}>
+        <h2>Rezerwacja niedostępna</h2>
+        <p>{maxCapacityResult.message}</p>
+      </div>
+    )
+  }
+
+  const maxCapacity = maxCapacityResult
 
   let searchResults: SearchResults | null = null
 
@@ -53,7 +65,8 @@ export default async function BookingPage({
         initialEnd={end}
         initialAdults={adults}
         initialChildren={children}
-        maxTotalGuests={maxTotalGuests}
+        maxAdults={maxCapacity.maxAdults}
+        maxChildren={maxCapacity.maxChildren}
         minBookingDays={bookingConfig.minBookingDays}
         maxBookingDays={bookingConfig.maxBookingDays}
         childrenFreeAgeLimit={bookingConfig.childrenFreeAgeLimit}

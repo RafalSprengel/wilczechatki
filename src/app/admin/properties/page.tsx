@@ -40,8 +40,12 @@ export default async function PropertiesPage() {
               {prop.description && (<p className={styles.description}>{prop.description}</p>)}
               <div className={styles.details}>
                 <div className={styles.detailRow}>
-                  <span className={styles.label}>Max. osób:</span>
-                  <span className={styles.value}>{prop.baseCapacity}</span>
+                  <span className={styles.label}>Max. dorosłych:</span>
+                  <span className={styles.value}>{prop.maxAdults}</span>
+                </div>
+                <div className={styles.detailRow}>
+                  <span className={styles.label}>Max. dzieci:</span>
+                  <span className={styles.value}>{prop.maxChildren}</span>
                 </div>
                 <div className={styles.detailRow}>
                   <span className={styles.label}>Max. dostawek:</span>

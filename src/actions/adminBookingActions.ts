@@ -103,9 +103,11 @@ function validateBookingData(data: any) {
   if (!data.startDate) errors.push('Należy podać datę rozpoczęcia')
   if (!data.endDate) errors.push('Należy podać datę zakończenia')
   if (new Date(data.endDate) <= new Date(data.startDate)) errors.push('Data zakończenia musi być późniejsza niż data rozpoczęcia')
-  const numGuests = Number(data.numGuests)
-  if (isNaN(numGuests) || numGuests <= 0) errors.push('Liczba gości musi być poprawną liczbą większą od 0')
-  const extraBeds = Number(data.extraBeds)
+  const adults = Number(data.adults)
+  if (isNaN(adults) || adults <= 0) errors.push('Liczba dorosłych musi być poprawną liczbą większą od 0')
+  const children = Number(data.children)
+  if (isNaN(children) || children < 0) errors.push('Liczba dzieci nie może być ujemna')
+  const extraBeds = Number(data.extraBedsCount)
   if (isNaN(extraBeds) || extraBeds < 0) errors.push('Liczba dostawek nie może być ujemna')
   const totalPrice = Number(data.totalPrice)
   if (isNaN(totalPrice) || totalPrice < 0) errors.push('Cena całkowita nie może być ujemna')
@@ -194,6 +196,9 @@ export async function createBookingByAdmin(prevState: any, formData: FormData) {
     return { message: validationErrors.join(', '), success: false }
   }
   try {
+    const adults = Number(rawData.adults)
+    const children = Number(rawData.children)
+    const extraBedsCount = Number(rawData.extraBedsCount)
     const invoiceData = rawData.invoice === 'true' ? {
       companyName: rawData.invoiceCompany,
       nip: rawData.invoiceNip,
@@ -239,10 +244,9 @@ export async function createBookingByAdmin(prevState: any, formData: FormData) {
       guestName: rawData.guestName,
       guestEmail: rawData.guestEmail,
       guestPhone: rawData.guestPhone,
-      adults: Number(rawData.numGuests),
-      children: 0,
-      numberOfGuests: Number(rawData.numGuests),
-      extraBedsCount: Number(rawData.extraBeds),
+      adults,
+      children,
+      extraBedsCount,
       totalPrice,
       depositAmount: paidAmount,
       paidAmount,
@@ -272,6 +276,9 @@ export async function updateBookingAction(prevState: any, formData: FormData) {
     return { message: validationErrors.join(', '), success: false }
   }
   try {
+    const adults = Number(rawData.adults)
+    const children = Number(rawData.children)
+    const extraBedsCount = Number(rawData.extraBedsCount)
     const invoiceData = rawData.invoice === 'true' ? {
       companyName: rawData.invoiceCompany,
       nip: rawData.invoiceNip,
@@ -320,10 +327,9 @@ export async function updateBookingAction(prevState: any, formData: FormData) {
       guestName: rawData.guestName,
       guestEmail: rawData.guestEmail,
       guestPhone: rawData.guestPhone,
-      adults: Number(rawData.numGuests),
-      children: 0,
-      numberOfGuests: Number(rawData.numGuests),
-      extraBedsCount: Number(rawData.extraBeds),
+      adults,
+      children,
+      extraBedsCount,
       totalPrice,
       depositAmount: paidAmount,
       paidAmount,
@@ -540,7 +546,6 @@ export async function createBlockedBookingByAdmin(data: BlockCreateInput) {
       guestPhone: '-',
       adults: 1,
       children: 0,
-      numberOfGuests: 0,
       extraBedsCount: 0,
       totalPrice: 0,
       depositAmount: 0,

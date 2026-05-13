@@ -4,7 +4,8 @@ export interface IProperty extends Document {
   name: string;
   slug?: string;
   description?: string;
-  baseCapacity: number;
+  maxAdults: number;
+  maxChildren: number;
   maxExtraBeds: number;
   images?: string[];
   isActive: boolean;
@@ -15,7 +16,8 @@ const PropertySchema = new Schema<IProperty>(
     name: { type: String, required: true, trim: true },
     slug: { type: String, trim: true, index: true },
     description: { type: String, trim: true },
-    baseCapacity: { type: Number, required: true, default: 6 },
+    maxAdults: { type: Number, required: true, default: 6 },
+    maxChildren: { type: Number, required: true, default: 6},
     maxExtraBeds: { type: Number, required: true, default: 2 },
     images: { type: [String], default: [] },
     isActive: { type: Boolean, default: true },

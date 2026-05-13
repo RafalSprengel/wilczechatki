@@ -45,6 +45,8 @@ interface SelectedOption {
     propertyId: string;
     displayName: string;
     guests: number;
+    adults: number;
+    children: number;
     extraBeds: number;
     totalPrice: number;
   }>;
@@ -76,7 +78,6 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
       return { success: false, error: 'Niekompletne dane gościa' };
     }
 
-    const numberOfGuests = adults + children;
     const bookings: any[] = [];
 
     const baseBookingData = {
@@ -134,7 +135,8 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
         bookings.push({
           ...baseBookingData,
           propertyId: new Types.ObjectId(allocation.propertyId),
-          numberOfGuests: allocation.guests,
+          adults: allocation.adults,
+          children: allocation.children,
           extraBedsCount: allocation.extraBeds,
           totalPrice: recalculatedPrice,
           depositAmount: recalculatedPrice,

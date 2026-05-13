@@ -14,7 +14,8 @@ export interface PropertyType {
   slug: string;
   description?: string;
   images: string[];
-  baseCapacity: number;
+  maxAdults: number;
+  maxChildren: number;
   maxExtraBeds: number;
   isActive: boolean;
   createdAt: string;
@@ -64,14 +65,16 @@ export async function createProperty(formData: FormData) {
     const description = formData.get('description') as string;
     const imagesString = formData.get('images') as string;
     const images = imagesString ? imagesString.split(',').map(s => s.trim()).filter(Boolean) : [];
-    const baseCapacity = parseInt(formData.get('baseCapacity') as string, 10) || 6;
+    const maxAdults = parseInt(formData.get('maxAdults') as string, 10) || 4;
+    const maxChildren = parseInt(formData.get('maxChildren') as string, 10) || 4;
     const maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string, 10) || 2;
 
     const property = await Property.create({
       name,
       slug: slug || undefined,
       description,
-      baseCapacity,
+      maxAdults,
+      maxChildren,
       maxExtraBeds,
       images,
       isActive: true
@@ -107,14 +110,16 @@ export async function updateProperty(id: string, formData: FormData) {
     const imagesString = formData.get('images') as string;
     const images = imagesString ? imagesString.split(',').map(s => s.trim()).filter(Boolean) : [];
     const isActive = formData.get('isActive') === 'true';
-    const baseCapacity = parseInt(formData.get('baseCapacity') as string, 10) || 6;
+    const maxAdults = parseInt(formData.get('maxAdults') as string, 10) || 4;
+    const maxChildren = parseInt(formData.get('maxChildren') as string, 10) || 4;
     const maxExtraBeds = parseInt(formData.get('maxExtraBeds') as string, 10) || 2;
 
     await Property.findByIdAndUpdate(id, {
       name,
       slug: slug || undefined,
       description,
-      baseCapacity,
+      maxAdults,
+      maxChildren,
       maxExtraBeds,
       images,
       isActive

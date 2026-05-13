@@ -28,7 +28,8 @@ export interface SearchOption {
   displayName: string;
   totalPrice: number;
   extraBedPrice: number;
-  maxGuests: number;
+  maxAdults: number;
+  maxChildren: number;
   maxExtraBeds: number;
   description: string;
 }
@@ -92,37 +93,13 @@ interface GetDailyPriceParams {
   date: dayjs.Dayjs;
   baseGuests: number;
   extraBeds: number;
-  propertyBaseCapacity: number;
+  propertyMaxAdults: number;
   customPrices: Map<string, any>;
   activeSeasons: ISeason[];
   basicPrices: any | null;
   seasonPricesMap: Map<string, any>;
 }
 
-const DEFAULT_FALLBACK_NIGHT_PRICE = 1000;
-const DEFAULT_FALLBACK_EXTRA_BED_PRICE = 50;
-
-function createFallbackBasicPrices(propertyBaseCapacity: number) {
-  return {
-    seasonId: null,
-    weekdayPrices: [
-      {
-        minGuests: 1,
-        maxGuests: Math.max(1, propertyBaseCapacity),
-        price: DEFAULT_FALLBACK_NIGHT_PRICE,
-      },
-    ],
-    weekendPrices: [
-      {
-        minGuests: 1,
-        maxGuests: Math.max(1, propertyBaseCapacity),
-        price: DEFAULT_FALLBACK_NIGHT_PRICE,
-      },
-    ],
-    weekdayExtraBedPrice: DEFAULT_FALLBACK_EXTRA_BED_PRICE,
-    weekendExtraBedPrice: DEFAULT_FALLBACK_EXTRA_BED_PRICE,
-  };
-}
 
 function findPriceTier(
   tiers: { minGuests: number; maxGuests: number; price: number }[] | undefined,
@@ -169,7 +146,7 @@ async function getDailyPrice({
   date,
   baseGuests,
   extraBeds,
-  propertyBaseCapacity,
+  propertyMaxAdults,
   customPrices,
   activeSeasons,
   basicPrices,
@@ -222,16 +199,18 @@ async function getDailyPrice({
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-export async function getMaxTotalGuests() {
-  try {
-    await dbConnect();
-    const properties = await Property.find({ isActive: true });
-    const totalCapacity = properties.reduce((sum, prop) => sum + prop.baseCapacity, 0);
-    return totalCapacity > 0 ? totalCapacity : 6;
-  } catch (error) {
-    console.error('Błąd podczas pobierania maksymalnej pojemności:', error);
-    return 6;
+export async function getMaxCapacity(): Promise<{ maxAdults: number; maxChildren: number }> {
+  await dbConnect();
+  const properties = await Property.find({ isActive: true });
+  if (properties.length === 0) {
+    throw new Error('Brak aktywnych domków. Skonfiguruj obiekty przed udostępnieniem formularza rezerwacji.');
   }
+  const maxAdults = properties.reduce((sum, prop) => sum + prop.maxAdults, 0);
+  const maxChildren = properties.reduce((sum, prop) => sum + prop.maxChildren, 0);
+  if (maxAdults === 0) {
+    throw new Error('Żaden aktywny domek nie ma skonfigurowanego limitu dorosłych.');
+  }
+  return { maxAdults, maxChildren };
 }
 
 // ─── Kalkulacja ceny dla pojedynczego domku ───────────────────────────────────
@@ -271,17 +250,14 @@ export async function calculateTotalPrice(
       PropertyPrices.find({ propertyId: propertySelection }).lean(),
     ]);
 
-  if (!property) return 0;
+  if (!property) throw new Error(`Domek o ID ${propertySelection} nie istnieje.`);
 
-  // Rozdziel na basicPrices i mapę sezonową
   const basicPrices = allPropertyPrices.find(
     (p) => p.seasonId === null || p.seasonId === undefined
   );
-  const resolvedBasicPrices = basicPrices ?? createFallbackBasicPrices(property.baseCapacity);
+
   if (!basicPrices) {
-    console.warn(
-      `Brak cennika podstawowego dla domku: ${propertySelection}. Użyto domyślnej stawki ${DEFAULT_FALLBACK_NIGHT_PRICE} zł/noc.`
-    );
+    throw new Error(`Brak cennika podstawowego dla domku: ${property.name ?? propertySelection}. Skonfiguruj cennik przed udostępnieniem domku.`);
   }
 
   const seasonPricesMap = new Map<string, any>(
@@ -294,6 +270,8 @@ export async function calculateTotalPrice(
     customPricesDocs.map((cp: any) => [dayjs(cp.date).format('YYYY-MM-DD'), cp])
   );
 
+  const resolvedBasicPrices = basicPrices;
+
   let total = 0;
   let currentDate = dayjs(startDate);
   const end = dayjs(endDate);
@@ -303,7 +281,7 @@ export async function calculateTotalPrice(
       date: currentDate,
       baseGuests,
       extraBeds,
-      propertyBaseCapacity: property.baseCapacity,
+      propertyMaxAdults: property.maxAdults,
       customPrices: customPricesMap,
       activeSeasons: activeSeasons as ISeason[],
       basicPrices: resolvedBasicPrices,
@@ -398,7 +376,7 @@ export async function searchAction(params: SearchParams): Promise<SearchResults>
     const options: SearchOption[] = [];
 
     for (const property of availableProperties) {
-      if (effectiveGuests > property.baseCapacity + property.maxExtraBeds) continue;
+      if (effectiveGuests > property.maxAdults + property.maxExtraBeds) continue;
 
       const price = await calculateTotalPrice({
         startDate,
@@ -426,7 +404,8 @@ export async function searchAction(params: SearchParams): Promise<SearchResults>
         displayName: property.name ?? '',
         totalPrice: price,
         extraBedPrice,
-        maxGuests: property.baseCapacity,
+        maxAdults: property.maxAdults,
+        maxChildren: property.maxChildren,
         maxExtraBeds: property.maxExtraBeds,
         description: property.description ?? '',
       });

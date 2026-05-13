@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, useTransition } from 'react'
 import { useActionState } from 'react'
 import styles from './page.module.css'
-import { createBookingByAdmin, calculatePriceAction, getUnavailableDatesForProperty, getBlockedBookings } from '@/actions/adminBookingActions'
+import { createBookingByAdmin, calculatePriceAction, getUnavailableDatesForProperty } from '@/actions/adminBookingActions'
 import { getAllProperties } from '@/actions/adminPropertyActions'
 import { formatDisplayDate } from '@/utils/formatDate'
 import { getBookingConfig } from '@/actions/bookingConfigActions'
@@ -22,7 +22,7 @@ interface BookingDates {
 interface PropertyOption {
   _id: string
   name: string
-  baseCapacity: number
+  maxAdults: number
   maxExtraBeds: number
 }
 
@@ -46,7 +46,8 @@ export default function AddBookingPage() {
   const [isLoadingProperties, setIsLoadingProperties] = useState(true)
   const [propertySelection, setPropertySelection] = useState('')
   const [selectedProperty, setSelectedProperty] = useState<PropertyOption | null>(null)
-  const [numGuests, setNumGuests] = useState(2)
+  const [adults, setAdults] = useState(2)
+  const [children, setChildren] = useState(0)
   const [extraBeds, setExtraBeds] = useState(0)
   const [paidAmount, setPaidAmount] = useState(0)
   const [totalPrice, setTotalPrice] = useState(0)
@@ -56,6 +57,7 @@ export default function AddBookingPage() {
   const [isLoadingUnavailableDates, setIsLoadingUnavailableDates] = useState(false)
   const [hasLoadedUnavailableDates, setHasLoadedUnavailableDates] = useState(false)
   const calendarRef = useRef<HTMLDivElement>(null)
+  const priceRequestIdRef = useRef(0)
   const [isCalculating, startPriceCalculation] = useTransition()
   const [wantsInvoice, setWantsInvoice] = useState(false)
   const [invoiceData, setInvoiceData] = useState<InvoiceData>({
@@ -98,9 +100,14 @@ export default function AddBookingPage() {
     loadInitialData();
   }, [])
 
-  const selectedPropertyMaxGuests = selectedProperty?.baseCapacity ?? 12
 
-  const selectedPropertyMaxExtraBeds = selectedProperty?.maxExtraBeds ?? 4
+  const selectedPropertyMaxAdults = selectedProperty?.maxAdults ?? null
+  const selectedPropertyMaxExtraBeds = selectedProperty?.maxExtraBeds ?? null
+
+  useEffect(() => {
+    setBookingDates({ start: null, end: null, count: 0 })
+    setTotalPrice(0)
+  }, [propertySelection])
 
   useEffect(() => {
     if (propertySelection) {
@@ -109,20 +116,19 @@ export default function AddBookingPage() {
     } else {
       setSelectedProperty(null)
     }
-    setBookingDates({ start: null, end: null, count: 0 })
-    setTotalPrice(0)
   }, [propertySelection, properties])
 
   useEffect(() => {
     if (selectedProperty) {
-      if (numGuests > selectedPropertyMaxGuests) {
-        setNumGuests(Math.min(2, selectedPropertyMaxGuests))
+      if (selectedPropertyMaxAdults != null && adults > selectedPropertyMaxAdults) {
+        setAdults(Math.min(2, selectedPropertyMaxAdults))
       }
-      if (extraBeds > selectedPropertyMaxExtraBeds) {
+      if (children < 0) setChildren(0)
+      if (selectedPropertyMaxExtraBeds != null && extraBeds > selectedPropertyMaxExtraBeds) {
         setExtraBeds(0)
       }
     }
-  }, [selectedProperty, selectedPropertyMaxGuests, selectedPropertyMaxExtraBeds, numGuests, extraBeds])
+  }, [selectedProperty, selectedPropertyMaxAdults, selectedPropertyMaxExtraBeds, adults, children, extraBeds])
 
   useEffect(() => {
     let isActive = true
@@ -187,7 +193,8 @@ export default function AddBookingPage() {
       setPaidAmount(0)
       setTotalPrice(0)
       setBookingDates({ start: null, end: null, count: 0 })
-      setNumGuests(2)
+      setAdults(2)
+      setChildren(0)
       setPropertySelection('')
       setSelectedProperty(null)
       setWantsInvoice(false)
@@ -210,19 +217,22 @@ export default function AddBookingPage() {
 
   useEffect(() => {
     const { start, end } = bookingDates
-    if (start && end && numGuests > 0 && propertySelection) {
+    if (start && end && adults > 0 && propertySelection) {
+      const requestId = ++priceRequestIdRef.current
       startPriceCalculation(async () => {
         const { price } = await calculatePriceAction({
           startDate: start,
           endDate: end,
-          baseGuests: numGuests,
+          baseGuests: adults,
           extraBeds,
           propertySelection
         })
-        setTotalPrice(price)
+        if (requestId === priceRequestIdRef.current) {
+          setTotalPrice(price)
+        }
       })
     }
-  }, [bookingDates, numGuests, extraBeds, propertySelection])
+  }, [bookingDates, adults, extraBeds, propertySelection])
 
   const handlePaidAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value) || 0
@@ -259,10 +269,12 @@ export default function AddBookingPage() {
   const resetAll = () => {
     formRef.current?.reset()
     setPropertySelection('')
+    setSelectedProperty(null)
     setBookingDates({ start: null, end: null, count: 0 })
     setTotalPrice(0)
     setPaidAmount(0)
-    setNumGuests(2)
+    setAdults(2)
+    setChildren(0)
     setExtraBeds(0)
     setWantsInvoice(false)
     setInvoiceData({ companyName: '', nip: '', street: '', postalCode: '', city: '' })
@@ -270,6 +282,15 @@ export default function AddBookingPage() {
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (!bookingDates.start || !bookingDates.end) {
+      e.preventDefault()
+      setFeedbackModal({
+        isOpen: true,
+        title: 'Brak terminu',
+        message: 'Proszę wybrać termin rezerwacji.',
+      })
+      return
+    }
     if (wantsInvoice && !validateInvoiceData()) {
       e.preventDefault()
       setFeedbackModal({
@@ -281,15 +302,18 @@ export default function AddBookingPage() {
     }
   }
 
-  const remainingAmount = Math.max(0, totalPrice - paidAmount)
+  const remainingAmount = totalPrice - paidAmount
   const getPaymentBadge = () => {
     if (paidAmount >= totalPrice && totalPrice > 0) return { text: 'Opłacone', class: styles.paymentPaid }
     if (paidAmount > 0) return { text: 'Zaliczka', class: styles.paymentDeposit }
     return { text: 'Nieopłacone', class: styles.paymentUnpaid }
   }
   const paymentBadge = getPaymentBadge()
-  const maxGuests = selectedPropertyMaxGuests
+
+  const maxAdults = selectedPropertyMaxAdults
   const maxExtraBedsValue = selectedPropertyMaxExtraBeds
+
+  const missingLimits = selectedProperty && (selectedPropertyMaxAdults == null || selectedPropertyMaxExtraBeds == null)
 
   return (
     <div className={styles.container}>
@@ -299,11 +323,22 @@ export default function AddBookingPage() {
         <p>Ręczne wprowadzenie rezerwacji (np. telefonicznej).</p>
       </header>
 
+      {missingLimits && (
+        <div className={styles.warningBox}>
+          <span>Brak skonfigurowanych limitów gości lub dostawek dla wybranego obiektu.<br />
+            <a href="/admin/properties" target="_blank" rel="noopener noreferrer" className={styles.settingsLink}>
+              Przejdź do ustawień domków
+            </a>
+          </span>
+        </div>
+      )}
+
       <form ref={formRef} action={formAction} onSubmit={handleSubmit} className={styles.formCard}>
         <input type="hidden" name="startDate" value={bookingDates.start || ''} />
         <input type="hidden" name="endDate" value={bookingDates.end || ''} />
-        <input type="hidden" name="numGuests" value={numGuests} />
-        <input type="hidden" name="extraBeds" value={extraBeds} />
+        <input type="hidden" name="adults" value={adults} />
+        <input type="hidden" name="children" value={children} />
+        <input type="hidden" name="extraBedsCount" value={extraBeds} />
         <input type="hidden" name="totalPrice" value={totalPrice} />
         <input type="hidden" name="paidAmount" value={paidAmount} />
         <input type="hidden" name="invoice" value={wantsInvoice ? 'true' : 'false'} />
@@ -365,25 +400,36 @@ export default function AddBookingPage() {
             )}
           </div>
 
-          <div className={`${styles.inputGroup} ${!propertySelection ? styles.disabledGroup : ''}`}>
-            <label>Liczba gości</label>
+          <div className={`${styles.inputGroup} ${!propertySelection || missingLimits ? styles.disabledGroup : ''}`}>
+            <label>Dorosłych</label>
             <QuantityPicker
-              value={numGuests}
-              onIncrement={() => setNumGuests(prev => Math.min(maxGuests, prev + 1))}
-              onDecrement={() => setNumGuests(prev => Math.max(1, prev - 1))}
+              value={adults}
+              onIncrement={() => setAdults(prev => Math.min(maxAdults ?? 1, prev + 1))}
+              onDecrement={() => setAdults(prev => Math.max(1, prev - 1))}
               min={1}
-              max={maxGuests}
+              max={maxAdults ?? 1}
             />
           </div>
 
-          <div className={`${styles.inputGroup} ${!propertySelection ? styles.disabledGroup : ''}`}>
-            <label>Liczba dostawek</label>
+          <div className={`${styles.inputGroup} ${!propertySelection || missingLimits ? styles.disabledGroup : ''}`}>
+            <label>Dzieci</label>
+            <QuantityPicker
+              value={children}
+              onIncrement={() => setChildren(prev => Math.min(10, prev + 1))}
+              onDecrement={() => setChildren(prev => Math.max(0, prev - 1))}
+              min={0}
+              max={10}
+            />
+          </div>
+
+          <div className={`${styles.inputGroup} ${!propertySelection || missingLimits ? styles.disabledGroup : ''}`}>
+            <label>Dostawek</label>
             <QuantityPicker
               value={extraBeds}
-              onIncrement={() => setExtraBeds(prev => Math.min(maxExtraBedsValue, prev + 1))}
+              onIncrement={() => setExtraBeds(prev => Math.min(maxExtraBedsValue ?? 0, prev + 1))}
               onDecrement={() => setExtraBeds(prev => Math.max(0, prev - 1))}
               min={0}
-              max={maxExtraBedsValue}
+              max={maxExtraBedsValue ?? 0}
             />
           </div>
         </div>
@@ -532,8 +578,13 @@ export default function AddBookingPage() {
 
         <div className={styles.actions}>
           <button type="button" className={styles.btnCancel} onClick={resetAll}>Anuluj</button>
-          <button type="submit" className={styles.btnSubmit} disabled={isPending}>
-            {isPending ? 'Zapisuję...' : 'Zapisz Rezerwację'}
+          <button
+            type="submit"
+            className={styles.btnSubmit}
+            disabled={Boolean(isPending || missingLimits)}
+            title={missingLimits ? 'Najpierw skonfiguruj limity gości w ustawieniach domków' : undefined}
+          >
+            {isPending ? 'Zapisuję...' : 'Zapisz rezerwację'}
           </button>
         </div>
       </form>

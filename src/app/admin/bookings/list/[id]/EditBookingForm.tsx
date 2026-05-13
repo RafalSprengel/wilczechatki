@@ -9,7 +9,7 @@ interface FormData {
   guestName: string;
   guestEmail: string;
   guestPhone: string;
-  numGuests: number | '';
+  adults: number | '';
   children: number | '';
   extraBedsCount: number | '';
   totalPrice: number | '';
@@ -35,9 +35,9 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
     guestName: initialData.guestName ?? initialData.guestInfo?.name ?? '',
     guestEmail: initialData.guestEmail ?? initialData.guestInfo?.email ?? '',
     guestPhone: initialData.guestPhone ?? initialData.guestInfo?.phone ?? '',
-    numGuests: initialData.adults ?? 1,
+    adults: initialData.adults ?? 1,
     children: initialData.children ?? 0,
-    extraBedsCount: initialData.extraBedsCount ?? initialData.extraBeds ?? 0,
+    extraBedsCount: initialData.extraBedsCount ?? 0,
     totalPrice: initialData.totalPrice ?? 0,
     paidAmount: initialData.paidAmount ?? 0,
     status: initialData.status ?? 'pending',
@@ -56,8 +56,7 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    // Pozwól na chwilowe puste pole dla numerycznych
-    if (["numGuests", "children", "extraBedsCount", "totalPrice", "paidAmount"].includes(name)) {
+    if (["adults", "children", "extraBedsCount", "totalPrice", "paidAmount"].includes(name)) {
       setForm((prev) => ({
         ...prev,
         [name]: value === "" ? "" : Number(value),
@@ -85,8 +84,7 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
     setIsSaving(true);
     setMessage(null);
 
-    // Walidacja: nie pozwól na puste wartości numeryczne
-    const requiredNumeric = ["numGuests", "children", "extraBedsCount", "totalPrice", "paidAmount"];
+    const requiredNumeric = ["adults", "children", "extraBedsCount", "totalPrice", "paidAmount"];
     for (const field of requiredNumeric) {
       const val = form[field as keyof FormData];
       if (val === "" || val === null || Number.isNaN(val)) {
@@ -99,12 +97,12 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
     const formData = new FormData();
     formData.append('bookingId', initialData._id);
     formData.append('propertyId', initialData.propertyId);
-    formData.append('extraBeds', String(form.extraBedsCount));
+    formData.append('extraBedsCount', String(form.extraBedsCount));
     formData.append('children', String(form.children));
     formData.append('guestName', form.guestName);
     formData.append('guestEmail', form.guestEmail);
     formData.append('guestPhone', form.guestPhone);
-    formData.append('numGuests', String(form.numGuests));
+    formData.append('adults', String(form.adults));
     formData.append('totalPrice', String(form.totalPrice));
     formData.append('paidAmount', String(form.paidAmount));
     formData.append('status', form.status);
@@ -194,10 +192,10 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
         <div className={styles.inputGroup}>
           <label>Dorośli</label>
           <input
-            name="numGuests"
+            name="adults"
             type="number"
             min="1"
-            value={form.numGuests}
+            value={form.adults}
             onChange={handleChange}
             readOnly={!isEditing}
             className={!isEditing ? styles.readOnly : ''}

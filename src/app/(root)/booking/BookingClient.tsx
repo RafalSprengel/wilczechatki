@@ -75,7 +75,8 @@ interface BookingClientProps {
   initialEnd: string | null
   initialAdults: number
   initialChildren: number
-  maxTotalGuests: number
+  maxAdults: number
+  maxChildren: number
   minBookingDays: number
   maxBookingDays: number
   childrenFreeAgeLimit: number
@@ -88,7 +89,8 @@ export default function BookingClient({
   initialEnd,
   initialAdults,
   initialChildren,
-  maxTotalGuests,
+  maxAdults,
+  maxChildren,
   minBookingDays,
   maxBookingDays,
   childrenFreeAgeLimit,
@@ -172,7 +174,7 @@ export default function BookingClient({
   })
 
   const totalGuests = adults + children
-  const atMaxGuests = adults >= maxTotalGuests
+  const atMaxGuests = adults >= maxAdults
 
   const toggleBox = (boxName: string) => {
     setActiveBox(activeBox === boxName ? null : boxName)
@@ -342,7 +344,7 @@ export default function BookingClient({
                 onDecrement={() => setAdults(adults > 1 ? adults - 1 : 1)}
                 value={adults}
                 min={1}
-                max={maxTotalGuests}
+                max={maxAdults}
                 disableIncrement={atMaxGuests}
               />
             </div>
@@ -353,7 +355,7 @@ export default function BookingClient({
                 onDecrement={() => setChildren(children > 0 ? children - 1 : 0)}
                 value={children}
                 min={0}
-                max={20}
+                max={maxChildren}
               />
             </div>
             <span className={styles.info}>*  Dzieci do {childrenFreeAgeLimit} roku życia bezpłatnie.</span>

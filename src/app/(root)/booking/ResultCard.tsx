@@ -34,11 +34,13 @@ export default function ResultCard({
 
       <p className={styles.cardDesc}>{option.description}</p>
 
-      <div className={styles.cardDetails}>
-        <span>Pojemność: {option.maxGuests} osób</span>
+      {/* <div className={styles.cardDetails}>
+        <span>Max. dorosłych: {option.maxAdults}</span>
+        <span className={styles.separator}> • </span>
+        <span>Max. dzieci: {option.maxChildren}</span>
         <span className={styles.separator}> • </span>
         <span>Max. dostawek: {option.maxExtraBeds}</span>
-      </div>
+      </div> */}
 
       {option.maxExtraBeds > 0 && (
         <div className={styles.extraBedsSection}>

@@ -23,7 +23,7 @@ import styles from './PriceSettingsForm.module.css'
 interface PropertyOption {
   _id: string
   name: string
-  baseCapacity: number
+  maxAdults: number
   maxExtraBeds: number
 }
 

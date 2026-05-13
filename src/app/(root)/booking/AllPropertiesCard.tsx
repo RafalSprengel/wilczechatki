@@ -172,11 +172,13 @@ export default function AllPropertiesCard({
 
               {option.description && <p className={styles.cardDesc}>{option.description}</p>}
 
-              <div className={styles.cardDetails}>
-                <span>Pojemność: {option.maxGuests} osób</span>
+              {/* <div className={styles.cardDetails}>
+                <span>Max. dorosłych: {option.maxAdults}</span>
+                <span className={styles.separator}> • </span>
+                <span>Max. dzieci: {option.maxChildren}</span>
                 <span className={styles.separator}> • </span>
                 <span>Max. dostawek: {option.maxExtraBeds}</span>
-              </div>
+              </div> */}
 
               <div className={styles.extraBedsSection}>
                 <div className={styles.extraBedsHeader}>
@@ -188,7 +190,7 @@ export default function AllPropertiesCard({
                   onIncrement={() => onGuestsChange(option.displayName, guests + 1)}
                   onDecrement={() => onGuestsChange(option.displayName, guests - 1)}
                   min={1}
-                  max={option.maxGuests}
+                  max={option.maxAdults}
                   disableIncrement={!canIncrementGuests}
                 />
               </div>
