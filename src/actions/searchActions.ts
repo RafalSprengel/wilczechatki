@@ -78,6 +78,7 @@ interface SearchParams {
   endDate: string;
   baseGuests: number;
   adults: number;
+  children: number;
   extraBeds: number;
 }
 
@@ -296,8 +297,7 @@ export async function calculateTotalPrice(
 // ─── Wyszukiwanie dostępności ─────────────────────────────────────────────────
 
 export async function searchAction(params: SearchParams): Promise<SearchResults> {
-  const { startDate, endDate, adults, extraBeds } = params;
-  // Dzieci nie mają wpływu na wyszukiwanie domków, tylko dorośli
+  const { startDate, endDate, adults, children, extraBeds } = params;
   const effectiveGuests = adults;
   if (adults < 1) {
     throw new Error('Liczba platnych gosci musi byc wieksza od zera.');
@@ -376,7 +376,8 @@ export async function searchAction(params: SearchParams): Promise<SearchResults>
     const options: SearchOption[] = [];
 
     for (const property of availableProperties) {
-      if (effectiveGuests > property.maxAdults + property.maxExtraBeds) continue;
+      if (adults > property.maxAdults) continue;
+      if (children > property.maxChildren) continue;
 
       const price = await calculateTotalPrice({
         startDate,

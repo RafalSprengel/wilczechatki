@@ -51,6 +51,7 @@ export default async function BookingPage({
         endDate: end,
         baseGuests: totalGuests,
         adults,
+        children,
         extraBeds: 0
       })
     } catch (error) {
