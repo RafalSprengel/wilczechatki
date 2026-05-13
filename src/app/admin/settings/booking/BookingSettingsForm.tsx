@@ -643,7 +643,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
           <div className={styles.settingContent}>
             <p className={styles.settingLabel}>Wybierz sezon:</p>
             <p className={styles.settingDescription}>
-              Dane sezonu edytujesz w oknie modalnym. Daty sezonu działają
+              Daty sezonu działają
               cyklicznie co roku.
             </p>
           </div>

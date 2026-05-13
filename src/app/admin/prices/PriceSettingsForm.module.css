@@ -68,6 +68,22 @@
   color: #ff5f02;
 }
 
+@media(max-width:450px) {
+  .priorityInfoIcon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 435px) {
+  .priorityInfoChain {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+}
+
 .priorityInfoArrow {
   color: #a0aec0;
 }
@@ -282,7 +298,7 @@
 
   .removeBtn {
     background: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -349,7 +365,7 @@
   border: 1px solid #fed7d7;
   width: 24px;
   height: 24px;
-  border-radius: 4px;
+  border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -474,6 +490,7 @@
   background-color: #16a34a;
   color: #fff;
 }
+
 .btnOk:hover:not(:disabled) {
   background-color: #15803d;
 }

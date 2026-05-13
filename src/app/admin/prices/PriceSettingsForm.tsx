@@ -1319,7 +1319,7 @@ export default function PriceSettingsForm({
                     : customPrices.slice(0, 10)
                   ).map((entry, idx) => (
                     <div key={idx} className={styles.customItem}>
-                      <span className={styles.customDate}>{entry.date}</span>
+                      <span className={styles.customDate}>{dayjs(entry.date).format('DD-MM-YYYY')}</span>
                       <span className={styles.customPrice}>od {entry.previewPrice} zł</span>
                       <button
                         type="button"

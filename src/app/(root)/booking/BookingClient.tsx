@@ -421,7 +421,7 @@ export default function BookingClient({
 
         {!isSearching && searchResults && searchResults.propertiesAvailable && adults === initialAdults && children === initialChildren && bookingDates.start === initialStart && bookingDates.end === initialEnd && (
           <>
-            {hasSeasonOverlap && (
+            {hasSeasonOverlap && searchResults.propertiesAvailable.length > 0 && (
               <>
                 <div className={styles.seasonAlert} role="status" aria-live="polite">
                   <strong>Uwaga!</strong> Twoja rezerwacja obejmuje dni w sezonie wysokim:
