@@ -190,31 +190,33 @@ export default function BlockBookingsPage() {
   }
 
   return (
-    <div className="admin-settings-container">
-      <FloatingBackButton />
-      <header className="admin-header">
-        <h1 className="admin-title">Blokuj terminy</h1>
-        <p className="admin-subtitle">Twórz blokady administracyjne dla jednego domku lub wszystkich domków.</p>
-      </header>
+    <div className={styles.blockPageContainer}>
+      <div className={styles.headerRow}>
+        <FloatingBackButton />
+        <div>
+          <h1 className={styles.pageTitle}>Blokuj terminy</h1>
+          <p className={styles.pageSubtitle}>Twórz blokady administracyjne dla jednego domku lub wszystkich domków.</p>
+        </div>
+      </div>
 
       <form
-        className="settings-card"
+        className={styles.card}
         onSubmit={(e) => {
           e.preventDefault()
           void handleCreateBlock()
         }}
       >
-        <div className="card-header">
-          <h2 className="card-title">Nowa blokada</h2>
-          <span className="card-badge">Admin</span>
+        <div className={styles.cardHeader}>
+          <h2 className={styles.cardTitle}>Nowa blokada</h2>
+          <span className={styles.cardBadge}>Admin</span>
         </div>
 
-        <div className="setting-row">
-          <div className="setting-content">
-            <label className="setting-label" htmlFor="propertySelect">Domek</label>
-            <p className="setting-description">Wybierz domek z listy lub opcję "Wszystkie".</p>
+        <div className={styles.settingRow}>
+          <div className={styles.settingContent}>
+            <label className={styles.settingLabel} htmlFor="propertySelect">Domek</label>
+            <p className={styles.settingDescription}>Wybierz domek z listy lub opcję "Wszystkie".</p>
           </div>
-          <div className="setting-control">
+          <div className={styles.settingControl}>
             <select
               id="propertySelect"
               value={selectedPropertyId}
@@ -234,12 +236,12 @@ export default function BlockBookingsPage() {
         </div>
 
         {selectedPropertyId && (
-          <div className="setting-row">
-            <div className="setting-content">
-              <label className="setting-label">Zakres blokady</label>
-              <p className="setting-description">Wybierz dzień lub zakres blokady w kalendarzu.</p>
+          <div className={styles.settingRow}>
+            <div className={styles.settingContent}>
+              <label className={styles.settingLabel}>Zakres blokady</label>
+              <p className={styles.settingDescription}>Wybierz dzień lub zakres blokady w kalendarzu.</p>
             </div>
-            <div className="setting-control">
+            <div className={styles.settingControl}>
               {isLoadingUnavailable ? (
                 <div className={styles.loadingHint}>Wczytywanie zajętych terminów...</div>
               ) : (
@@ -262,12 +264,12 @@ export default function BlockBookingsPage() {
         )}
 
         {selectedPropertyId && (
-          <div className="setting-row">
-            <div className="setting-content">
-              <label className="setting-label" htmlFor="adminNotes">Notatka (opcjonalnie)</label>
-              <p className="setting-description">Ta notatka nie będzie widoczna dla klientów, będzie widoczna tylko w panelu admina.</p>
+          <div className={styles.settingRow}>
+            <div className={styles.settingContent}>
+              <label className={styles.settingLabel} htmlFor="adminNotes">Notatka (opcjonalnie)</label>
+              <p className={styles.settingDescription}>Ta notatka nie będzie widoczna dla klientów, będzie widoczna tylko w panelu admina.</p>
             </div>
-            <div className="setting-control">
+            <div className={styles.settingControl}>
               <textarea
                 id="adminNotes"
                 value={adminNotes}
@@ -281,7 +283,7 @@ export default function BlockBookingsPage() {
         )}
 
         <div className={styles.actionsRow}>
-          <button type="button" className="btn-primary" onClick={() => void handleCreateBlock()} disabled={isSubmitting}>
+          <button type="button" className={styles.primaryBtn} onClick={() => void handleCreateBlock()} disabled={isSubmitting}>
             {isSubmitting ? 'Zapisywanie...' : 'Zablokuj termin'}
           </button>
         </div>
@@ -293,10 +295,10 @@ export default function BlockBookingsPage() {
         )}
       </form>
 
-      <div className="settings-card">
-        <div className="card-header">
-          <h2 className="card-title">Istniejące blokady</h2>
-          <span className="card-badge">{blockedBookings.length}</span>
+      <div className={styles.card}>
+        <div className={styles.cardHeader}>
+          <h2 className={styles.cardTitle}>Istniejące blokady</h2>
+          <span className={styles.cardBadge}>{blockedBookings.length}</span>
         </div>
 
         {blockedBookings.length === 0 ? (
