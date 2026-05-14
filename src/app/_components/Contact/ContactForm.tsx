@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Button from "@/app/_components/UI/Button/Button";
 import styles from "./ContactForm.module.css";
 
 interface ContactFormData {
@@ -101,16 +102,15 @@ export default function ContactForm() {
     return (
       <div className={styles.successContainer}>
         <p className={styles.successMessage}>Wiadomość została wysłana!</p>
-        <button
+        <Button
           onClick={() => {
             setIsSubmitted(false);
             setSubmitError(null);
           }}
-          className={styles.submitBtn}
           type="button"
         >
           Wyślij kolejną wiadomość
-        </button>
+        </Button>
       </div>
     );
   }
@@ -169,11 +169,7 @@ export default function ContactForm() {
           <div className={styles.errorMessage}>{submitError}</div>
         )}
 
-        <button
-          type="submit"
-          className={`${styles.submitBtn} ${!isFormValid ? styles.disabledBtn : ""}`}
-          disabled={!isFormValid || isSubmitting}
-        >
+        <Button type="submit" fullWidth disabled={!isFormValid || isSubmitting}>
           {isSubmitting ? (
             <span className={styles.loadingContent}>
               <span className={styles.spinner} aria-hidden="true" />
@@ -182,7 +178,7 @@ export default function ContactForm() {
           ) : (
             "Wyślij wiadomość"
           )}
-        </button>
+        </Button>
       </form>
     </div>
   );

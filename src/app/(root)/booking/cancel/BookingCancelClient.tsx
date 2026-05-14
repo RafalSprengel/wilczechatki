@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import styles from './page.module.css';
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import Button from "@/app/_components/UI/Button/Button";
+import styles from "./page.module.css";
 
 interface BookingCancelClientProps {
   siteSettings: {
@@ -12,14 +12,16 @@ interface BookingCancelClientProps {
   };
 }
 
-export default function BookingCancelClient({ siteSettings }: BookingCancelClientProps) {
+export default function BookingCancelClient({
+  siteSettings,
+}: BookingCancelClientProps) {
   const router = useRouter();
   const [isRetrying, setIsRetrying] = useState(false);
 
   const handleRetry = () => {
     setIsRetrying(true);
     setTimeout(() => {
-      router.push('/booking/payment');
+      router.push("/booking/payment");
     }, 500);
   };
 
@@ -42,20 +44,26 @@ export default function BookingCancelClient({ siteSettings }: BookingCancelClien
 
         <div className={styles.infoBox}>
           <p className={styles.infoText}>
-            📞 W razie pytań: <a href={`tel:${siteSettings.phoneHref}`} className={styles.phoneLink}>{siteSettings.phoneDisplay}</a>
+            📞 W razie pytań:{" "}
+            <a
+              href={`tel:${siteSettings.phoneHref}`}
+              className={styles.phoneLink}
+            >
+              {siteSettings.phoneDisplay}
+            </a>
           </p>
         </div>
 
         <div className={styles.actions}>
-          <button onClick={handleRetry} className={styles.btnPrimary} disabled={isRetrying}>
-            {isRetrying ? 'Przekierowywanie...' : 'Wróć do płatności'}
-          </button>
-          <Link href="/booking/summary" className={styles.btnSecondary}>
+          <Button onClick={handleRetry} variant="danger" disabled={isRetrying}>
+            {isRetrying ? "Przekierowywanie..." : "Wróć do płatności"}
+          </Button>
+          <Button href="/booking/summary" variant="secondary">
             Edytuj dane
-          </Link>
-          <Link href="/" className={styles.btnTertiary}>
+          </Button>
+          <Button href="/" variant="tertiary">
             Wróć na stronę główną
-          </Link>
+          </Button>
         </div>
       </div>
     </div>

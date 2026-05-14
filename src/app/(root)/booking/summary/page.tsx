@@ -1,14 +1,14 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import styles from './page.module.css';
-import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
-import { createCheckoutSession } from '@/actions/stripe';
-import { formatDisplayDate } from '@/utils/formatDate';
-import type { BookingData } from '@/types/booking';
+"use client";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { createCheckoutSession } from "@/actions/stripe";
+import Button from "@/app/_components/UI/Button/Button";
+import FloatingBackButton from "@/app/_components/FloatingBackButton/FloatingBackButton";
+import type { BookingData } from "@/types/booking";
+import { formatDisplayDate } from "@/utils/formatDate";
+import styles from "./page.module.css";
 
-const STORAGE_KEY = 'wilczechatki_booking_draft';
+const STORAGE_KEY = "wilczechatki_booking_draft";
 
 export default function BookingSummaryPage() {
   const router = useRouter();
@@ -18,13 +18,14 @@ export default function BookingSummaryPage() {
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) {
-      router.push('/booking');
+      router.push("/booking");
       return;
     }
 
     try {
       const parsed: BookingData = JSON.parse(saved);
-      const hasOrders = Array.isArray(parsed.orders) && parsed.orders.length > 0;
+      const hasOrders =
+        Array.isArray(parsed.orders) && parsed.orders.length > 0;
       if (
         !parsed.clientData?.firstName ||
         !hasOrders ||
@@ -33,17 +34,16 @@ export default function BookingSummaryPage() {
         !Number.isInteger(parsed.children) ||
         parsed.children < 0
       ) {
-        router.push('/booking/details');
+        router.push("/booking/details");
         return;
       }
       setBookingData(parsed);
     } catch {
-      router.push('/booking');
+      router.push("/booking");
     }
   }, [router]);
 
   const handleStripePayment = async () => {
-
     if (!bookingData) return;
 
     setIsProcessing(true);
@@ -54,11 +54,13 @@ export default function BookingSummaryPage() {
       } else {
         throw new Error("Nie można uzyskać URL sesji płatności");
       }
-
     } catch (error) {
-      console.error('Błąd podczas inicjowania płatności:', error);
+      console.error("Błąd podczas inicjowania płatności:", error);
       setIsProcessing(false);
-      alert('Wystąpił błąd podczas inicjowania płatności. Spróbuj ponownie: ' + error);
+      alert(
+        "Wystąpił błąd podczas inicjowania płatności. Spróbuj ponownie: " +
+          error,
+      );
     }
   };
 
@@ -78,19 +80,21 @@ export default function BookingSummaryPage() {
   const totalGuests = orders.reduce((sum, item) => sum + item.guests, 0);
   const totalExtraBeds = orders.reduce((sum, item) => sum + item.extraBeds, 0);
   const totalPrice = orders.reduce((sum, item) => sum + item.price, 0);
-  const orderDisplayName = orders.length === 1
-    ? orders[0].displayName
-    : `${orders.length} obiekty: ${orders.map((item) => item.displayName).join(', ')}`;
+  const orderDisplayName =
+    orders.length === 1
+      ? orders[0].displayName
+      : `${orders.length} obiekty: ${orders.map((item) => item.displayName).join(", ")}`;
   const hasInvoiceData = Boolean(
     invoiceData.companyName ||
-    invoiceData.nip ||
-    invoiceData.street ||
-    invoiceData.city ||
-    invoiceData.postalCode
+      invoiceData.nip ||
+      invoiceData.street ||
+      invoiceData.city ||
+      invoiceData.postalCode,
   );
 
   const nights = Math.ceil(
-    (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
+    (new Date(endDate).getTime() - new Date(startDate).getTime()) /
+      (1000 * 60 * 60 * 24),
   );
 
   return (
@@ -108,7 +112,8 @@ export default function BookingSummaryPage() {
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Termin:</span>
             <span className={styles.summaryValue}>
-              {formatDisplayDate(startDate)} — {formatDisplayDate(endDate)} ({nights} nocy)
+              {formatDisplayDate(startDate)} — {formatDisplayDate(endDate)} (
+              {nights} nocy)
             </span>
           </div>
           <div className={styles.summaryItem}>
@@ -130,7 +135,9 @@ export default function BookingSummaryPage() {
         <div className={styles.summaryGrid}>
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Imię i nazwisko:</span>
-            <span className={styles.summaryValue}>{clientData.firstName} {clientData.lastName}</span>
+            <span className={styles.summaryValue}>
+              {clientData.firstName} {clientData.lastName}
+            </span>
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Adres:</span>
@@ -153,7 +160,9 @@ export default function BookingSummaryPage() {
           <div className={styles.summaryGrid}>
             <div className={styles.summaryItem}>
               <span className={styles.summaryLabel}>Nazwa firmy:</span>
-              <span className={styles.summaryValue}>{invoiceData.companyName}</span>
+              <span className={styles.summaryValue}>
+                {invoiceData.companyName}
+              </span>
             </div>
             <div className={styles.summaryItem}>
               <span className={styles.summaryLabel}>NIP:</span>
@@ -162,7 +171,8 @@ export default function BookingSummaryPage() {
             <div className={styles.summaryItem}>
               <span className={styles.summaryLabel}>Adres:</span>
               <span className={styles.summaryValue}>
-                {invoiceData.street}, {invoiceData.postalCode} {invoiceData.city}
+                {invoiceData.street}, {invoiceData.postalCode}{" "}
+                {invoiceData.city}
               </span>
             </div>
           </div>
@@ -177,16 +187,14 @@ export default function BookingSummaryPage() {
       </div>
 
       <div className={styles.actions}>
-        <Link href="/booking/details" className={styles.btnBack}>
+        <Button href="/booking/details" variant="secondary">
           ← Edytuj dane
-        </Link>
-        <button
-          onClick={handleStripePayment}
-          className={styles.btnConfirm}
-          disabled={isProcessing}
-        >
-          {isProcessing ? 'Przekierowywanie do płatności...' : 'Przejdź do płatności →'}
-        </button>
+        </Button>
+        <Button onClick={handleStripePayment} disabled={isProcessing}>
+          {isProcessing
+            ? "Przekierowywanie do płatności..."
+            : "Przejdź do płatności →"}
+        </Button>
       </div>
     </div>
   );

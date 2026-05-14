@@ -1,204 +1,184 @@
 .wrapper {
-    background-color: #0f1115;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
+  background-color: #0f1115;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
 }
 
 .devContainer {
-    background-color: #1a1d23;
-    width: 100%;
-    max-width: 1100px;
-    min-height: 85vh;
-    border-radius: 12px;
-    border: 1px solid #2d333b;
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    color: #adbac7;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    margin: 10px 0;
+  background-color: #1a1d23;
+  width: 100%;
+  max-width: 1100px;
+  min-height: 85vh;
+  border-radius: 12px;
+  border: 1px solid #2d333b;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  color: #adbac7;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  margin: 10px 0;
 }
 
 .header {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #2d333b;
-    padding-bottom: 15px;
-    margin-bottom: 20px;
-    gap: 10px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #2d333b;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+  gap: 10px;
 }
 
 .header h1 {
-    margin: 0;
-    font-size: 1.2rem;
-    color: #539bf5;
+  margin: 0;
+  font-size: 1.2rem;
+  color: #539bf5;
 }
 
 .status {
-    background: #22272e;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.7rem;
-    border: 1px solid #444c56;
-    white-space: nowrap;
+  background: #22272e;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  border: 1px solid #444c56;
+  white-space: nowrap;
 }
 
 .grid {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 20px;
-    flex-grow: 1;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+  flex-grow: 1;
 }
 
 .actions {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
-.actions h3, .console h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 1rem;
-    color: #cdd9e5;
+.actions h3,
+.console h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1rem;
+  color: #cdd9e5;
 }
 
 .buttonGroup {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .btnPrimary {
-    background-color: #347d39;
-    color: white;
-    border: none;
-    padding: 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: 0.2s;
-    font-size: 0.9rem;
-    text-align: left;
-}
-
-.btnPrimary:hover {
-    background-color: #2c6830;
+  --button-bg: #347d39;
+  --button-color: #ffffff;
+  --button-hover-bg: #2c6830;
+  font-size: 0.9rem;
+  justify-content: flex-start;
+  border-radius: 6px;
 }
 
 .btnSecondary {
-    background-color: #2d333b;
-    color: #cdd9e5;
-    border: 1px solid #444c56;
-    padding: 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: 0.2s;
-    font-size: 0.85rem;
-    text-align: left;
-}
-
-.btnSecondary:hover {
-    background-color: #373e47;
-    border-color: #539bf5;
-    color: #ffffff;
+  --button-bg: #2d333b;
+  --button-border: #444c56;
+  --button-color: #cdd9e5;
+  --button-hover-bg: #373e47;
+  --button-hover-border: #539bf5;
+  --button-hover-color: #ffffff;
+  font-size: 0.85rem;
+  justify-content: flex-start;
+  border-radius: 6px;
 }
 
 .btnDanger {
-    background-color: #ae2c2c;
-    color: white;
-    border: none;
-    padding: 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: 0.2s;
-    font-size: 0.9rem;
-    text-align: left;
-    font-weight: 600;
-}
-
-.btnDanger:hover {
-    background-color: #912525;
+  --button-bg: #ae2c2c;
+  --button-color: #ffffff;
+  --button-hover-bg: #912525;
+  font-size: 0.9rem;
+  justify-content: flex-start;
+  border-radius: 6px;
 }
 
 .divider {
-    border: 0;
-    border-top: 1px solid #2d333b;
-    margin: 10px 0;
+  border: 0;
+  border-top: 1px solid #2d333b;
+  margin: 10px 0;
 }
 
 .console {
-    display: flex;
-    flex-direction: column;
-    min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  min-height: 300px;
 }
 
 .logWindow {
-    background-color: #0d1117;
-    flex-grow: 1;
-    border-radius: 8px;
-    padding: 12px;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 0.85rem;
-    overflow-y: auto;
-    border: 1px solid #2d333b;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+  background-color: #0d1117;
+  flex-grow: 1;
+  border-radius: 8px;
+  padding: 12px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.85rem;
+  overflow-y: auto;
+  border: 1px solid #2d333b;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .empty {
-    color: #444c56;
-    font-style: italic;
-    text-align: center;
-    margin-top: 20px;
+  color: #444c56;
+  font-style: italic;
+  text-align: center;
+  margin-top: 20px;
 }
 
 .logEntry {
-    color: #cdd9e5;
-    word-break: break-all;
-    padding: 4px 0;
-    border-bottom: 1px solid #161b22;
+  color: #cdd9e5;
+  word-break: break-all;
+  padding: 4px 0;
+  border-bottom: 1px solid #161b22;
 }
 
 .logEntry:last-child {
-    border-bottom: none;
-    color: #ffffff;
-    font-weight: 500;
+  border-bottom: none;
+  color: #ffffff;
+  font-weight: 500;
 }
 
 @media (max-width: 768px) {
-    .wrapper {
-        padding: 0;
-        align-items: flex-start;
-    }
+  .wrapper {
+    padding: 0;
+    align-items: flex-start;
+  }
 
-    .devContainer {
-        border-radius: 0;
-        border: none;
-        min-height: 100vh;
-        margin: 0;
-        padding: 15px;
-    }
+  .devContainer {
+    border-radius: 0;
+    border: none;
+    min-height: 100vh;
+    margin: 0;
+    padding: 15px;
+  }
 
-    .grid {
-        grid-template-columns: 1fr;
-    }
+  .grid {
+    grid-template-columns: 1fr;
+  }
 
-    .header h1 {
-        font-size: 1.1rem;
-    }
+  .header h1 {
+    font-size: 1.1rem;
+  }
 
-    .logWindow {
-        max-height: 40vh;
-    }
-    
-    .btnPrimary, .btnSecondary, .btnDanger {
-        text-align: center;
-    }
+  .logWindow {
+    max-height: 40vh;
+  }
+
+  .btnPrimary,
+  .btnSecondary,
+  .btnDanger {
+    justify-content: center;
+  }
 }

@@ -1,80 +1,87 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import dayjs from "dayjs";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "react-hot-toast";
 import {
+  deleteCustomPricesForDate,
+  getCustomPrices,
+  updateCustompriceForDate,
+} from "@/actions/priceConfigActions";
+import {
+  copyPricesToAllProperties,
+  getPricesForProperty,
   updateBasicPrices,
   updateSeasonPricesForProperty,
-  getPricesForProperty,
-  copyPricesToAllProperties,
-} from '@/actions/seasonActions'
-import {
-  updateCustompriceForDate,
-  getCustomPrices,
-  deleteCustomPricesForDate,
-} from '@/actions/priceConfigActions'
-import CalendarPicker, { DatesData } from '@/app/_components/CalendarPicker/CalendarPicker'
-import dayjs from 'dayjs'
-import Modal from '@/app/_components/Modal/Modal'
-import { formatDisplayDate } from '@/utils/formatDate'
-import { toast } from 'react-hot-toast'
-import Link from 'next/link'
-import styles from './PriceSettingsForm.module.css'
+} from "@/actions/seasonActions";
+import Button from "@/app/_components/UI/Button/Button";
+import CalendarPicker, {
+  type DatesData,
+} from "@/app/_components/CalendarPicker/CalendarPicker";
+import Modal from "@/app/_components/Modal/Modal";
+import { formatDisplayDate } from "@/utils/formatDate";
+import styles from "./PriceSettingsForm.module.css";
 
 interface PropertyOption {
-  _id: string
-  name: string
-  maxAdults: number
-  maxExtraBeds: number
+  _id: string;
+  name: string;
+  maxAdults: number;
+  maxExtraBeds: number;
 }
 
 interface PriceTier {
-  minGuests: number
-  maxGuests: number
-  price: number
+  minGuests: number;
+  maxGuests: number;
+  price: number;
 }
 
 interface BookingDates {
-  start: string | null
-  end: string | null
-  count: number
+  start: string | null;
+  end: string | null;
+  count: number;
 }
 
 interface CustomPriceEntry {
-  date: string
-  prices: PriceTier[]
-  previewPrice: number
-  propertyId: string
-  extraBedPrice?: number
+  date: string;
+  prices: PriceTier[];
+  previewPrice: number;
+  propertyId: string;
+  extraBedPrice?: number;
 }
 
 interface Season {
-  _id: string
-  name: string
-  description?: string
-  startDate: Date
-  endDate: Date
-  isActive: boolean
-  order: number
+  _id: string;
+  name: string;
+  description?: string;
+  startDate: Date;
+  endDate: Date;
+  isActive: boolean;
+  order: number;
 }
 
 interface Props {
-  properties: PropertyOption[]
-  childrenFreeAgeLimit: number
-  seasons: Season[]
+  properties: PropertyOption[];
+  childrenFreeAgeLimit: number;
+  seasons: Season[];
 }
 
-const OFF_SEASON_ID = 'off-season'
-const DEFAULT_CUSTOM_TIERS: InputPriceTier[] = [{ minGuests: 1, maxGuests: 2, price: 350 }]
-const DEFAULT_CUSTOM_EXTRA_BED_PRICE = 100
+const OFF_SEASON_ID = "off-season";
+const DEFAULT_CUSTOM_TIERS: InputPriceTier[] = [
+  { minGuests: 1, maxGuests: 2, price: 350 },
+];
+const DEFAULT_CUSTOM_EXTRA_BED_PRICE = 100;
 
 type InputPriceTier = {
-  minGuests: number | ""
-  maxGuests: number | ""
-  price: number | ""
-}
+  minGuests: number | "";
+  maxGuests: number | "";
+  price: number | "";
+};
 
 function hasEmptyTierFields(tiers: InputPriceTier[]): boolean {
-  return tiers.some((t) => t.minGuests === "" || t.maxGuests === "" || t.price === "")
+  return tiers.some(
+    (t) => t.minGuests === "" || t.maxGuests === "" || t.price === "",
+  );
 }
 
 function toNumberTiers(tiers: InputPriceTier[]): PriceTier[] {
@@ -82,43 +89,43 @@ function toNumberTiers(tiers: InputPriceTier[]): PriceTier[] {
     minGuests: t.minGuests as number,
     maxGuests: t.maxGuests as number,
     price: t.price as number,
-  }))
+  }));
 }
 
-type TierField = keyof PriceTier
+type TierField = keyof PriceTier;
 
 interface TierValidationError {
-  index: number
-  fields: TierField[]
-  message: string
+  index: number;
+  fields: TierField[];
+  message: string;
 }
 
 function normalizeAndValidateTiers(
   tiers: PriceTier[],
-  label: 'weekday' | 'weekend' | 'custom'
+  label: "weekday" | "weekend" | "custom",
 ): {
-  isValid: boolean
-  sorted: PriceTier[]
-  message?: string
-  errors?: TierValidationError[]
+  isValid: boolean;
+  sorted: PriceTier[];
+  message?: string;
+  errors?: TierValidationError[];
 } {
   if (tiers.length === 0) {
     return {
       isValid: false,
       sorted: [],
       message:
-        label === 'weekday'
-          ? 'Dodaj przynajmniej jeden przedzial dla dni powszednich.'
-          : label === 'weekend'
-            ? 'Dodaj przynajmniej jeden przedzial dla weekendu.'
-            : 'Dodaj przynajmniej jeden przedział dla cen indywidualnych.',
-    }
+        label === "weekday"
+          ? "Dodaj przynajmniej jeden przedzial dla dni powszednich."
+          : label === "weekend"
+            ? "Dodaj przynajmniej jeden przedzial dla weekendu."
+            : "Dodaj przynajmniej jeden przedział dla cen indywidualnych.",
+    };
   }
 
-  const sorted = [...tiers].sort((a, b) => a.minGuests - b.minGuests)
+  const sorted = [...tiers].sort((a, b) => a.minGuests - b.minGuests);
 
   for (let i = 0; i < sorted.length; i += 1) {
-    const tier = sorted[i]
+    const tier = sorted[i];
 
     if (
       !Number.isInteger(tier.minGuests) ||
@@ -128,30 +135,30 @@ function normalizeAndValidateTiers(
       return {
         isValid: false,
         sorted,
-        message: 'Wszystkie pola przedzialow musza byc liczbami calkowitymi.',
+        message: "Wszystkie pola przedzialow musza byc liczbami calkowitymi.",
         errors: [
           {
             index: i,
-            fields: ['minGuests', 'maxGuests', 'price'],
-            message: 'Wszystkie pola musza byc liczbami calkowitymi.',
+            fields: ["minGuests", "maxGuests", "price"],
+            message: "Wszystkie pola musza byc liczbami calkowitymi.",
           },
         ],
-      }
+      };
     }
 
     if (tier.minGuests < 1 || tier.maxGuests < 1) {
       return {
         isValid: false,
         sorted,
-        message: 'Zakres gosci musi zaczynac sie od co najmniej 1 osoby.',
+        message: "Zakres gosci musi zaczynac sie od co najmniej 1 osoby.",
         errors: [
           {
             index: i,
-            fields: ['minGuests', 'maxGuests'],
-            message: 'Pole Od i Do musi miec wartosc co najmniej 1.',
+            fields: ["minGuests", "maxGuests"],
+            message: "Pole Od i Do musi miec wartosc co najmniej 1.",
           },
         ],
-      }
+      };
     }
 
     if (tier.minGuests > tier.maxGuests) {
@@ -162,30 +169,30 @@ function normalizeAndValidateTiers(
         errors: [
           {
             index: i,
-            fields: ['minGuests', 'maxGuests'],
-            message: 'Wartosc Od nie moze byc wieksza niz Do.',
+            fields: ["minGuests", "maxGuests"],
+            message: "Wartosc Od nie moze byc wieksza niz Do.",
           },
         ],
-      }
+      };
     }
 
     if (tier.price < 0) {
       return {
         isValid: false,
         sorted,
-        message: 'Cena nie moze byc ujemna.',
+        message: "Cena nie moze byc ujemna.",
         errors: [
           {
             index: i,
-            fields: ['price'],
-            message: 'Cena nie moze byc ujemna.',
+            fields: ["price"],
+            message: "Cena nie moze byc ujemna.",
           },
         ],
-      }
+      };
     }
 
     if (i > 0) {
-      const prev = sorted[i - 1]
+      const prev = sorted[i - 1];
       if (tier.minGuests <= prev.maxGuests) {
         return {
           isValid: false,
@@ -194,21 +201,21 @@ function normalizeAndValidateTiers(
           errors: [
             {
               index: i - 1,
-              fields: ['maxGuests'],
-              message: 'Ten zakres nachodzi na kolejny przedzial.',
+              fields: ["maxGuests"],
+              message: "Ten zakres nachodzi na kolejny przedzial.",
             },
             {
               index: i,
-              fields: ['minGuests'],
-              message: 'Ten zakres nachodzi na poprzedni przedzial.',
+              fields: ["minGuests"],
+              message: "Ten zakres nachodzi na poprzedni przedzial.",
             },
           ],
-        }
+        };
       }
     }
   }
 
-  return { isValid: true, sorted }
+  return { isValid: true, sorted };
 }
 
 export default function PriceSettingsForm({
@@ -217,603 +224,678 @@ export default function PriceSettingsForm({
   seasons,
 }: Props) {
   // ── Selekcja ────────────────────────────────────────────────────────────────
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string>('')
-  const [selectedSeasonId, setSelectedSeasonId] = useState<string>(OFF_SEASON_ID)
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>("");
+  const [selectedSeasonId, setSelectedSeasonId] =
+    useState<string>(OFF_SEASON_ID);
 
   // ── Formularz cen ───────────────────────────────────────────────────────────
-  const [weekdayTiers, setWeekdayTiers] = useState<InputPriceTier[]>([])
-  const [weekendTiers, setWeekendTiers] = useState<InputPriceTier[]>([])
-  const [weekdayExtraBedPrice, setWeekdayExtraBedPrice] = useState<number | "">(50)
-  const [weekendExtraBedPrice, setWeekendExtraBedPrice] = useState<number | "">(70)
+  const [weekdayTiers, setWeekdayTiers] = useState<InputPriceTier[]>([]);
+  const [weekendTiers, setWeekendTiers] = useState<InputPriceTier[]>([]);
+  const [weekdayExtraBedPrice, setWeekdayExtraBedPrice] = useState<number | "">(
+    50,
+  );
+  const [weekendExtraBedPrice, setWeekendExtraBedPrice] = useState<number | "">(
+    70,
+  );
 
   // ── Ceny indywidualne (per data) ────────────────────────────────────────────
   const [bookingDates, setBookingDates] = useState<BookingDates>({
     start: null,
     end: null,
     count: 0,
-  })
-  const [customTiers, setCustomTiers] = useState<InputPriceTier[]>([...DEFAULT_CUSTOM_TIERS])
-  const [customPrices, setCustomPrices] = useState<CustomPriceEntry[]>([])
-  const [customExtraBedPrice, setCustomExtraBedPrice] = useState<number | "">(DEFAULT_CUSTOM_EXTRA_BED_PRICE)
-  const [calendarPrices, setCalendarPrices] = useState<Record<string, number>>({})
-  const [isCustomRangeMode, setIsCustomRangeMode] = useState(true)
-  const [customTierErrors, setCustomTierErrors] = useState<TierValidationError[]>([])
+  });
+  const [customTiers, setCustomTiers] = useState<InputPriceTier[]>([
+    ...DEFAULT_CUSTOM_TIERS,
+  ]);
+  const [customPrices, setCustomPrices] = useState<CustomPriceEntry[]>([]);
+  const [customExtraBedPrice, setCustomExtraBedPrice] = useState<number | "">(
+    DEFAULT_CUSTOM_EXTRA_BED_PRICE,
+  );
+  const [calendarPrices, setCalendarPrices] = useState<Record<string, number>>(
+    {},
+  );
+  const [isCustomRangeMode, setIsCustomRangeMode] = useState(true);
+  const [customTierErrors, setCustomTierErrors] = useState<
+    TierValidationError[]
+  >([]);
 
   // ── UI state ─────────────────────────────────────────────────────────────────
-  const [isSaving, setIsSaving] = useState(false)
-  const [isDeletingCustom, setIsDeletingCustom] = useState(false)
-  const [isDiscarding, setIsDiscarding] = useState(false)
-  const [isCopying, setIsCopying] = useState(false)
-  const [copyConfirmOpen, setCopyConfirmOpen] = useState(false)
-  const [isCustomPricesExpanded, setIsCustomPricesExpanded] = useState(false)
-  const [isLoadingPrices, setIsLoadingPrices] = useState(false)
-  const [isLoadingCustomPrices, setIsLoadingCustomPrices] = useState(false)
-  const [isSeasonDirty, setIsSeasonDirty] = useState(false)
-  const [isCustomDirty, setIsCustomDirty] = useState(false)
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeletingCustom, setIsDeletingCustom] = useState(false);
+  const [isDiscarding, setIsDiscarding] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+  const [copyConfirmOpen, setCopyConfirmOpen] = useState(false);
+  const [isCustomPricesExpanded, setIsCustomPricesExpanded] = useState(false);
+  const [isLoadingPrices, setIsLoadingPrices] = useState(false);
+  const [isLoadingCustomPrices, setIsLoadingCustomPrices] = useState(false);
+  const [isSeasonDirty, setIsSeasonDirty] = useState(false);
+  const [isCustomDirty, setIsCustomDirty] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{
-    isOpen: boolean
-    type: 'weekday' | 'weekend' | null
-    index: number | null
-  }>({ isOpen: false, type: null, index: null })
-  const [isRemovingTier, setIsRemovingTier] = useState(false)
+    isOpen: boolean;
+    type: "weekday" | "weekend" | null;
+    index: number | null;
+  }>({ isOpen: false, type: null, index: null });
+  const [isRemovingTier, setIsRemovingTier] = useState(false);
   const [tierErrors, setTierErrors] = useState<{
-    weekday: TierValidationError[]
-    weekend: TierValidationError[]
-  }>({ weekday: [], weekend: [] })
-  const [deleteCustomModal, setDeleteCustomModal] = useState<{ isOpen: boolean; date: string | null }>({ isOpen: false, date: null })
-  const [isDeletingCustomSingle, setIsDeletingCustomSingle] = useState(false)
+    weekday: TierValidationError[];
+    weekend: TierValidationError[];
+  }>({ weekday: [], weekend: [] });
+  const [deleteCustomModal, setDeleteCustomModal] = useState<{
+    isOpen: boolean;
+    date: string | null;
+  }>({ isOpen: false, date: null });
+  const [isDeletingCustomSingle, setIsDeletingCustomSingle] = useState(false);
 
   const loadSeasonPrices = useCallback(async () => {
-    if (!selectedPropertyId) return
+    if (!selectedPropertyId) return;
 
-    setIsLoadingPrices(true)
+    setIsLoadingPrices(true);
     try {
-      const allPrices = await getPricesForProperty(selectedPropertyId)
+      const allPrices = await getPricesForProperty(selectedPropertyId);
 
       const basicPrices = allPrices.find(
-        (p: any) => p.seasonId === null || p.seasonId === undefined
-      )
+        (p: any) => p.seasonId === null || p.seasonId === undefined,
+      );
 
       const seasonMap = new Map<string, any>(
         allPrices
           .filter((p: any) => p.seasonId != null)
-          .map((p: any) => [p.seasonId, p])
-      )
+          .map((p: any) => [p.seasonId, p]),
+      );
 
       if (selectedSeasonId === OFF_SEASON_ID) {
         if (basicPrices) {
-          setWeekdayTiers(basicPrices.weekdayPrices ?? [])
-          setWeekendTiers(basicPrices.weekendPrices ?? [])
-          setWeekdayExtraBedPrice(basicPrices.weekdayExtraBedPrice ?? 50)
-          setWeekendExtraBedPrice(basicPrices.weekendExtraBedPrice ?? 70)
+          setWeekdayTiers(basicPrices.weekdayPrices ?? []);
+          setWeekendTiers(basicPrices.weekendPrices ?? []);
+          setWeekdayExtraBedPrice(basicPrices.weekdayExtraBedPrice ?? 50);
+          setWeekendExtraBedPrice(basicPrices.weekendExtraBedPrice ?? 70);
         } else {
-          setWeekdayTiers([{ minGuests: 1, maxGuests: 3, price: 300 }])
-          setWeekendTiers([{ minGuests: 1, maxGuests: 3, price: 400 }])
-          setWeekdayExtraBedPrice(50)
-          setWeekendExtraBedPrice(70)
+          setWeekdayTiers([{ minGuests: 1, maxGuests: 3, price: 300 }]);
+          setWeekendTiers([{ minGuests: 1, maxGuests: 3, price: 400 }]);
+          setWeekdayExtraBedPrice(50);
+          setWeekendExtraBedPrice(70);
         }
       } else {
-        const seasonPrices = seasonMap.get(selectedSeasonId)
+        const seasonPrices = seasonMap.get(selectedSeasonId);
         if (seasonPrices) {
-          setWeekdayTiers(seasonPrices.weekdayPrices ?? [])
-          setWeekendTiers(seasonPrices.weekendPrices ?? [])
-          setWeekdayExtraBedPrice(seasonPrices.weekdayExtraBedPrice ?? 50)
-          setWeekendExtraBedPrice(seasonPrices.weekendExtraBedPrice ?? 70)
+          setWeekdayTiers(seasonPrices.weekdayPrices ?? []);
+          setWeekendTiers(seasonPrices.weekendPrices ?? []);
+          setWeekdayExtraBedPrice(seasonPrices.weekdayExtraBedPrice ?? 50);
+          setWeekendExtraBedPrice(seasonPrices.weekendExtraBedPrice ?? 70);
         } else {
-          setWeekdayTiers([{ minGuests: 1, maxGuests: 3, price: 300 }])
-          setWeekendTiers([{ minGuests: 1, maxGuests: 3, price: 400 }])
-          setWeekdayExtraBedPrice(50)
-          setWeekendExtraBedPrice(70)
+          setWeekdayTiers([{ minGuests: 1, maxGuests: 3, price: 300 }]);
+          setWeekendTiers([{ minGuests: 1, maxGuests: 3, price: 400 }]);
+          setWeekdayExtraBedPrice(50);
+          setWeekendExtraBedPrice(70);
         }
       }
-      setTierErrors({ weekday: [], weekend: [] })
-      setIsSeasonDirty(false)
+      setTierErrors({ weekday: [], weekend: [] });
+      setIsSeasonDirty(false);
     } catch (err) {
-      console.error('Błąd ładowania cen:', err)
-      toast.error('Nie udało się załadować cen')
+      console.error("Błąd ładowania cen:", err);
+      toast.error("Nie udało się załadować cen");
     } finally {
-      setIsLoadingPrices(false)
+      setIsLoadingPrices(false);
     }
-  }, [selectedPropertyId, selectedSeasonId])
+  }, [selectedPropertyId, selectedSeasonId]);
 
   useEffect(() => {
-    loadSeasonPrices()
-  }, [loadSeasonPrices])
+    loadSeasonPrices();
+  }, [loadSeasonPrices]);
 
   useEffect(() => {
-    if (!selectedPropertyId) return
+    if (!selectedPropertyId) return;
 
     const loadCustomPrices = async () => {
-      setIsLoadingCustomPrices(true)
+      setIsLoadingCustomPrices(true);
       try {
-        const prices = await getCustomPrices(selectedPropertyId)
-        setCustomPrices(prices)
-        setIsCustomDirty(false)
-        const priceMap: Record<string, number> = {}
+        const prices = await getCustomPrices(selectedPropertyId);
+        setCustomPrices(prices);
+        setIsCustomDirty(false);
+        const priceMap: Record<string, number> = {};
         prices.forEach((p) => {
-          priceMap[p.date] = p.previewPrice
-        })
-        setCalendarPrices(priceMap)
+          priceMap[p.date] = p.previewPrice;
+        });
+        setCalendarPrices(priceMap);
       } finally {
-        setIsLoadingCustomPrices(false)
+        setIsLoadingCustomPrices(false);
       }
-    }
-    loadCustomPrices()
-  }, [selectedPropertyId])
+    };
+    loadCustomPrices();
+  }, [selectedPropertyId]);
 
   const calendarDates = useMemo(() => {
-    const dates: DatesData = {}
+    const dates: DatesData = {};
     Object.entries(calendarPrices).forEach(([date, price]) => {
-      dates[date] = { price, available: true }
-    })
-    return dates
-  }, [calendarPrices])
+      dates[date] = { price, available: true };
+    });
+    return dates;
+  }, [calendarPrices]);
 
   const handleBaseRateChange = (
-    type: 'weekday' | 'weekend',
+    type: "weekday" | "weekend",
     index: number,
     field: keyof PriceTier,
-    value: number | ""
+    value: number | "",
   ) => {
-    const setter = type === 'weekend' ? setWeekendTiers : setWeekdayTiers
-    setIsSeasonDirty(true)
-    setTierErrors((prev) => ({ ...prev, [type]: [] }))
+    const setter = type === "weekend" ? setWeekendTiers : setWeekdayTiers;
+    setIsSeasonDirty(true);
+    setTierErrors((prev) => ({ ...prev, [type]: [] }));
     setter((prev) => {
-      const updated = [...prev]
-      updated[index] = { ...updated[index], [field]: value }
-      return updated
-    })
-  }
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
 
-  const addTier = (type: 'weekday' | 'weekend') => {
-    const tiers = type === 'weekend' ? weekendTiers : weekdayTiers
-    const setter = type === 'weekend' ? setWeekendTiers : setWeekdayTiers
+  const addTier = (type: "weekday" | "weekend") => {
+    const tiers = type === "weekend" ? weekendTiers : weekdayTiers;
+    const setter = type === "weekend" ? setWeekendTiers : setWeekdayTiers;
 
-    setIsSeasonDirty(true)
+    setIsSeasonDirty(true);
     if (tiers.length === 0) {
-      setTierErrors((prev) => ({ ...prev, [type]: [] }))
-      setter([{ minGuests: 1, maxGuests: 3, price: type === 'weekend' ? 400 : 300 }])
-      return
+      setTierErrors((prev) => ({ ...prev, [type]: [] }));
+      setter([
+        { minGuests: 1, maxGuests: 3, price: type === "weekend" ? 400 : 300 },
+      ]);
+      return;
     }
 
-    const last = tiers[tiers.length - 1]
-    if (last.maxGuests === "" || last.price === "") return
-    setTierErrors((prev) => ({ ...prev, [type]: [] }))
+    const last = tiers[tiers.length - 1];
+    if (last.maxGuests === "" || last.price === "") return;
+    setTierErrors((prev) => ({ ...prev, [type]: [] }));
     setter((prev) => [
       ...prev,
-      { minGuests: (last.maxGuests as number) + 1, maxGuests: (last.maxGuests as number) + 2, price: (last.price as number) + 100 },
-    ])
-  }
+      {
+        minGuests: (last.maxGuests as number) + 1,
+        maxGuests: (last.maxGuests as number) + 2,
+        price: (last.price as number) + 100,
+      },
+    ]);
+  };
 
-  const requestRemoveTier = (type: 'weekday' | 'weekend', index: number) => {
-    setDeleteModal({ isOpen: true, type, index })
-  }
+  const requestRemoveTier = (type: "weekday" | "weekend", index: number) => {
+    setDeleteModal({ isOpen: true, type, index });
+  };
 
   const confirmRemoveTier = async () => {
-    if (!deleteModal.type || deleteModal.index === null) return
+    if (!deleteModal.type || deleteModal.index === null) return;
 
-    const removeType = deleteModal.type
-    const removeIndex = deleteModal.index
+    const removeType = deleteModal.type;
+    const removeIndex = deleteModal.index;
 
     const nextWeekdayTiers =
-      removeType === 'weekday'
+      removeType === "weekday"
         ? weekdayTiers.filter((_, i) => i !== removeIndex)
-        : weekdayTiers
+        : weekdayTiers;
     const nextWeekendTiers =
-      removeType === 'weekend'
+      removeType === "weekend"
         ? weekendTiers.filter((_, i) => i !== removeIndex)
-        : weekendTiers
+        : weekendTiers;
 
-    setIsRemovingTier(true)
-    setTierErrors((prev) => ({ ...prev, [removeType]: [] }))
+    setIsRemovingTier(true);
+    setTierErrors((prev) => ({ ...prev, [removeType]: [] }));
 
     try {
       const saved = await handleSavePrices({
         weekdayTiersOverride: nextWeekdayTiers,
         weekendTiersOverride: nextWeekendTiers,
-      })
+      });
       if (saved) {
-        setDeleteModal({ isOpen: false, type: null, index: null })
+        setDeleteModal({ isOpen: false, type: null, index: null });
       }
     } finally {
-      setIsRemovingTier(false)
+      setIsRemovingTier(false);
     }
-  }
+  };
 
-  const getTierError = (type: 'weekday' | 'weekend', index: number) =>
-    tierErrors[type].find((error) => error.index === index)
+  const getTierError = (type: "weekday" | "weekend", index: number) =>
+    tierErrors[type].find((error) => error.index === index);
 
   const handleSavePrices = async (overrides?: {
-    weekdayTiersOverride?: InputPriceTier[]
-    weekendTiersOverride?: InputPriceTier[]
+    weekdayTiersOverride?: InputPriceTier[];
+    weekendTiersOverride?: InputPriceTier[];
   }): Promise<boolean> => {
     if (!selectedPropertyId) {
-      toast.error('Wybierz obiekt')
-      return false
+      toast.error("Wybierz obiekt");
+      return false;
     }
 
     const weekdayInputTiers =
       overrides && overrides.weekdayTiersOverride
         ? overrides.weekdayTiersOverride
-        : weekdayTiers
+        : weekdayTiers;
     const weekendInputTiers =
       overrides && overrides.weekendTiersOverride
         ? overrides.weekendTiersOverride
-        : weekendTiers
+        : weekendTiers;
 
     if (hasEmptyTierFields(weekdayInputTiers)) {
-      toast.error('Uzupełnij wszystkie pola w przedziale cenowym (dzień powszedni).')
-      return false
+      toast.error(
+        "Uzupełnij wszystkie pola w przedziale cenowym (dzień powszedni).",
+      );
+      return false;
     }
     if (hasEmptyTierFields(weekendInputTiers)) {
-      toast.error('Uzupełnij wszystkie pola w przedziale cenowym (weekend).')
-      return false
+      toast.error("Uzupełnij wszystkie pola w przedziale cenowym (weekend).");
+      return false;
     }
     if (weekdayExtraBedPrice === "") {
-      toast.error('Cena za dostawkę (dzień powszedni) nie może być pusta.')
-      return false
+      toast.error("Cena za dostawkę (dzień powszedni) nie może być pusta.");
+      return false;
     }
     if (weekendExtraBedPrice === "") {
-      toast.error('Cena za dostawkę (weekend) nie może być pusta.')
-      return false
+      toast.error("Cena za dostawkę (weekend) nie może być pusta.");
+      return false;
     }
 
-    const weekdayTiersToSave = toNumberTiers(weekdayInputTiers)
-    const weekendTiersToSave = toNumberTiers(weekendInputTiers)
+    const weekdayTiersToSave = toNumberTiers(weekdayInputTiers);
+    const weekendTiersToSave = toNumberTiers(weekendInputTiers);
 
-    const weekdayValidation = normalizeAndValidateTiers(weekdayTiersToSave, 'weekday')
+    const weekdayValidation = normalizeAndValidateTiers(
+      weekdayTiersToSave,
+      "weekday",
+    );
     if (!weekdayValidation.isValid) {
-      setWeekdayTiers(weekdayValidation.sorted)
+      setWeekdayTiers(weekdayValidation.sorted);
       setTierErrors((prev) => ({
         ...prev,
         weekday: weekdayValidation.errors ?? [],
-      }))
-      toast.error(weekdayValidation.message ?? 'Nieprawidlowe przedzialy dla dni powszednich.')
-      return false
+      }));
+      toast.error(
+        weekdayValidation.message ??
+          "Nieprawidlowe przedzialy dla dni powszednich.",
+      );
+      return false;
     }
-    setTierErrors((prev) => ({ ...prev, weekday: [] }))
+    setTierErrors((prev) => ({ ...prev, weekday: [] }));
 
-    const weekendValidation = normalizeAndValidateTiers(weekendTiersToSave, 'weekend')
+    const weekendValidation = normalizeAndValidateTiers(
+      weekendTiersToSave,
+      "weekend",
+    );
     if (!weekendValidation.isValid) {
-      setWeekendTiers(weekendValidation.sorted)
+      setWeekendTiers(weekendValidation.sorted);
       setTierErrors((prev) => ({
         ...prev,
         weekend: weekendValidation.errors ?? [],
-      }))
-      toast.error(weekendValidation.message ?? 'Nieprawidlowe przedzialy dla weekendu.')
-      return false
+      }));
+      toast.error(
+        weekendValidation.message ?? "Nieprawidlowe przedzialy dla weekendu.",
+      );
+      return false;
     }
-    setTierErrors((prev) => ({ ...prev, weekend: [] }))
+    setTierErrors((prev) => ({ ...prev, weekend: [] }));
 
-    setWeekdayTiers(weekdayValidation.sorted)
-    setWeekendTiers(weekendValidation.sorted)
+    setWeekdayTiers(weekdayValidation.sorted);
+    setWeekendTiers(weekendValidation.sorted);
 
-    setIsSaving(true)
+    setIsSaving(true);
     try {
-      const formData = new FormData()
-      formData.append('propertyId', selectedPropertyId)
-      formData.append('weekdayTiers', JSON.stringify(weekdayValidation.sorted))
-      formData.append('weekendTiers', JSON.stringify(weekendValidation.sorted))
-      formData.append('weekdayExtraBedPrice', (weekdayExtraBedPrice as number).toString())
-      formData.append('weekendExtraBedPrice', (weekendExtraBedPrice as number).toString())
+      const formData = new FormData();
+      formData.append("propertyId", selectedPropertyId);
+      formData.append("weekdayTiers", JSON.stringify(weekdayValidation.sorted));
+      formData.append("weekendTiers", JSON.stringify(weekendValidation.sorted));
+      formData.append(
+        "weekdayExtraBedPrice",
+        (weekdayExtraBedPrice as number).toString(),
+      );
+      formData.append(
+        "weekendExtraBedPrice",
+        (weekendExtraBedPrice as number).toString(),
+      );
 
       if (selectedSeasonId === OFF_SEASON_ID) {
-        formData.append('mode', 'basic')
-        const result = await updateBasicPrices(null, formData)
+        formData.append("mode", "basic");
+        const result = await updateBasicPrices(null, formData);
         if (result.success) {
-          toast.success('Zapisano ceny podstawowe')
-          setIsSeasonDirty(false)
+          toast.success("Zapisano ceny podstawowe");
+          setIsSeasonDirty(false);
         } else {
-          toast.error(result.message)
-          return false
+          toast.error(result.message);
+          return false;
         }
       } else {
-        formData.append('mode', 'season')
-        formData.append('seasonId', selectedSeasonId)
-        const result = await updateSeasonPricesForProperty(null, formData)
+        formData.append("mode", "season");
+        formData.append("seasonId", selectedSeasonId);
+        const result = await updateSeasonPricesForProperty(null, formData);
         if (result.success) {
-          const season = seasons.find((s) => s._id === selectedSeasonId)
-          toast.success(`Zapisano ceny dla: ${season?.name ?? 'sezonu'}`)
-          setIsSeasonDirty(false)
+          const season = seasons.find((s) => s._id === selectedSeasonId);
+          toast.success(`Zapisano ceny dla: ${season?.name ?? "sezonu"}`);
+          setIsSeasonDirty(false);
         } else {
-          toast.error(result.message)
-          return false
+          toast.error(result.message);
+          return false;
         }
       }
-      return true
+      return true;
     } catch (error) {
-      console.error(error)
-      toast.error('Wystąpił błąd podczas zapisu')
-      return false
+      console.error(error);
+      toast.error("Wystąpił błąd podczas zapisu");
+      return false;
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleDateSelect = useCallback(
     (dates: BookingDates) => {
       setBookingDates((prev) => {
-        if (prev.start === dates.start && prev.end === dates.end) return prev
-        return dates
-      })
-      setIsCustomDirty(false)
+        if (prev.start === dates.start && prev.end === dates.end) return prev;
+        return dates;
+      });
+      setIsCustomDirty(false);
 
       if (dates.start && !dates.end) {
-        const priceEntry = customPrices.find((p) => p.date === dates.start)
+        const priceEntry = customPrices.find((p) => p.date === dates.start);
         if (priceEntry) {
           setCustomTiers(
             priceEntry.prices?.length
               ? priceEntry.prices
-              : [{ minGuests: 1, maxGuests: 2, price: priceEntry.previewPrice || 350 }]
-          )
-          setCustomExtraBedPrice(priceEntry.extraBedPrice ?? DEFAULT_CUSTOM_EXTRA_BED_PRICE)
-          setCustomTierErrors([])
+              : [
+                  {
+                    minGuests: 1,
+                    maxGuests: 2,
+                    price: priceEntry.previewPrice || 350,
+                  },
+                ],
+          );
+          setCustomExtraBedPrice(
+            priceEntry.extraBedPrice ?? DEFAULT_CUSTOM_EXTRA_BED_PRICE,
+          );
+          setCustomTierErrors([]);
         } else {
-          setCustomTiers([...DEFAULT_CUSTOM_TIERS])
-          setCustomExtraBedPrice(DEFAULT_CUSTOM_EXTRA_BED_PRICE)
-          setCustomTierErrors([])
+          setCustomTiers([...DEFAULT_CUSTOM_TIERS]);
+          setCustomExtraBedPrice(DEFAULT_CUSTOM_EXTRA_BED_PRICE);
+          setCustomTierErrors([]);
         }
       }
     },
-    [customPrices]
-  )
+    [customPrices],
+  );
 
   useEffect(() => {
     if (!isCustomRangeMode && bookingDates.start && bookingDates.end) {
-      handleDateSelect({ start: bookingDates.start, end: null, count: 0 })
+      handleDateSelect({ start: bookingDates.start, end: null, count: 0 });
     }
-  }, [isCustomRangeMode, bookingDates.start, bookingDates.end, handleDateSelect])
+  }, [
+    isCustomRangeMode,
+    bookingDates.start,
+    bookingDates.end,
+    handleDateSelect,
+  ]);
 
   const refreshCustomPrices = async () => {
-    const prices = await getCustomPrices(selectedPropertyId)
-    setCustomPrices(prices)
-    const priceMap: Record<string, number> = {}
+    const prices = await getCustomPrices(selectedPropertyId);
+    setCustomPrices(prices);
+    const priceMap: Record<string, number> = {};
     prices.forEach((p) => {
-      priceMap[p.date] = p.previewPrice
-    })
-    setCalendarPrices(priceMap)
-  }
+      priceMap[p.date] = p.previewPrice;
+    });
+    setCalendarPrices(priceMap);
+  };
 
   const handleCustomTierChange = (
     index: number,
     field: keyof PriceTier,
-    value: number | ""
+    value: number | "",
   ) => {
-    setIsCustomDirty(true)
-    setCustomTierErrors([])
+    setIsCustomDirty(true);
+    setCustomTierErrors([]);
     setCustomTiers((prev) => {
-      const updated = [...prev]
-      updated[index] = { ...updated[index], [field]: value }
-      return updated
-    })
-  }
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
 
   const addCustomTier = () => {
-    const tiers = customTiers
-    const fallbackPrice = 350
+    const tiers = customTiers;
+    const fallbackPrice = 350;
 
-    setIsCustomDirty(true)
-    setCustomTierErrors([])
+    setIsCustomDirty(true);
+    setCustomTierErrors([]);
 
     if (tiers.length === 0) {
-      setCustomTiers([{ minGuests: 1, maxGuests: 2, price: fallbackPrice }])
-      return
+      setCustomTiers([{ minGuests: 1, maxGuests: 2, price: fallbackPrice }]);
+      return;
     }
 
-    const last = tiers[tiers.length - 1]
-    if (last.maxGuests === "" || last.price === "") return
+    const last = tiers[tiers.length - 1];
+    if (last.maxGuests === "" || last.price === "") return;
     setCustomTiers((prev) => [
       ...prev,
-      { minGuests: (last.maxGuests as number) + 1, maxGuests: (last.maxGuests as number) + 2, price: last.price },
-    ])
-  }
+      {
+        minGuests: (last.maxGuests as number) + 1,
+        maxGuests: (last.maxGuests as number) + 2,
+        price: last.price,
+      },
+    ]);
+  };
 
   const removeCustomTier = (index: number) => {
-    setIsCustomDirty(true)
-    setCustomTierErrors([])
-    setCustomTiers((prev) => prev.filter((_, i) => i !== index))
-  }
+    setIsCustomDirty(true);
+    setCustomTierErrors([]);
+    setCustomTiers((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const getCustomTierError = (index: number) =>
-    customTierErrors.find((error) => error.index === index)
+    customTierErrors.find((error) => error.index === index);
 
   const buildDateRange = (): string[] => {
-    if (!bookingDates.start) return []
-    const dates: string[] = []
-    const start = dayjs(bookingDates.start)
+    if (!bookingDates.start) return [];
+    const dates: string[] = [];
+    const start = dayjs(bookingDates.start);
     if (bookingDates.end) {
-      const end = dayjs(bookingDates.end)
-      let current = start
-      while (current.isBefore(end) || current.isSame(end, 'day')) {
-        dates.push(current.format('YYYY-MM-DD'))
-        current = current.add(1, 'day')
+      const end = dayjs(bookingDates.end);
+      let current = start;
+      while (current.isBefore(end) || current.isSame(end, "day")) {
+        dates.push(current.format("YYYY-MM-DD"));
+        current = current.add(1, "day");
       }
     } else {
-      dates.push(start.format('YYYY-MM-DD'))
+      dates.push(start.format("YYYY-MM-DD"));
     }
-    return dates
-  }
+    return dates;
+  };
 
   const handleSaveCustomPrice = async (): Promise<boolean> => {
-    if (!selectedPropertyId || !bookingDates.start) return false
+    if (!selectedPropertyId || !bookingDates.start) return false;
 
     if (hasEmptyTierFields(customTiers)) {
-      toast.error('Uzupełnij wszystkie pola w przedziale cenowym.')
-      return false
+      toast.error("Uzupełnij wszystkie pola w przedziale cenowym.");
+      return false;
     }
     if (customExtraBedPrice === "") {
-      toast.error('Cena za dostawkę nie może być pusta.')
-      return false
+      toast.error("Cena za dostawkę nie może być pusta.");
+      return false;
     }
 
-    const customValidation = normalizeAndValidateTiers(toNumberTiers(customTiers), 'custom')
+    const customValidation = normalizeAndValidateTiers(
+      toNumberTiers(customTiers),
+      "custom",
+    );
     if (!customValidation.isValid) {
-      setCustomTiers(customValidation.sorted)
-      setCustomTierErrors(customValidation.errors ?? [])
-      toast.error(customValidation.message ?? 'Nieprawidlowe przedzialy custom dla wybranych dni.')
-      return false
+      setCustomTiers(customValidation.sorted);
+      setCustomTierErrors(customValidation.errors ?? []);
+      toast.error(
+        customValidation.message ??
+          "Nieprawidlowe przedzialy custom dla wybranych dni.",
+      );
+      return false;
     }
 
-    setCustomTierErrors([])
-    setCustomTiers(customValidation.sorted)
+    setCustomTierErrors([]);
+    setCustomTiers(customValidation.sorted);
 
-    setIsSaving(true)
+    setIsSaving(true);
     try {
       const result = await updateCustompriceForDate({
         propertyId: selectedPropertyId,
         dates: buildDateRange(),
         prices: customValidation.sorted,
         extraBedPrice: customExtraBedPrice as number,
-      })
+      });
 
       if (result?.success) {
-        toast.success(result.message)
-        await refreshCustomPrices()
-        setBookingDates({ start: null, end: null, count: 0 })
-        setIsCustomDirty(false)
-        return true
+        toast.success(result.message);
+        await refreshCustomPrices();
+        setBookingDates({ start: null, end: null, count: 0 });
+        setIsCustomDirty(false);
+        return true;
       } else {
-        toast.error(result?.message ?? 'Błąd zapisu')
-        return false
+        toast.error(result?.message ?? "Błąd zapisu");
+        return false;
       }
     } catch (error) {
-      console.error(error)
-      toast.error('Wystąpił błąd')
-      return false
+      console.error(error);
+      toast.error("Wystąpił błąd");
+      return false;
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const resetCustomEditorToCurrentSelection = () => {
     if (!bookingDates.start) {
-      setCustomTiers([...DEFAULT_CUSTOM_TIERS])
-      setCustomExtraBedPrice(DEFAULT_CUSTOM_EXTRA_BED_PRICE)
-      setCustomTierErrors([])
-      return
+      setCustomTiers([...DEFAULT_CUSTOM_TIERS]);
+      setCustomExtraBedPrice(DEFAULT_CUSTOM_EXTRA_BED_PRICE);
+      setCustomTierErrors([]);
+      return;
     }
 
-    const priceEntry = customPrices.find((p) => p.date === bookingDates.start)
+    const priceEntry = customPrices.find((p) => p.date === bookingDates.start);
     if (priceEntry) {
-      setCustomTiers(priceEntry.prices?.length ? priceEntry.prices : [...DEFAULT_CUSTOM_TIERS])
-      setCustomExtraBedPrice(priceEntry.extraBedPrice ?? DEFAULT_CUSTOM_EXTRA_BED_PRICE)
+      setCustomTiers(
+        priceEntry.prices?.length
+          ? priceEntry.prices
+          : [...DEFAULT_CUSTOM_TIERS],
+      );
+      setCustomExtraBedPrice(
+        priceEntry.extraBedPrice ?? DEFAULT_CUSTOM_EXTRA_BED_PRICE,
+      );
     } else {
-      setCustomTiers([...DEFAULT_CUSTOM_TIERS])
-      setCustomExtraBedPrice(DEFAULT_CUSTOM_EXTRA_BED_PRICE)
+      setCustomTiers([...DEFAULT_CUSTOM_TIERS]);
+      setCustomExtraBedPrice(DEFAULT_CUSTOM_EXTRA_BED_PRICE);
     }
-    setCustomTierErrors([])
-  }
+    setCustomTierErrors([]);
+  };
 
   const handleSaveAll = async () => {
-    if (isSaving || isLoadingPrices || isDeletingCustom || isDiscarding) return
+    if (isSaving || isLoadingPrices || isDeletingCustom || isDiscarding) return;
 
-    let seasonSaved = true
-    let customSaved = true
+    let seasonSaved = true;
+    let customSaved = true;
 
     if (isSeasonDirty) {
-      seasonSaved = await handleSavePrices()
+      seasonSaved = await handleSavePrices();
     }
     if (seasonSaved && isCustomDirty) {
-      customSaved = await handleSaveCustomPrice()
+      customSaved = await handleSaveCustomPrice();
     }
 
     if (seasonSaved && customSaved) {
-      setIsSeasonDirty(false)
-      setIsCustomDirty(false)
+      setIsSeasonDirty(false);
+      setIsCustomDirty(false);
     }
-  }
+  };
 
   const handleDiscardAll = async () => {
-    if (isSaving || isLoadingPrices || isDeletingCustom || isDiscarding) return
-    setIsDiscarding(true)
+    if (isSaving || isLoadingPrices || isDeletingCustom || isDiscarding) return;
+    setIsDiscarding(true);
 
     try {
       if (isSeasonDirty) {
-        await loadSeasonPrices()
+        await loadSeasonPrices();
       }
       if (isCustomDirty) {
-        resetCustomEditorToCurrentSelection()
+        resetCustomEditorToCurrentSelection();
       }
-      setIsSeasonDirty(false)
-      setIsCustomDirty(false)
+      setIsSeasonDirty(false);
+      setIsCustomDirty(false);
     } finally {
-      setIsDiscarding(false)
+      setIsDiscarding(false);
     }
-  }
+  };
 
   const handleRemoveCustomPrice = async () => {
-    if (!selectedPropertyId || !bookingDates.start) return
+    if (!selectedPropertyId || !bookingDates.start) return;
 
-    setIsDeletingCustom(true)
+    setIsDeletingCustom(true);
     try {
       const result = await deleteCustomPricesForDate({
         propertyId: selectedPropertyId,
         dates: buildDateRange(),
-      })
+      });
 
       if (result?.success) {
-        toast.success(result.message)
-        await refreshCustomPrices()
-        setBookingDates({ start: null, end: null, count: 0 })
-        setIsCustomDirty(false)
+        toast.success(result.message);
+        await refreshCustomPrices();
+        setBookingDates({ start: null, end: null, count: 0 });
+        setIsCustomDirty(false);
       } else {
-        toast.error(result?.message ?? 'Błąd usuwania')
+        toast.error(result?.message ?? "Błąd usuwania");
       }
     } catch (error) {
-      console.error(error)
-      toast.error('Wystąpił błąd')
+      console.error(error);
+      toast.error("Wystąpił błąd");
     } finally {
-      setIsDeletingCustom(false)
+      setIsDeletingCustom(false);
     }
-  }
+  };
 
   const handleDeleteCustomPriceForDate = async () => {
-    if (!selectedProperty?._id || !deleteCustomModal.date) return
-    setIsDeletingCustomSingle(true)
+    if (!selectedProperty?._id || !deleteCustomModal.date) return;
+    setIsDeletingCustomSingle(true);
     try {
-      const res = await deleteCustomPricesForDate({ propertyId: selectedProperty._id, dates: [deleteCustomModal.date] })
+      const res = await deleteCustomPricesForDate({
+        propertyId: selectedProperty._id,
+        dates: [deleteCustomModal.date],
+      });
       if (res?.success) {
-        toast.success(res.message)
-        await refreshCustomPrices()
+        toast.success(res.message);
+        await refreshCustomPrices();
       } else {
-        toast.error(res?.message ?? 'Błąd podczas usuwania ceny indywidualnej.')
+        toast.error(
+          res?.message ?? "Błąd podczas usuwania ceny indywidualnej.",
+        );
       }
     } catch (e) {
-      toast.error('Błąd podczas usuwania ceny indywidualnej.')
+      toast.error("Błąd podczas usuwania ceny indywidualnej.");
     } finally {
-      setIsDeletingCustomSingle(false)
-      setDeleteCustomModal({ isOpen: false, date: null })
+      setIsDeletingCustomSingle(false);
+      setDeleteCustomModal({ isOpen: false, date: null });
     }
-  }
+  };
 
   const handleCopyPrices = async () => {
-    if (!selectedPropertyId) return
-    setIsCopying(true)
+    if (!selectedPropertyId) return;
+    setIsCopying(true);
     try {
-      const result = await copyPricesToAllProperties(selectedPropertyId)
+      const result = await copyPricesToAllProperties(selectedPropertyId);
       if (result.success) {
-        toast.success(result.message)
-        setCopyConfirmOpen(false)
+        toast.success(result.message);
+        setCopyConfirmOpen(false);
       } else {
-        toast.error(result.message)
+        toast.error(result.message);
       }
     } catch {
-      toast.error('Wystąpił błąd podczas kopiowania cen')
+      toast.error("Wystąpił błąd podczas kopiowania cen");
     } finally {
-      setIsCopying(false)
+      setIsCopying(false);
     }
-  }
+  };
 
   const getDayType = (dateStr: string) => {
-    const day = dayjs(dateStr).day()
-    return day === 0 || day === 6 ? 'weekend' : 'weekday'
-  }
+    const day = dayjs(dateStr).day();
+    return day === 0 || day === 6 ? "weekend" : "weekday";
+  };
 
-  const selectedProperty = properties.find((p) => p._id === selectedPropertyId)
-  const selectedSeason = seasons.find((s) => s._id === selectedSeasonId)
-  const isAnyDirty = isSeasonDirty || isCustomDirty
+  const selectedProperty = properties.find((p) => p._id === selectedPropertyId);
+  const selectedSeason = seasons.find((s) => s._id === selectedSeasonId);
+  const isAnyDirty = isSeasonDirty || isCustomDirty;
   const isPropertyDataLoading =
-    !!selectedPropertyId && (isLoadingPrices || isLoadingCustomPrices)
+    !!selectedPropertyId && (isLoadingPrices || isLoadingCustomPrices);
 
   return (
     <>
@@ -827,19 +909,18 @@ export default function PriceSettingsForm({
         loadingText="Kopiowanie..."
         title="Potwierdź kopiowanie cen"
       >
-        <p style={{ marginBottom: '16px' }}>
-          Czy na pewno chcesz skopiować wszystkie ceny z obiektu <strong>{selectedProperty?.name}</strong> do wszystkich pozostałych obiektów?
+        <p style={{ marginBottom: "16px" }}>
+          Czy na pewno chcesz skopiować wszystkie ceny z obiektu{" "}
+          <strong>{selectedProperty?.name}</strong> do wszystkich pozostałych
+          obiektów?
         </p>
-        <p style={{ color: '#c0392b', fontSize: '0.9rem' }}>
-          Uwaga: istniejące ceny w pozostałych obiektach zostaną nadpisane. Dotyczy to cen:
-          <br />
-          - bazowych,
-          <br />
-          - sezonowych,
-          <br />
-          - indywidualnych,
-          <br />
-          - dostawek.
+        <p style={{ color: "#c0392b", fontSize: "0.9rem" }}>
+          Uwaga: istniejące ceny w pozostałych obiektach zostaną nadpisane.
+          Dotyczy to cen:
+          <br />- bazowych,
+          <br />- sezonowych,
+          <br />- indywidualnych,
+          <br />- dostawek.
         </p>
       </Modal>
 
@@ -858,12 +939,12 @@ export default function PriceSettingsForm({
             <select
               value={selectedPropertyId}
               onChange={(e) => {
-                setIsLoadingPrices(true)
-                setIsLoadingCustomPrices(true)
-                setSelectedPropertyId(e.target.value)
-                setSelectedSeasonId(OFF_SEASON_ID)
-                setIsSeasonDirty(false)
-                setIsCustomDirty(false)
+                setIsLoadingPrices(true);
+                setIsLoadingCustomPrices(true);
+                setSelectedPropertyId(e.target.value);
+                setSelectedSeasonId(OFF_SEASON_ID);
+                setIsSeasonDirty(false);
+                setIsCustomDirty(false);
               }}
               className={styles.select}
             >
@@ -908,10 +989,12 @@ export default function PriceSettingsForm({
                 className={styles.select}
                 disabled={isLoadingPrices}
               >
-                <option value={OFF_SEASON_ID}>🌿 Poza sezonem (ceny bazowe)</option>
+                <option value={OFF_SEASON_ID}>
+                  🌿 Poza sezonem (ceny bazowe)
+                </option>
                 {seasons.map((season) => (
                   <option key={season._id} value={season._id}>
-                    {season.name} {!season.isActive && '(nieaktywny)'}
+                    {season.name} {!season.isActive && "(nieaktywny)"}
                   </option>
                 ))}
               </select>
@@ -925,7 +1008,7 @@ export default function PriceSettingsForm({
             <div className={styles.content}>
               <strong>
                 {isLoadingPrices
-                  ? 'Ładowanie cen...'
+                  ? "Ładowanie cen..."
                   : selectedSeasonId === OFF_SEASON_ID
                     ? `Ceny podstawowe dla: ${selectedProperty?.name}`
                     : `Ceny w sezonie "${selectedSeason?.name}" dla: ${selectedProperty?.name}`}
@@ -945,51 +1028,80 @@ export default function PriceSettingsForm({
             <div className={styles.control}>
               <div className={styles.tiersContainer}>
                 {weekdayTiers.map((tier, index) => {
-                  const tierError = getTierError('weekday', index)
+                  const tierError = getTierError("weekday", index);
                   return (
                     <div key={index} className={styles.tierRowWrapper}>
-                      <div className={`${styles.tierRow} ${tierError ? styles.tierRowError : ''}`}>
+                      <div
+                        className={`${styles.tierRow} ${tierError ? styles.tierRowError : ""}`}
+                      >
                         <label className={styles.tierField}>
                           <span className={styles.tierFieldLabel}>Osób od</span>
-                            <input
-                              type="number"
-                              min="1"
-                              step="1"
-                              value={tier.minGuests}
-                              onChange={e => handleBaseRateChange('weekday', index, 'minGuests', e.target.value === '' ? '' : Number(e.target.value))}
-                              className={`${styles.input} ${tierError?.fields.includes('minGuests') ? styles.inputError : ''}`}
-                              disabled={isLoadingPrices}
-                            />
+                          <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            value={tier.minGuests}
+                            onChange={(e) =>
+                              handleBaseRateChange(
+                                "weekday",
+                                index,
+                                "minGuests",
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                              )
+                            }
+                            className={`${styles.input} ${tierError?.fields.includes("minGuests") ? styles.inputError : ""}`}
+                            disabled={isLoadingPrices}
+                          />
                         </label>
                         <label className={styles.tierField}>
                           <span className={styles.tierFieldLabel}>Osób do</span>
-                            <input
-                              type="number"
-                              min="1"
-                              step="1"
-                              value={tier.maxGuests}
-                              onChange={e => handleBaseRateChange('weekday', index, 'maxGuests', e.target.value === '' ? '' : Number(e.target.value))}
-                              className={`${styles.input} ${tierError?.fields.includes('maxGuests') ? styles.inputError : ''}`}
-                              disabled={isLoadingPrices}
-                            />
+                          <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            value={tier.maxGuests}
+                            onChange={(e) =>
+                              handleBaseRateChange(
+                                "weekday",
+                                index,
+                                "maxGuests",
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                              )
+                            }
+                            className={`${styles.input} ${tierError?.fields.includes("maxGuests") ? styles.inputError : ""}`}
+                            disabled={isLoadingPrices}
+                          />
                         </label>
                         <label className={styles.tierField}>
                           <span className={styles.tierFieldLabel}>Cena</span>
-                            <input
-                              type="number"
-                              min="0"
-                              step="10"
-                              value={tier.price}
-                              onChange={e => handleBaseRateChange('weekday', index, 'price', e.target.value === '' ? '' : Number(e.target.value))}
-                              className={`${styles.input} ${tierError?.fields.includes('price') ? styles.inputError : ''}`}
-                              disabled={isLoadingPrices}
-                            />
+                          <input
+                            type="number"
+                            min="0"
+                            step="10"
+                            value={tier.price}
+                            onChange={(e) =>
+                              handleBaseRateChange(
+                                "weekday",
+                                index,
+                                "price",
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                              )
+                            }
+                            className={`${styles.input} ${tierError?.fields.includes("price") ? styles.inputError : ""}`}
+                            disabled={isLoadingPrices}
+                          />
                         </label>
                         <span className={styles.currency}>zł</span>
                         {weekdayTiers.length > 1 && (
                           <button
                             type="button"
-                            onClick={() => requestRemoveTier('weekday', index)}
+                            onClick={() => requestRemoveTier("weekday", index)}
                             className={styles.removeBtn}
                             disabled={isLoadingPrices}
                           >
@@ -997,13 +1109,17 @@ export default function PriceSettingsForm({
                           </button>
                         )}
                       </div>
-                      {tierError && <p className={styles.tierErrorText}>{tierError.message}</p>}
+                      {tierError && (
+                        <p className={styles.tierErrorText}>
+                          {tierError.message}
+                        </p>
+                      )}
                     </div>
-                  )
+                  );
                 })}
                 <button
                   type="button"
-                  onClick={() => addTier('weekday')}
+                  onClick={() => addTier("weekday")}
                   className={styles.addBtn}
                   disabled={isLoadingPrices}
                 >
@@ -1025,10 +1141,12 @@ export default function PriceSettingsForm({
             <div className={styles.control}>
               <div className={styles.tiersContainer}>
                 {weekendTiers.map((tier, index) => {
-                  const tierError = getTierError('weekend', index)
+                  const tierError = getTierError("weekend", index);
                   return (
                     <div key={index} className={styles.tierRowWrapper}>
-                      <div className={`${styles.tierRow} ${tierError ? styles.tierRowError : ''}`}>
+                      <div
+                        className={`${styles.tierRow} ${tierError ? styles.tierRowError : ""}`}
+                      >
                         <label className={styles.tierField}>
                           <span className={styles.tierFieldLabel}>Osób od</span>
                           <input
@@ -1036,8 +1154,17 @@ export default function PriceSettingsForm({
                             min="1"
                             step="1"
                             value={tier.minGuests}
-                            onChange={e => handleBaseRateChange('weekend', index, 'minGuests', e.target.value === '' ? '' : Number(e.target.value))}
-                            className={`${styles.input} ${tierError?.fields.includes('minGuests') ? styles.inputError : ''}`}
+                            onChange={(e) =>
+                              handleBaseRateChange(
+                                "weekend",
+                                index,
+                                "minGuests",
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                              )
+                            }
+                            className={`${styles.input} ${tierError?.fields.includes("minGuests") ? styles.inputError : ""}`}
                             disabled={isLoadingPrices}
                           />
                         </label>
@@ -1048,8 +1175,17 @@ export default function PriceSettingsForm({
                             min="1"
                             step="1"
                             value={tier.maxGuests}
-                            onChange={e => handleBaseRateChange('weekend', index, 'maxGuests', e.target.value === '' ? '' : Number(e.target.value))}
-                            className={`${styles.input} ${tierError?.fields.includes('maxGuests') ? styles.inputError : ''}`}
+                            onChange={(e) =>
+                              handleBaseRateChange(
+                                "weekend",
+                                index,
+                                "maxGuests",
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                              )
+                            }
+                            className={`${styles.input} ${tierError?.fields.includes("maxGuests") ? styles.inputError : ""}`}
                             disabled={isLoadingPrices}
                           />
                         </label>
@@ -1060,8 +1196,17 @@ export default function PriceSettingsForm({
                             min="0"
                             step="10"
                             value={tier.price}
-                            onChange={e => handleBaseRateChange('weekend', index, 'price', e.target.value === '' ? '' : Number(e.target.value))}
-                            className={`${styles.input} ${tierError?.fields.includes('price') ? styles.inputError : ''}`}
+                            onChange={(e) =>
+                              handleBaseRateChange(
+                                "weekend",
+                                index,
+                                "price",
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                              )
+                            }
+                            className={`${styles.input} ${tierError?.fields.includes("price") ? styles.inputError : ""}`}
                             disabled={isLoadingPrices}
                           />
                         </label>
@@ -1069,7 +1214,7 @@ export default function PriceSettingsForm({
                         {weekendTiers.length > 1 && (
                           <button
                             type="button"
-                            onClick={() => requestRemoveTier('weekend', index)}
+                            onClick={() => requestRemoveTier("weekend", index)}
                             className={styles.removeBtn}
                             disabled={isLoadingPrices}
                           >
@@ -1077,13 +1222,17 @@ export default function PriceSettingsForm({
                           </button>
                         )}
                       </div>
-                      {tierError && <p className={styles.tierErrorText}>{tierError.message}</p>}
+                      {tierError && (
+                        <p className={styles.tierErrorText}>
+                          {tierError.message}
+                        </p>
+                      )}
                     </div>
-                  )
+                  );
                 })}
                 <button
                   type="button"
-                  onClick={() => addTier('weekend')}
+                  onClick={() => addTier("weekend")}
                   className={styles.addBtn}
                   disabled={isLoadingPrices}
                 >
@@ -1095,7 +1244,9 @@ export default function PriceSettingsForm({
 
           <div className={styles.row}>
             <div className={styles.content}>
-              <label className={styles.label}>Cena za dostawkę (dzień powszedni)</label>
+              <label className={styles.label}>
+                Cena za dostawkę (dzień powszedni)
+              </label>
             </div>
             <div className={styles.control}>
               <div className={styles.priceControl}>
@@ -1104,9 +1255,11 @@ export default function PriceSettingsForm({
                   min="0"
                   step="10"
                   value={weekdayExtraBedPrice}
-                  onChange={e => {
-                    setWeekdayExtraBedPrice(e.target.value === '' ? '' : Number(e.target.value))
-                    setIsSeasonDirty(true)
+                  onChange={(e) => {
+                    setWeekdayExtraBedPrice(
+                      e.target.value === "" ? "" : Number(e.target.value),
+                    );
+                    setIsSeasonDirty(true);
                   }}
                   className={`${styles.input} ${styles.inputLarge}`}
                   disabled={isLoadingPrices}
@@ -1127,9 +1280,11 @@ export default function PriceSettingsForm({
                   min="0"
                   step="10"
                   value={weekendExtraBedPrice}
-                  onChange={e => {
-                    setWeekendExtraBedPrice(e.target.value === '' ? '' : Number(e.target.value))
-                    setIsSeasonDirty(true)
+                  onChange={(e) => {
+                    setWeekendExtraBedPrice(
+                      e.target.value === "" ? "" : Number(e.target.value),
+                    );
+                    setIsSeasonDirty(true);
                   }}
                   className={`${styles.input} ${styles.inputLarge}`}
                   disabled={isLoadingPrices}
@@ -1138,7 +1293,6 @@ export default function PriceSettingsForm({
               </div>
             </div>
           </div>
-
         </form>
       )}
 
@@ -1151,7 +1305,9 @@ export default function PriceSettingsForm({
 
           <div className={styles.row}>
             <div className={styles.content}>
-              <label className={styles.label}>Wybierz datę lub zakres dat</label>
+              <label className={styles.label}>
+                Wybierz datę lub zakres dat
+              </label>
               <p className={styles.description}>
                 Kliknij na dzień w kalendarzu, aby ustawić cenę. Możesz wybrać
                 pojedynczy dzień lub zakres dat.
@@ -1179,14 +1335,15 @@ export default function PriceSettingsForm({
                 <div className={styles.selectedInfo}>
                   <span>
                     Wybrano: {formatDisplayDate(bookingDates.start)}
-                    {bookingDates.end && ` — ${formatDisplayDate(bookingDates.end)}`}
+                    {bookingDates.end &&
+                      ` — ${formatDisplayDate(bookingDates.end)}`}
                   </span>
                   {!bookingDates.end && (
                     <span className={styles.dayBadge}>
                       (
-                      {getDayType(bookingDates.start) === 'weekend'
-                        ? 'Weekend'
-                        : 'Dzień powszedni'}
+                      {getDayType(bookingDates.start) === "weekend"
+                        ? "Weekend"
+                        : "Dzień powszedni"}
                       )
                     </span>
                   )}
@@ -1209,41 +1366,73 @@ export default function PriceSettingsForm({
                 <div className={styles.control}>
                   <div className={styles.tiersContainer}>
                     {customTiers.map((tier, index) => {
-                      const tierError = getCustomTierError(index)
+                      const tierError = getCustomTierError(index);
                       return (
                         <div key={index} className={styles.tierRowWrapper}>
-                          <div className={`${styles.tierRow} ${tierError ? styles.tierRowError : ''}`}>
+                          <div
+                            className={`${styles.tierRow} ${tierError ? styles.tierRowError : ""}`}
+                          >
                             <label className={styles.tierField}>
-                              <span className={styles.tierFieldLabel}>Osób od</span>
+                              <span className={styles.tierFieldLabel}>
+                                Osób od
+                              </span>
                               <input
                                 type="number"
                                 min="1"
                                 step="1"
                                 value={tier.minGuests}
-                                onChange={e => handleCustomTierChange(index, 'minGuests', e.target.value === '' ? '' : Number(e.target.value))}
-                                className={`${styles.input} ${tierError?.fields.includes('minGuests') ? styles.inputError : ''}`}
+                                onChange={(e) =>
+                                  handleCustomTierChange(
+                                    index,
+                                    "minGuests",
+                                    e.target.value === ""
+                                      ? ""
+                                      : Number(e.target.value),
+                                  )
+                                }
+                                className={`${styles.input} ${tierError?.fields.includes("minGuests") ? styles.inputError : ""}`}
                               />
                             </label>
                             <label className={styles.tierField}>
-                              <span className={styles.tierFieldLabel}>Osób do</span>
+                              <span className={styles.tierFieldLabel}>
+                                Osób do
+                              </span>
                               <input
                                 type="number"
                                 min="1"
                                 step="1"
                                 value={tier.maxGuests}
-                                onChange={e => handleCustomTierChange(index, 'maxGuests', e.target.value === '' ? '' : Number(e.target.value))}
-                                className={`${styles.input} ${tierError?.fields.includes('maxGuests') ? styles.inputError : ''}`}
+                                onChange={(e) =>
+                                  handleCustomTierChange(
+                                    index,
+                                    "maxGuests",
+                                    e.target.value === ""
+                                      ? ""
+                                      : Number(e.target.value),
+                                  )
+                                }
+                                className={`${styles.input} ${tierError?.fields.includes("maxGuests") ? styles.inputError : ""}`}
                               />
                             </label>
                             <label className={styles.tierField}>
-                              <span className={styles.tierFieldLabel}>Cena</span>
+                              <span className={styles.tierFieldLabel}>
+                                Cena
+                              </span>
                               <input
                                 type="number"
                                 min="0"
                                 step="10"
                                 value={tier.price}
-                                onChange={e => handleCustomTierChange(index, 'price', e.target.value === '' ? '' : Number(e.target.value))}
-                                className={`${styles.input} ${tierError?.fields.includes('price') ? styles.inputError : ''}`}
+                                onChange={(e) =>
+                                  handleCustomTierChange(
+                                    index,
+                                    "price",
+                                    e.target.value === ""
+                                      ? ""
+                                      : Number(e.target.value),
+                                  )
+                                }
+                                className={`${styles.input} ${tierError?.fields.includes("price") ? styles.inputError : ""}`}
                               />
                             </label>
                             <span className={styles.currency}>zł</span>
@@ -1257,9 +1446,13 @@ export default function PriceSettingsForm({
                               </button>
                             )}
                           </div>
-                          {tierError && <p className={styles.tierErrorText}>{tierError.message}</p>}
+                          {tierError && (
+                            <p className={styles.tierErrorText}>
+                              {tierError.message}
+                            </p>
+                          )}
                         </div>
-                      )
+                      );
                     })}
                     <button
                       type="button"
@@ -1283,9 +1476,11 @@ export default function PriceSettingsForm({
                       min="0"
                       step="10"
                       value={customExtraBedPrice}
-                      onChange={e => {
-                        setCustomExtraBedPrice(e.target.value === '' ? '' : Number(e.target.value))
-                        setIsCustomDirty(true)
+                      onChange={(e) => {
+                        setCustomExtraBedPrice(
+                          e.target.value === "" ? "" : Number(e.target.value),
+                        );
+                        setIsCustomDirty(true);
                       }}
                       className={`${styles.input} ${styles.inputLarge}`}
                     />
@@ -1295,14 +1490,16 @@ export default function PriceSettingsForm({
               </div>
 
               <div className={styles.row}>
-                <button
+                <Button
                   type="button"
-                  className={`${styles.btn} ${styles.btnDanger}`}
+                  variant="danger"
                   onClick={handleRemoveCustomPrice}
                   disabled={isSaving || isDeletingCustom}
                 >
-                  {isDeletingCustom ? 'Przywracanie...' : '🗑️ Usuń cenę indywidualną'}
-                </button>
+                  {isDeletingCustom
+                    ? "Przywracanie..."
+                    : "🗑️ Usuń cenę indywidualną"}
+                </Button>
               </div>
             </>
           )}
@@ -1319,14 +1516,21 @@ export default function PriceSettingsForm({
                     : customPrices.slice(0, 10)
                   ).map((entry, idx) => (
                     <div key={idx} className={styles.customItem}>
-                      <span className={styles.customDate}>{dayjs(entry.date).format('DD-MM-YYYY')}</span>
-                      <span className={styles.customPrice}>od {entry.previewPrice} zł</span>
+                      <span className={styles.customDate}>
+                        {dayjs(entry.date).format("DD-MM-YYYY")}
+                      </span>
+                      <span className={styles.customPrice}>
+                        od {entry.previewPrice} zł
+                      </span>
                       <button
                         type="button"
                         className={styles.removeBtn}
                         aria-label="Usuń cenę indywidualną"
                         onClick={() => {
-                          setDeleteCustomModal({ isOpen: true, date: entry.date })
+                          setDeleteCustomModal({
+                            isOpen: true,
+                            date: entry.date,
+                          });
                         }}
                       >
                         ✕
@@ -1337,10 +1541,12 @@ export default function PriceSettingsForm({
                     <button
                       type="button"
                       className={styles.copyLink}
-                      onClick={() => setIsCustomPricesExpanded(!isCustomPricesExpanded)}
+                      onClick={() =>
+                        setIsCustomPricesExpanded(!isCustomPricesExpanded)
+                      }
                     >
                       {isCustomPricesExpanded
-                        ? 'Zwiń'
+                        ? "Zwiń"
                         : `+ ${customPrices.length - 10} więcej...`}
                     </button>
                   )}
@@ -1351,39 +1557,46 @@ export default function PriceSettingsForm({
         </form>
       )}
 
-      <div className={`${styles.floatingBar} ${isAnyDirty ? styles.floatingBarVisible : ''}`}>
+      <div
+        className={`${styles.floatingBar} ${isAnyDirty ? styles.floatingBarVisible : ""}`}
+      >
         <div className={styles.floatingContent}>
           <p className={styles.floatingText}>
             {isSeasonDirty && isCustomDirty
-              ? 'Masz niezapisane zmiany w cenach sezonowych i indywidualnych.'
+              ? "Masz niezapisane zmiany w cenach sezonowych i indywidualnych."
               : isSeasonDirty
-                ? `Masz niezapisane zmiany w cenach dla ${selectedProperty?.name ?? 'wybranego domku'}.`
-                : 'Masz niezapisane zmiany w cenach indywidualnych.'}
+                ? `Masz niezapisane zmiany w cenach dla ${selectedProperty?.name ?? "wybranego domku"}.`
+                : "Masz niezapisane zmiany w cenach indywidualnych."}
           </p>
           <div className={styles.floatingActions}>
-            <button
+            <Button
               type="button"
-              className={`${styles.btn} ${styles.btnSecondary}`}
+              variant="secondary"
               onClick={handleDiscardAll}
-              disabled={isSaving || isLoadingPrices || isDeletingCustom || isDiscarding}
+              disabled={
+                isSaving || isLoadingPrices || isDeletingCustom || isDiscarding
+              }
             >
-              {isDiscarding ? 'Przywracanie...' : 'Odrzuć'}
-            </button>
-            <button
+              {isDiscarding ? "Przywracanie..." : "Odrzuć"}
+            </Button>
+            <Button
               type="button"
-              className={`${styles.btn} ${styles.btnOk}`}
               onClick={handleSaveAll}
-              disabled={isSaving || isLoadingPrices || isDeletingCustom || isDiscarding}
+              disabled={
+                isSaving || isLoadingPrices || isDeletingCustom || isDiscarding
+              }
             >
-              {isSaving ? 'Zapisywanie...' : 'Zapisz wszystko'}
-            </button>
+              {isSaving ? "Zapisywanie..." : "Zapisz wszystko"}
+            </Button>
           </div>
         </div>
       </div>
 
       <Modal
         isOpen={deleteModal.isOpen}
-        onClose={() => setDeleteModal({ isOpen: false, type: null, index: null })}
+        onClose={() =>
+          setDeleteModal({ isOpen: false, type: null, index: null })
+        }
         onConfirm={confirmRemoveTier}
         title="Usuń przedział cenowy"
         confirmText="Usuń"
@@ -1408,5 +1621,5 @@ export default function PriceSettingsForm({
         <p>Czy na pewno chcesz usunąć cenę indywidualną dla tej daty?</p>
       </Modal>
     </>
-  )
+  );
 }

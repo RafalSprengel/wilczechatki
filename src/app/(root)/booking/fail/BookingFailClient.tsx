@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import styles from './page.module.css';
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import Button from "@/app/_components/UI/Button/Button";
+import styles from "./page.module.css";
 
 interface BookingFailClientProps {
   siteSettings: {
@@ -12,14 +12,16 @@ interface BookingFailClientProps {
   };
 }
 
-export default function BookingFailClient({ siteSettings }: BookingFailClientProps) {
+export default function BookingFailClient({
+  siteSettings,
+}: BookingFailClientProps) {
   const router = useRouter();
   const [isRetrying, setIsRetrying] = useState(false);
 
   const handleRetry = () => {
     setIsRetrying(true);
     setTimeout(() => {
-      router.push('/booking/summary');
+      router.push("/booking/summary");
     }, 500);
   };
 
@@ -37,7 +39,8 @@ export default function BookingFailClient({ siteSettings }: BookingFailClientPro
         </p>
 
         <p className={styles.details}>
-          Przyczyną może być: brak środków na karcie, błędny kod CVC lub tymczasowy problem z systemem płatności.
+          Przyczyną może być: brak środków na karcie, błędny kod CVC lub
+          tymczasowy problem z systemem płatności.
         </p>
 
         <div className={styles.infoBox}>
@@ -45,17 +48,23 @@ export default function BookingFailClient({ siteSettings }: BookingFailClientPro
             💳 Sprawdź czy dane karty są poprawne
           </p>
           <p className={styles.infoText}>
-            📞 W razie problemów: <a href={`tel:${siteSettings.phoneHref}`} className={styles.phoneLink}>{siteSettings.phoneDisplay}</a>
+            📞 W razie problemów:{" "}
+            <a
+              href={`tel:${siteSettings.phoneHref}`}
+              className={styles.phoneLink}
+            >
+              {siteSettings.phoneDisplay}
+            </a>
           </p>
         </div>
 
         <div className={styles.actions}>
-          <button onClick={handleRetry} className={styles.btnPrimary} disabled={isRetrying}>
-            {isRetrying ? 'Przekierowywanie...' : 'Spróbuj ponownie'}
-          </button>
-          <Link href="/" className={styles.btnTertiary}>
+          <Button onClick={handleRetry} variant="danger" disabled={isRetrying}>
+            {isRetrying ? "Przekierowywanie..." : "Spróbuj ponownie"}
+          </Button>
+          <Button href="/" variant="tertiary">
             Wróć na stronę główną
-          </Link>
+          </Button>
         </div>
       </div>
     </div>

@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import styles from './page.module.css';
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import Button from "@/app/_components/UI/Button/Button";
+import styles from "./page.module.css";
 
-const STORAGE_KEY = 'wilczechatki_booking_draft';
+const STORAGE_KEY = "wilczechatki_booking_draft";
 const RETRY_DELAY_MS = 3000;
 const MAX_ATTEMPTS = 4;
 
-type VerificationState = 'loading' | 'success' | 'error';
+type VerificationState = "loading" | "success" | "error";
 
 type CheckoutStatusResponse = {
   status?: string;
@@ -25,13 +25,16 @@ interface BookingSuccessClientProps {
   };
 }
 
-export default function BookingSuccessClient({ siteSettings }: BookingSuccessClientProps) {
+export default function BookingSuccessClient({
+  siteSettings,
+}: BookingSuccessClientProps) {
   const searchParams = useSearchParams();
-  const [verificationState, setVerificationState] = useState<VerificationState>('loading');
+  const [verificationState, setVerificationState] =
+    useState<VerificationState>("loading");
   const [attempts, setAttempts] = useState(0);
   const [customerEmail, setCustomerEmail] = useState<string | null>(null);
 
-  const bookingsParam = searchParams.get('bookings');
+  const bookingsParam = searchParams.get("bookings");
   const bookingsCount = useMemo(() => {
     if (!bookingsParam) {
       return undefined;
@@ -46,12 +49,12 @@ export default function BookingSuccessClient({ siteSettings }: BookingSuccessCli
     return parsed;
   }, [bookingsParam]);
 
-  const sessionId = searchParams.get('session_id');
-  const isMultiBooking = typeof bookingsCount === 'number' && bookingsCount > 1;
+  const sessionId = searchParams.get("session_id");
+  const isMultiBooking = typeof bookingsCount === "number" && bookingsCount > 1;
 
   useEffect(() => {
     if (!sessionId) {
-      setVerificationState('error');
+      setVerificationState("error");
       return;
     }
 
@@ -73,10 +76,13 @@ export default function BookingSuccessClient({ siteSettings }: BookingSuccessCli
         setAttempts(attempt);
 
         try {
-          const response = await fetch(`/api/checkout-status?session_id=${encodeURIComponent(sessionId)}`, {
-            method: 'GET',
-            cache: 'no-store',
-          });
+          const response = await fetch(
+            `/api/checkout-status?session_id=${encodeURIComponent(sessionId)}`,
+            {
+              method: "GET",
+              cache: "no-store",
+            },
+          );
 
           const data = (await response.json()) as CheckoutStatusResponse;
 
@@ -85,27 +91,27 @@ export default function BookingSuccessClient({ siteSettings }: BookingSuccessCli
               throw new Error(data.error);
             }
 
-            throw new Error('Błąd odpowiedzi API weryfikacji płatności.');
+            throw new Error("Błąd odpowiedzi API weryfikacji płatności.");
           }
 
-          if (data.status === 'complete') {
+          if (data.status === "complete") {
             localStorage.removeItem(STORAGE_KEY);
             setCustomerEmail(data.customerEmail ?? null);
-            setVerificationState('success');
+            setVerificationState("success");
             return;
           }
 
-          if (data.status === 'expired' || data.paymentStatus === 'unpaid') {
-            setVerificationState('error');
+          if (data.status === "expired" || data.paymentStatus === "unpaid") {
+            setVerificationState("error");
             return;
           }
         } catch (error) {
           if (attempt === MAX_ATTEMPTS) {
-            setVerificationState('error');
+            setVerificationState("error");
             return;
           }
 
-          if (error instanceof Error && error.name === 'AbortError') {
+          if (error instanceof Error && error.name === "AbortError") {
             return;
           }
         }
@@ -115,10 +121,10 @@ export default function BookingSuccessClient({ siteSettings }: BookingSuccessCli
         }
       }
 
-      setVerificationState('error');
+      setVerificationState("error");
     };
 
-    setVerificationState('loading');
+    setVerificationState("loading");
     void verifyCheckoutSession();
 
     return () => {
@@ -130,9 +136,9 @@ export default function BookingSuccessClient({ siteSettings }: BookingSuccessCli
     };
   }, [sessionId]);
 
-  const isLoading = verificationState === 'loading';
-  const isSuccess = verificationState === 'success';
-  const isError = verificationState === 'error';
+  const isLoading = verificationState === "loading";
+  const isSuccess = verificationState === "success";
+  const isError = verificationState === "error";
 
   return (
     <div className={styles.container}>
@@ -144,8 +150,12 @@ export default function BookingSuccessClient({ siteSettings }: BookingSuccessCli
             </div>
             <h1 className={styles.title}>Weryfikujemy płatność...</h1>
             <p className={styles.message}>Prosimy nie odświeżać strony.</p>
-            <p className={styles.details}>Trwa potwierdzanie płatności w Stripe.</p>
-            <p className={styles.details}>Próba {attempts}/{MAX_ATTEMPTS}</p>
+            <p className={styles.details}>
+              Trwa potwierdzanie płatności w Stripe.
+            </p>
+            <p className={styles.details}>
+              Próba {attempts}/{MAX_ATTEMPTS}
+            </p>
           </>
         )}
 
@@ -156,11 +166,14 @@ export default function BookingSuccessClient({ siteSettings }: BookingSuccessCli
             </div>
             <h1 className={styles.title}>Płatność potwierdzona!</h1>
             <p className={styles.message}>Dziękujemy za rezerwację.</p>
-            <p className={styles.details}>Płatność została pomyślnie przetworzona przez Stripe.</p>
+            <p className={styles.details}>
+              Płatność została pomyślnie przetworzona przez Stripe.
+            </p>
 
             {isMultiBooking && (
               <p className={styles.details}>
-                Utworzono <strong>{bookingsCount}</strong> rezerwacje (po jednej dla każdego wybranego domku).
+                Utworzono <strong>{bookingsCount}</strong> rezerwacje (po jednej
+                dla każdego wybranego domku).
               </p>
             )}
 
@@ -169,15 +182,20 @@ export default function BookingSuccessClient({ siteSettings }: BookingSuccessCli
               {customerEmail ? (
                 <strong> {customerEmail}</strong>
               ) : (
-                ' podany w formularzu.'
+                " podany w formularzu."
               )}
             </p>
 
             <div className={styles.infoBox}>
-              <p className={styles.infoText}>Sprawdź skrzynkę odbiorczą (oraz folder SPAM).</p>
               <p className={styles.infoText}>
-                W razie pytań:{' '}
-                <a href={`tel:${siteSettings.phoneHref}`} className={styles.phoneLink}>
+                Sprawdź skrzynkę odbiorczą (oraz folder SPAM).
+              </p>
+              <p className={styles.infoText}>
+                W razie pytań:{" "}
+                <a
+                  href={`tel:${siteSettings.phoneHref}`}
+                  className={styles.phoneLink}
+                >
                   {siteSettings.phoneDisplay}
                 </a>
               </p>
@@ -192,8 +210,11 @@ export default function BookingSuccessClient({ siteSettings }: BookingSuccessCli
             </div>
             <h1 className={styles.title}>Wystąpił problem z płatnością.</h1>
             <p className={styles.message}>
-              Prosimy o kontakt z obsługą pod numerem{' '}
-              <a href={`tel:${siteSettings.phoneHref}`} className={styles.phoneLink}>
+              Prosimy o kontakt z obsługą pod numerem{" "}
+              <a
+                href={`tel:${siteSettings.phoneHref}`}
+                className={styles.phoneLink}
+              >
                 {siteSettings.phoneDisplay}
               </a>
               .
@@ -202,9 +223,9 @@ export default function BookingSuccessClient({ siteSettings }: BookingSuccessCli
         )}
 
         <div className={styles.actions}>
-          <Link href="/" className={styles.btnPrimary}>
+          <Button href="/" variant="primary" size="large">
             Wróć do strony głównej
-          </Link>
+          </Button>
         </div>
       </div>
     </div>

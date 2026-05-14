@@ -22,6 +22,7 @@ import {
   updateSeasonDates,
   updateSeasonOrder,
 } from "@/actions/seasonActions";
+import Button from "@/app/_components/UI/Button/Button";
 import Modal from "@/app/_components/Modal/Modal";
 import styles from "./booking.module.css";
 
@@ -643,8 +644,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
           <div className={styles.settingContent}>
             <p className={styles.settingLabel}>Wybierz sezon:</p>
             <p className={styles.settingDescription}>
-              Daty sezonu działają
-              cyklicznie co roku.
+              Daty sezonu działają cyklicznie co roku.
             </p>
           </div>
           <div className={styles.settingControl}>
@@ -1005,24 +1005,23 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
               Masz niezapisane zmiany w ustawieniach głównych.
             </p>
             <div className={styles.floatingSaveActions}>
-              <button
+              <Button
                 type="button"
-                className={styles.btnSecondary}
+                variant="secondary"
                 onClick={handleReset}
                 disabled={isPending || isUpdatingSeason}
               >
                 Odrzuć
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                className={styles.btnPrimary}
                 disabled={isPending || isUpdatingSeason}
                 onClick={handleSaveAll}
               >
                 {isPending || isUpdatingSeason
                   ? "Zapisywanie..."
                   : "Zapisz wszystko"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

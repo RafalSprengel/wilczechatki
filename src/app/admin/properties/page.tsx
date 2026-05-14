@@ -1,19 +1,23 @@
-import Link from 'next/link';
-import styles from './page.module.css';
-import { getAllProperties, togglePropertyActive } from '@/actions/adminPropertyActions';
-import { revalidatePath } from 'next/cache';
-import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
-import DeletePropertyButton from './DeletePropertyButton';
+import { revalidatePath } from "next/cache";
+import Link from "next/link";
+import {
+  getAllProperties,
+  togglePropertyActive,
+} from "@/actions/adminPropertyActions";
+import Button from "@/app/_components/UI/Button/Button";
+import FloatingBackButton from "@/app/_components/FloatingBackButton/FloatingBackButton";
+import DeletePropertyButton from "./DeletePropertyButton";
+import styles from "./page.module.css";
 
 export default async function PropertiesPage() {
   const properties = await getAllProperties();
 
   async function handleToggleActive(formData: FormData) {
-    'use server';
-    const id = formData.get('id') as string;
-    const isActive = formData.get('isActive') === 'true';
+    "use server";
+    const id = formData.get("id") as string;
+    const isActive = formData.get("isActive") === "true";
     await togglePropertyActive(id, !isActive);
-    revalidatePath('/admin/properties');
+    revalidatePath("/admin/properties");
   }
 
   return (
@@ -22,12 +26,16 @@ export default async function PropertiesPage() {
       <header className={styles.header}>
         <h1>Zarządzanie obiektami</h1>
         <p>Dodaj, edytuj lub dezaktywuj obiekty w systemie.</p>
-        <Link href="/admin/properties/add" className={styles.btnAdd}>➕ Dodaj nowy obiekt</Link>
+        <Link href="/admin/properties/add" className={styles.btnAdd}>
+          ➕ Dodaj nowy obiekt
+        </Link>
       </header>
       {properties.length === 0 ? (
         <div className={styles.emptyState}>
           <p>Brak obiektów w systemie.</p>
-          <Link href="/admin/properties/add" className={styles.btnAdd}>Dodaj pierwszy obiekt</Link>
+          <Link href="/admin/properties/add" className={styles.btnAdd}>
+            Dodaj pierwszy obiekt
+          </Link>
         </div>
       ) : (
         <div className={styles.propertiesGrid}>
@@ -35,9 +43,15 @@ export default async function PropertiesPage() {
             <article key={prop._id} className={styles.propertyCard}>
               <div className={styles.cardHeader}>
                 <h3 className={styles.propertyName}>{prop.name}</h3>
-                <span className={`${styles.badge} ${prop.isActive ? styles.badgeActive : styles.badgeInactive}`}>{prop.isActive ? 'Aktywny' : 'Nieaktywny'}</span>
+                <span
+                  className={`${styles.badge} ${prop.isActive ? styles.badgeActive : styles.badgeInactive}`}
+                >
+                  {prop.isActive ? "Aktywny" : "Nieaktywny"}
+                </span>
               </div>
-              {prop.description && (<p className={styles.description}>{prop.description}</p>)}
+              {prop.description && (
+                <p className={styles.description}>{prop.description}</p>
+              )}
               <div className={styles.details}>
                 <div className={styles.detailRow}>
                   <span className={styles.label}>Max. dorosłych:</span>
@@ -61,11 +75,25 @@ export default async function PropertiesPage() {
               <div className={styles.cardActions}>
                 <form action={handleToggleActive}>
                   <input type="hidden" name="id" value={prop._id} />
-                  <input type="hidden" name="isActive" value={String(prop.isActive)} />
-                  <button type="submit" className={styles.btnToggle}>{prop.isActive ? '🔘 Dezaktywuj' : '✅ Aktywuj'}</button>
+                  <input
+                    type="hidden"
+                    name="isActive"
+                    value={String(prop.isActive)}
+                  />
+                  <Button type="submit" variant="secondary">
+                    {prop.isActive ? "🔘 Dezaktywuj" : "✅ Aktywuj"}
+                  </Button>
                 </form>
-                <Link href={`/admin/properties/${prop._id}`} className={styles.btnEdit}>✏️ Edytuj</Link>
-                <DeletePropertyButton propertyId={prop._id} propertyName={prop.name} />
+                <Link
+                  href={`/admin/properties/${prop._id}`}
+                  className={styles.btnEdit}
+                >
+                  ✏️ Edytuj
+                </Link>
+                <DeletePropertyButton
+                  propertyId={prop._id}
+                  propertyName={prop.name}
+                />
               </div>
             </article>
           ))}

@@ -13,7 +13,9 @@
   background: white;
   border-radius: 24px;
   padding: 48px 32px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.05),
+    0 8px 10px -6px rgba(0, 0, 0, 0.02);
   text-align: center;
   border: 1px solid #e2e8f0;
 }
@@ -129,25 +131,6 @@
 .actions {
   display: flex;
   justify-content: center;
-}
-
-.btnPrimary {
-  display: inline-block;
-  padding: 14px 32px;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.2s;
-  background: #c9b363;
-  color: white;
-  min-width: 240px;
-}
-
-.btnPrimary:hover {
-  background: #b39b4a;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(201, 179, 99, 0.2);
 }
 
 @keyframes spin {

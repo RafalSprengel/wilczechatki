@@ -1,27 +1,31 @@
-'use client'
-import { useState } from 'react';
+"use client";
+
+import { useState } from "react";
 import {
-  seedAllData,
-  seedProperties,
-  seedBookings,
-  seedSystemConfig,
-  seedPriceConfigDefaults,
-  seedSeasons,
-  seedBookingConfig,
-  seedPropertyPrices,
   clearAllData,
   seedAdmin,
-} from '@/actions/seed';
-import styles from './page.module.css';
+  seedAllData,
+  seedBookingConfig,
+  seedBookings,
+  seedPriceConfigDefaults,
+  seedProperties,
+  seedPropertyPrices,
+  seedSeasons,
+  seedSystemConfig,
+} from "@/actions/seed";
+import Button from "@/app/_components/UI/Button/Button";
+import styles from "./page.module.css";
 
 export default function DevPage() {
   const [logs, setLogs] = useState<string[]>([]);
 
   const addLog = (msg: string) => {
-    setLogs((prev) => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev].slice(0, 30));
+    setLogs((prev) =>
+      [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev].slice(0, 30),
+    );
   };
 
-  const runAction = async (name: string, actionFn: () => Promise<any>) => {
+  const runAction = async (name: string, actionFn: () => Promise<{ success: boolean; message?: string; error?: string }>) => {
     addLog(`Uruchamiam: ${name}...`);
     try {
       const res = await actionFn();
@@ -30,8 +34,9 @@ export default function DevPage() {
       } else {
         addLog(`❌ ERROR: ${res.error || res.message}`);
       }
-    } catch (error: any) {
-      addLog(`❌ EXCEPTION: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Nieznany błąd";
+      addLog(`❌ EXCEPTION: ${message}`);
     }
   };
 
@@ -46,83 +51,93 @@ export default function DevPage() {
           <section className={styles.actions}>
             <h3>Database Actions</h3>
             <div className={styles.buttonGroup}>
-
               {/* ── Full reset ──────────────────────────────────────────────── */}
-              <button
+              <Button
                 className={styles.btnPrimary}
-                onClick={() => runAction('Seed All (Reset)', seedAllData)}
+                onClick={() => runAction("Seed All (Reset)", seedAllData)}
               >
                 Seed All Data (Full Reset)
-              </button>
+              </Button>
 
               <hr className={styles.divider} />
 
               {/* ── Jednotkowe seedy ────────────────────────────────────────── */}
-              <button
-                className={styles.btnSecondary}
-                onClick={() => runAction('Seed Properties (2 domki)', seedProperties)}
-              >
-                Seed Properties Only
-              </button>
-              <button
+              <Button
                 className={styles.btnSecondary}
                 onClick={() =>
-                  runAction('Seed PropertyPrices (ceny)', seedPropertyPrices)
+                  runAction("Seed Properties (2 domki)", seedProperties)
+                }
+              >
+                Seed Properties Only
+              </Button>
+              <Button
+                className={styles.btnSecondary}
+                onClick={() =>
+                  runAction("Seed PropertyPrices (ceny)", seedPropertyPrices)
                 }
               >
                 Seed PropertyPrices (ceny per obiekt)
-              </button>
-              <button
+              </Button>
+              <Button
                 className={styles.btnSecondary}
-                onClick={() => runAction('Seed Seasons', seedSeasons)}
+                onClick={() => runAction("Seed Seasons", seedSeasons)}
               >
                 Seed Seasons (3 sezony)
-              </button>
-              <button
+              </Button>
+              <Button
                 className={styles.btnSecondary}
                 onClick={() =>
-                  runAction('Seed Price Config (Default)', seedPriceConfigDefaults)
+                  runAction(
+                    "Seed Price Config (Default)",
+                    seedPriceConfigDefaults,
+                  )
                 }
               >
                 Seed Price Config (Default)
-              </button>
-              <button
+              </Button>
+              <Button
                 className={styles.btnSecondary}
-                onClick={() => runAction('Seed System Config', seedSystemConfig)}
+                onClick={() =>
+                  runAction("Seed System Config", seedSystemConfig)
+                }
               >
                 Seed System Config
-              </button>
-              <button
+              </Button>
+              <Button
                 className={styles.btnSecondary}
-                onClick={() => runAction('Seed Booking Config', seedBookingConfig)}
+                onClick={() =>
+                  runAction("Seed Booking Config", seedBookingConfig)
+                }
               >
                 Seed Booking Config
-              </button>
-              <button
+              </Button>
+              <Button
                 className={styles.btnSecondary}
-                onClick={() => runAction('Seed Bookings', seedBookings)}
+                onClick={() => runAction("Seed Bookings", seedBookings)}
               >
                 Seed Bookings Only
-              </button>
+              </Button>
 
               <hr className={styles.divider} />
 
-              <button
+              <Button
                 className={styles.btnDanger}
-                onClick={() => runAction('Clear Database', clearAllData)}
+                onClick={() => runAction("Clear Database", clearAllData)}
               >
                 Clear All Collections
-              </button>
+              </Button>
 
               <hr className={styles.divider} />
 
               {/* ── Auth / Admin ─────────────────────────────────────────────── */}
-              <button
+              <Button
                 className={styles.btnSecondary}
-                onClick={() => runAction('Seed Admin (kontakt@wilczechatki.pl)', seedAdmin)}
+                onClick={() =>
+                  runAction("Seed Admin (kontakt@wilczechatki.pl)", seedAdmin)
+                }
               >
                 Seed Admin User
-              </button>
+              </Button>
             </div>
           </section>
 
@@ -132,8 +147,8 @@ export default function DevPage() {
               {logs.length === 0 && (
                 <span className={styles.empty}>Waiting for actions...</span>
               )}
-              {logs.map((log, i) => (
-                <div key={i} className={styles.logEntry}>
+              {logs.map((log) => (
+                <div key={log} className={styles.logEntry}>
                   {log}
                 </div>
               ))}

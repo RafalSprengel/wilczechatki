@@ -1,11 +1,11 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import styles from './page.module.css';
-import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
-import { formatDisplayDate } from '@/utils/formatDate';
-import type { BookingData, ClientData, InvoiceData } from '@/types/booking';
+"use client";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Button from "@/app/_components/UI/Button/Button";
+import FloatingBackButton from "@/app/_components/FloatingBackButton/FloatingBackButton";
+import type { BookingData, ClientData, InvoiceData } from "@/types/booking";
+import { formatDisplayDate } from "@/utils/formatDate";
+import styles from "./page.module.css";
 
 interface GuestData extends ClientData {
   invoice: boolean;
@@ -13,29 +13,31 @@ interface GuestData extends ClientData {
   termsAccepted: boolean;
 }
 
-const STORAGE_KEY = 'wilczechatki_booking_draft';
+const STORAGE_KEY = "wilczechatki_booking_draft";
 
 export default function BookingDetailsPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<GuestData>({
-    firstName: '',
-    lastName: '',
-    address: '',
-    email: '',
-    phone: '',
+    firstName: "",
+    lastName: "",
+    address: "",
+    email: "",
+    phone: "",
     invoice: false,
     invoiceData: {
-      companyName: '',
-      nip: '',
-      street: '',
-      city: '',
-      postalCode: '',
+      companyName: "",
+      nip: "",
+      street: "",
+      city: "",
+      postalCode: "",
     },
     termsAccepted: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [bookingSummary, setBookingSummary] = useState<BookingData | null>(null);
+  const [bookingSummary, setBookingSummary] = useState<BookingData | null>(
+    null,
+  );
 
   useEffect(() => {
     const savedData = localStorage.getItem(STORAGE_KEY);
@@ -51,80 +53,88 @@ export default function BookingDetailsPage() {
           !Number.isInteger(parsed.children) ||
           parsed.children < 0
         ) {
-          router.push('/booking');
+          router.push("/booking");
           return;
         }
 
         setBookingSummary(parsed);
         const hasInvoiceData = Boolean(
           parsed.invoiceData.companyName ||
-          parsed.invoiceData.nip ||
-          parsed.invoiceData.street ||
-          parsed.invoiceData.city ||
-          parsed.invoiceData.postalCode
+            parsed.invoiceData.nip ||
+            parsed.invoiceData.street ||
+            parsed.invoiceData.city ||
+            parsed.invoiceData.postalCode,
         );
 
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           ...parsed.clientData,
           invoice: hasInvoiceData,
           invoiceData: parsed.invoiceData,
         }));
       } catch {
-        router.push('/booking');
+        router.push("/booking");
       }
     } else {
-      router.push('/booking');
+      router.push("/booking");
     }
   }, [router]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.firstName.trim()) newErrors.firstName = 'Imię jest wymagane';
-    if (!formData.lastName.trim()) newErrors.lastName = 'Nazwisko jest wymagane';
-    if (!formData.address.trim()) newErrors.address = 'Adres jest wymagany';
+    if (!formData.firstName.trim()) newErrors.firstName = "Imię jest wymagane";
+    if (!formData.lastName.trim())
+      newErrors.lastName = "Nazwisko jest wymagane";
+    if (!formData.address.trim()) newErrors.address = "Adres jest wymagany";
 
     if (!formData.email.trim()) {
-      newErrors.email = 'E-mail jest wymagany';
+      newErrors.email = "E-mail jest wymagany";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Nieprawidłowy format e-mail';
+      newErrors.email = "Nieprawidłowy format e-mail";
     }
 
     if (!formData.phone.trim()) {
-      newErrors.phone = 'Telefon jest wymagany';
+      newErrors.phone = "Telefon jest wymagany";
     } else if (!/^[\d\s+\-()]+$/.test(formData.phone)) {
-      newErrors.phone = 'Nieprawidłowy format telefonu';
+      newErrors.phone = "Nieprawidłowy format telefonu";
     }
 
     if (formData.invoice) {
       if (!formData.invoiceData?.companyName.trim()) {
-        newErrors.companyName = 'Nazwa firmy jest wymagana dla faktury VAT';
+        newErrors.companyName = "Nazwa firmy jest wymagana dla faktury VAT";
       }
       if (!formData.invoiceData?.nip.trim()) {
-        newErrors.nip = 'NIP jest wymagany dla faktury VAT';
-      } else if (!/^[\d-]{10,13}$/.test(formData.invoiceData.nip.replace(/-/g, ''))) {
-        newErrors.nip = 'Nieprawidłowy format NIP';
+        newErrors.nip = "NIP jest wymagany dla faktury VAT";
+      } else if (
+        !/^[\d-]{10,13}$/.test(formData.invoiceData.nip.replace(/-/g, ""))
+      ) {
+        newErrors.nip = "Nieprawidłowy format NIP";
       }
       if (!formData.invoiceData?.street.trim()) {
-        newErrors.invoiceStreet = 'Ulica jest wymagana dla faktury VAT';
+        newErrors.invoiceStreet = "Ulica jest wymagana dla faktury VAT";
       }
       if (!formData.invoiceData?.city.trim()) {
-        newErrors.invoiceCity = 'Miejscowość jest wymagana dla faktury VAT';
+        newErrors.invoiceCity = "Miejscowość jest wymagana dla faktury VAT";
       }
-        if (!formData.invoiceData?.postalCode.trim()) {
-          newErrors.postalCode = 'Kod pocztowy jest wymagany dla faktury VAT';
-        } else {
-          const polishPostal = /^\d{2}-\d{3}$/;
-          // UK: https://stackoverflow.com/a/164994/65387
-          const ukPostal = /^([A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2})$/i;
-          if (!polishPostal.test(formData.invoiceData.postalCode) && !ukPostal.test(formData.invoiceData.postalCode)) {
-            newErrors.postalCode = 'Nieprawidłowy format kodu pocztowego (PL: XX-XXX lub UK: SW1A 1AA)';
-          }
+      if (!formData.invoiceData?.postalCode.trim()) {
+        newErrors.postalCode = "Kod pocztowy jest wymagany dla faktury VAT";
+      } else {
+        const polishPostal = /^\d{2}-\d{3}$/;
+        // UK: https://stackoverflow.com/a/164994/65387
+        const ukPostal = /^([A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2})$/i;
+        if (
+          !polishPostal.test(formData.invoiceData.postalCode) &&
+          !ukPostal.test(formData.invoiceData.postalCode)
+        ) {
+          newErrors.postalCode =
+            "Nieprawidłowy format kodu pocztowego (PL: XX-XXX lub UK: SW1A 1AA)";
         }
+      }
     }
 
-    if (!formData.termsAccepted) newErrors.termsAccepted = 'Musisz zaakceptować regulamin';
+    if (!formData.termsAccepted)
+      newErrors.termsAccepted = "Musisz zaakceptować regulamin";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -133,22 +143,24 @@ export default function BookingDetailsPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
 
-    if (name === 'invoice') {
+    if (name === "invoice") {
       setFormData((prev) => ({
         ...prev,
         invoice: checked,
-        ...(checked && !prev.invoiceData ? {
-          invoiceData: {
-            companyName: '',
-            nip: '',
-            street: '',
-            city: '',
-            postalCode: '',
-          }
-        } : {})
+        ...(checked && !prev.invoiceData
+          ? {
+              invoiceData: {
+                companyName: "",
+                nip: "",
+                street: "",
+                city: "",
+                postalCode: "",
+              },
+            }
+          : {}),
       }));
-    } else if (name.startsWith('invoice.')) {
-      const invoiceField = name.split('.')[1];
+    } else if (name.startsWith("invoice.")) {
+      const invoiceField = name.split(".")[1];
       setFormData((prev) => ({
         ...prev,
         invoiceData: {
@@ -159,12 +171,12 @@ export default function BookingDetailsPage() {
     } else {
       setFormData((prev) => ({
         ...prev,
-        [name]: type === 'checkbox' ? checked : value,
+        [name]: type === "checkbox" ? checked : value,
       }));
     }
 
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
@@ -172,12 +184,12 @@ export default function BookingDetailsPage() {
     const nextInvoiceData = formData.invoice
       ? formData.invoiceData
       : {
-        companyName: '',
-        nip: '',
-        street: '',
-        city: '',
-        postalCode: '',
-      };
+          companyName: "",
+          nip: "",
+          street: "",
+          city: "",
+          postalCode: "",
+        };
 
     const updatedData: BookingData = {
       ...(bookingSummary as BookingData),
@@ -192,7 +204,7 @@ export default function BookingDetailsPage() {
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
 
-    router.push('/terms-and-conditions');
+    router.push("/terms-and-conditions");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -203,12 +215,12 @@ export default function BookingDetailsPage() {
     const nextInvoiceData = formData.invoice
       ? formData.invoiceData
       : {
-        companyName: '',
-        nip: '',
-        street: '',
-        city: '',
-        postalCode: '',
-      };
+          companyName: "",
+          nip: "",
+          street: "",
+          city: "",
+          postalCode: "",
+        };
 
     const updatedData: BookingData = {
       ...(bookingSummary as BookingData),
@@ -223,7 +235,7 @@ export default function BookingDetailsPage() {
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
     await new Promise((resolve) => setTimeout(resolve, 500));
-    router.push('/booking/summary');
+    router.push("/booking/summary");
   };
 
   if (!bookingSummary) {
@@ -245,10 +257,11 @@ export default function BookingDetailsPage() {
   const orderDisplayName =
     orders.length === 1
       ? orders[0].displayName
-      : `${orders.length} obiekty: ${orders.map((item) => item.displayName).join(', ')}`;
+      : `${orders.length} obiekty: ${orders.map((item) => item.displayName).join(", ")}`;
 
   const nights = Math.ceil(
-    (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
+    (new Date(endDate).getTime() - new Date(startDate).getTime()) /
+      (1000 * 60 * 60 * 24),
   );
 
   return (
@@ -269,14 +282,16 @@ export default function BookingDetailsPage() {
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Termin:</span>
             <span className={styles.summaryValue}>
-              {formatDisplayDate(startDate)} — {formatDisplayDate(endDate)} ({nights} nocy)
+              {formatDisplayDate(startDate)} — {formatDisplayDate(endDate)} (
+              {nights} nocy)
             </span>
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Goście:</span>
             <span className={styles.summaryValue}>
               {totalGuests} osób
-              {totalExtraBeds > 0 && ` + ${totalExtraBeds} dostawka${totalExtraBeds > 1 ? 'i' : ''}`}
+              {totalExtraBeds > 0 &&
+                ` + ${totalExtraBeds} dostawka${totalExtraBeds > 1 ? "i" : ""}`}
             </span>
           </div>
           <div className={styles.summaryItem}>
@@ -298,10 +313,12 @@ export default function BookingDetailsPage() {
                 type="text"
                 value={formData.firstName}
                 onChange={handleChange}
-                className={errors.firstName ? styles.inputError : ''}
+                className={errors.firstName ? styles.inputError : ""}
                 autoComplete="given-name"
               />
-              {errors.firstName && <span className={styles.errorText}>{errors.firstName}</span>}
+              {errors.firstName && (
+                <span className={styles.errorText}>{errors.firstName}</span>
+              )}
             </div>
             <div className={styles.inputGroup}>
               <label htmlFor="lastName">Nazwisko *</label>
@@ -311,10 +328,12 @@ export default function BookingDetailsPage() {
                 type="text"
                 value={formData.lastName}
                 onChange={handleChange}
-                className={errors.lastName ? styles.inputError : ''}
+                className={errors.lastName ? styles.inputError : ""}
                 autoComplete="family-name"
               />
-              {errors.lastName && <span className={styles.errorText}>{errors.lastName}</span>}
+              {errors.lastName && (
+                <span className={styles.errorText}>{errors.lastName}</span>
+              )}
             </div>
           </div>
           <div className={styles.inputGroup}>
@@ -326,10 +345,12 @@ export default function BookingDetailsPage() {
               value={formData.address}
               onChange={handleChange}
               placeholder="Ulica, numer, kod pocztowy, miejscowość"
-              className={errors.address ? styles.inputError : ''}
+              className={errors.address ? styles.inputError : ""}
               autoComplete="street-address"
             />
-            {errors.address && <span className={styles.errorText}>{errors.address}</span>}
+            {errors.address && (
+              <span className={styles.errorText}>{errors.address}</span>
+            )}
           </div>
         </div>
 
@@ -344,10 +365,12 @@ export default function BookingDetailsPage() {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                className={errors.email ? styles.inputError : ''}
+                className={errors.email ? styles.inputError : ""}
                 autoComplete="email"
               />
-              {errors.email && <span className={styles.errorText}>{errors.email}</span>}
+              {errors.email && (
+                <span className={styles.errorText}>{errors.email}</span>
+              )}
             </div>
             <div className={styles.inputGroup}>
               <label htmlFor="phone">Telefon *</label>
@@ -358,10 +381,12 @@ export default function BookingDetailsPage() {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="+48 123 456 789"
-                className={errors.phone ? styles.inputError : ''}
+                className={errors.phone ? styles.inputError : ""}
                 autoComplete="tel"
               />
-              {errors.phone && <span className={styles.errorText}>{errors.phone}</span>}
+              {errors.phone && (
+                <span className={styles.errorText}>{errors.phone}</span>
+              )}
             </div>
           </div>
         </div>
@@ -378,11 +403,16 @@ export default function BookingDetailsPage() {
             <span>Chcę otrzymać fakturę VAT</span>
           </label>
 
-          <div className={`${styles.invoiceWrapper} ${formData.invoice ? styles.expanded : ''}`}>
+          <div
+            className={`${styles.invoiceWrapper} ${formData.invoice ? styles.expanded : ""}`}
+          >
             <div className={styles.invoiceContent}>
               <h3 className={styles.invoiceTitle}>Dane do faktury VAT</h3>
 
-              <div className={`${styles.inputGroup} ${styles.fadeIn}`} style={{ animationDelay: '0.05s' }}>
+              <div
+                className={`${styles.inputGroup} ${styles.fadeIn}`}
+                style={{ animationDelay: "0.05s" }}
+              >
                 <label htmlFor="invoice.companyName">Nazwa firmy *</label>
                 <input
                   id="invoice.companyName"
@@ -390,13 +420,18 @@ export default function BookingDetailsPage() {
                   type="text"
                   value={formData.invoiceData.companyName}
                   onChange={handleChange}
-                  className={errors.companyName ? styles.inputError : ''}
+                  className={errors.companyName ? styles.inputError : ""}
                   placeholder="Pełna nazwa firmy"
                 />
-                {errors.companyName && <span className={styles.errorText}>{errors.companyName}</span>}
+                {errors.companyName && (
+                  <span className={styles.errorText}>{errors.companyName}</span>
+                )}
               </div>
 
-              <div className={`${styles.inputGroup} ${styles.fadeIn}`} style={{ animationDelay: '0.1s' }}>
+              <div
+                className={`${styles.inputGroup} ${styles.fadeIn}`}
+                style={{ animationDelay: "0.1s" }}
+              >
                 <label htmlFor="invoice.nip">NIP *</label>
                 <input
                   id="invoice.nip"
@@ -404,13 +439,18 @@ export default function BookingDetailsPage() {
                   type="text"
                   value={formData.invoiceData.nip}
                   onChange={handleChange}
-                  className={errors.nip ? styles.inputError : ''}
+                  className={errors.nip ? styles.inputError : ""}
                   placeholder="123-456-78-90"
                 />
-                {errors.nip && <span className={styles.errorText}>{errors.nip}</span>}
+                {errors.nip && (
+                  <span className={styles.errorText}>{errors.nip}</span>
+                )}
               </div>
 
-              <div className={`${styles.inputGroup} ${styles.fadeIn}`} style={{ animationDelay: '0.15s' }}>
+              <div
+                className={`${styles.inputGroup} ${styles.fadeIn}`}
+                style={{ animationDelay: "0.15s" }}
+              >
                 <label htmlFor="invoice.street">Ulica i numer *</label>
                 <input
                   id="invoice.street"
@@ -418,13 +458,20 @@ export default function BookingDetailsPage() {
                   type="text"
                   value={formData.invoiceData.street}
                   onChange={handleChange}
-                  className={errors.invoiceStreet ? styles.inputError : ''}
+                  className={errors.invoiceStreet ? styles.inputError : ""}
                   placeholder="ul. Przykładowa 123"
                 />
-                {errors.invoiceStreet && <span className={styles.errorText}>{errors.invoiceStreet}</span>}
+                {errors.invoiceStreet && (
+                  <span className={styles.errorText}>
+                    {errors.invoiceStreet}
+                  </span>
+                )}
               </div>
 
-              <div className={`${styles.grid} ${styles.fadeIn}`} style={{ animationDelay: '0.2s' }}>
+              <div
+                className={`${styles.grid} ${styles.fadeIn}`}
+                style={{ animationDelay: "0.2s" }}
+              >
                 <div className={styles.inputGroup}>
                   <label htmlFor="invoice.postalCode">Kod pocztowy *</label>
                   <input
@@ -433,11 +480,15 @@ export default function BookingDetailsPage() {
                     type="text"
                     value={formData.invoiceData.postalCode}
                     onChange={handleChange}
-                    className={errors.postalCode ? styles.inputError : ''}
+                    className={errors.postalCode ? styles.inputError : ""}
                     placeholder="00-000"
                     maxLength={6}
                   />
-                  {errors.postalCode && <span className={styles.errorText}>{errors.postalCode}</span>}
+                  {errors.postalCode && (
+                    <span className={styles.errorText}>
+                      {errors.postalCode}
+                    </span>
+                  )}
                 </div>
 
                 <div className={styles.inputGroup}>
@@ -448,10 +499,14 @@ export default function BookingDetailsPage() {
                     type="text"
                     value={formData.invoiceData.city}
                     onChange={handleChange}
-                    className={errors.invoiceCity ? styles.inputError : ''}
+                    className={errors.invoiceCity ? styles.inputError : ""}
                     placeholder="Miejscowość"
                   />
-                  {errors.invoiceCity && <span className={styles.errorText}>{errors.invoiceCity}</span>}
+                  {errors.invoiceCity && (
+                    <span className={styles.errorText}>
+                      {errors.invoiceCity}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -468,27 +523,29 @@ export default function BookingDetailsPage() {
               onChange={handleChange}
             />
             <span>
-              Zapoznałem/am się i akceptuję{' '}
+              Zapoznałem/am się i akceptuję{" "}
               <button
                 type="button"
                 onClick={handleTermAndConditionsClick}
                 className={styles.linkButton}
               >
                 regulamin obiektu
-              </button>{' '}
+              </button>{" "}
               *
             </span>
           </label>
-          {errors.termsAccepted && <span className={styles.errorText}>{errors.termsAccepted}</span>}
+          {errors.termsAccepted && (
+            <span className={styles.errorText}>{errors.termsAccepted}</span>
+          )}
         </div>
 
         <div className={styles.formActions}>
-          <Link href="/booking" className={styles.btnBack}>
+          <Button href="/booking" variant="secondary">
             ← Wstecz
-          </Link>
-          <button type="submit" className={styles.btnNext} disabled={isSubmitting}>
-            {isSubmitting ? 'Zapisywanie...' : 'Dalej →'}
-          </button>
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Zapisywanie..." : "Dalej →"}
+          </Button>
         </div>
       </form>
     </div>

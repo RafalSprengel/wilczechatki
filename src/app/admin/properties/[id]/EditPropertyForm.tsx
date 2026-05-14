@@ -1,50 +1,64 @@
-'use client'
-import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { updateProperty, deleteProperty } from '@/actions/adminPropertyActions'
-import styles from './page.module.css'
+"use client";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { deleteProperty, updateProperty } from "@/actions/adminPropertyActions";
+import Button from "@/app/_components/UI/Button/Button";
+import styles from "./page.module.css";
 
-export default function EditPropertyForm({ property, propertyId }: { property: any; propertyId: string }) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
-  const [isActive, setIsActive] = useState(property.isActive)
+export default function EditPropertyForm({
+  property,
+  propertyId,
+}: {
+  property: any;
+  propertyId: string;
+}) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const [isActive, setIsActive] = useState(property.isActive);
 
   const handleUpdate = async (formData: FormData) => {
     startTransition(async () => {
-      const result = await updateProperty(propertyId, formData)
+      const result = await updateProperty(propertyId, formData);
       if (result.success) {
-        setMessage({ type: 'success', text: 'Zapisano zmiany!' })
-        router.refresh()
+        setMessage({ type: "success", text: "Zapisano zmiany!" });
+        router.refresh();
       } else {
-        setMessage({ type: 'error', text: result.message })
+        setMessage({ type: "error", text: result.message });
       }
-    })
-  }
+    });
+  };
 
   const handleDelete = async () => {
-    if (!confirm('Czy na pewno usunąć ten domek? Ta operacja jest nieodwracalna.')) return
-    setIsDeleting(true)
-    const result = await deleteProperty(propertyId)
+    if (
+      !confirm("Czy na pewno usunąć ten domek? Ta operacja jest nieodwracalna.")
+    )
+      return;
+    setIsDeleting(true);
+    const result = await deleteProperty(propertyId);
     if (result.success) {
-      router.push('/admin/properties')
-      router.refresh()
+      router.push("/admin/properties");
+      router.refresh();
     } else {
-      setMessage({ type: 'error', text: result.message })
-      setIsDeleting(false)
+      setMessage({ type: "error", text: result.message });
+      setIsDeleting(false);
     }
-  }
+  };
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsActive(e.target.checked)
-  }
+    setIsActive(e.target.checked);
+  };
 
   return (
     <>
       {message && (
-        <div className={`${styles.alert} ${message.type === 'success' ? styles.alertSuccess : styles.alertError}`}>
+        <div
+          className={`${styles.alert} ${message.type === "success" ? styles.alertSuccess : styles.alertError}`}
+        >
           {message.text}
         </div>
       )}
@@ -70,7 +84,7 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
                 id="slug"
                 name="slug"
                 type="text"
-                defaultValue={property.slug || ''}
+                defaultValue={property.slug || ""}
                 placeholder="chatka-a"
                 pattern="[a-z0-9\-]+"
                 title="Tylko małe litery, cyfry i myślniki"
@@ -84,7 +98,7 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
               id="description"
               name="description"
               rows={4}
-              defaultValue={property.description || ''}
+              defaultValue={property.description || ""}
               placeholder="Krótki opis domku dla gości..."
             />
           </div>
@@ -104,7 +118,9 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
                 required
                 defaultValue={property.maxAdults}
               />
-              <small className={styles.hint}>Maksymalna liczba dorosłych gości.</small>
+              <small className={styles.hint}>
+                Maksymalna liczba dorosłych gości.
+              </small>
             </div>
             <div className={styles.inputGroup}>
               <label htmlFor="maxChildren">Max. dzieci *</label>
@@ -130,7 +146,9 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
                 required
                 defaultValue={property.maxExtraBeds}
               />
-              <small className={styles.hint}>Ile dodatkowych łóżek można dostawić.</small>
+              <small className={styles.hint}>
+                Ile dodatkowych łóżek można dostawić.
+              </small>
             </div>
           </div>
         </div>
@@ -143,10 +161,12 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
               id="images"
               name="images"
               rows={3}
-              defaultValue={property.images?.join(', ') || ''}
+              defaultValue={property.images?.join(", ") || ""}
               placeholder="/images/chatka-1.jpg, /images/chatka-2.jpg"
             />
-            <small className={styles.hint}>Wklej ścieżki do zdjęć, oddzielając je przecinkami.</small>
+            <small className={styles.hint}>
+              Wklej ścieżki do zdjęć, oddzielając je przecinkami.
+            </small>
           </div>
         </div>
 
@@ -161,37 +181,42 @@ export default function EditPropertyForm({ property, propertyId }: { property: a
                 checked={isActive}
                 onChange={handleStatusChange}
               />
-              <span className={`${styles.toggleText} ${isActive ? styles.active : styles.inactive}`}>
-                {isActive ? 'Aktywny – widoczny w wyszukiwarce' : 'Nieaktywny – ukryty przed gośćmi'}
+              <span
+                className={`${styles.toggleText} ${isActive ? styles.active : styles.inactive}`}
+              >
+                {isActive
+                  ? "Aktywny – widoczny w wyszukiwarce"
+                  : "Nieaktywny – ukryty przed gośćmi"}
               </span>
             </label>
           </div>
         </div>
 
         <div className={styles.actions}>
-          <Link href="/admin/properties" className={styles.btnCancel}>
+          <Button href="/admin/properties" variant="secondary">
             Anuluj
-          </Link>
-          <button type="submit" className={styles.btnSubmit} disabled={isPending}>
-            {isPending ? '⏳ Zapisywanie...' : '💾 Zapisz zmiany'}
-          </button>
+          </Button>
+          <Button type="submit" disabled={isPending}>
+            {isPending ? "⏳ Zapisywanie..." : "💾 Zapisz zmiany"}
+          </Button>
         </div>
       </form>
 
       <div className={styles.dangerZone}>
         <h3 className={styles.dangerTitle}>Strefa niebezpieczna</h3>
         <p className={styles.dangerDesc}>
-          Usunięcie domku jest nieodwracalne. Można usunąć tylko obiekty bez rezerwacji.
+          Usunięcie domku jest nieodwracalne. Można usunąć tylko obiekty bez
+          rezerwacji.
         </p>
-        <button
+        <Button
           type="button"
+          variant="danger"
           onClick={handleDelete}
-          className={styles.btnDelete}
           disabled={isDeleting}
         >
-          {isDeleting ? '⏳ Usuwanie...' : '🗑️ Usuń domek'}
-        </button>
+          {isDeleting ? "⏳ Usuwanie..." : "🗑️ Usuń domek"}
+        </Button>
       </div>
     </>
-  )
+  );
 }

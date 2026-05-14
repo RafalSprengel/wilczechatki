@@ -1,23 +1,30 @@
-'use client'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import styles from './page.module.css'
-export default function BookingDetailsContent({ booking, onDelete }: { booking: any; onDelete: () => Promise<void> }) {
-  const router = useRouter()
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
+"use client";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import Button from "@/app/_components/UI/Button/Button";
+import styles from "./page.module.css";
+export default function BookingDetailsContent({
+  booking,
+  onDelete,
+}: {
+  booking: any;
+  onDelete: () => Promise<void>;
+}) {
+  const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const handleDelete = async () => {
-    if (!confirm('Czy na pewno usunąć tę rezerwację?')) return
-    setIsDeleting(true)
+    if (!confirm("Czy na pewno usunąć tę rezerwację?")) return;
+    setIsDeleting(true);
     try {
-      await onDelete()
-      router.push('/admin/bookings/list')
-      router.refresh()
+      await onDelete();
+      router.push("/admin/bookings/list");
+      router.refresh();
     } catch {
-      setDeleteError('Wystąpił błąd podczas usuwania.')
-      setIsDeleting(false)
+      setDeleteError("Wystąpił błąd podczas usuwania.");
+      setIsDeleting(false);
     }
-  }
+  };
   return (
     <>
       {deleteError && (
@@ -33,23 +40,23 @@ export default function BookingDetailsContent({ booking, onDelete }: { booking: 
         </div>
         <div className={styles.infoRow}>
           <span className={styles.label}>Utworzono:</span>
-          <span>{new Date(booking.createdAt).toLocaleString('pl-PL')}</span>
+          <span>{new Date(booking.createdAt).toLocaleString("pl-PL")}</span>
         </div>
       </div>
       <div className={styles.actionsBlock}>
         <h3 className={styles.cardTitle}>Strefa niebezpieczna</h3>
-        <button
+        <Button
           type="button"
+          variant="danger"
           onClick={handleDelete}
-          className={styles.deleteBtn}
           disabled={isDeleting}
         >
-          {isDeleting ? '⏳ Usuwanie...' : '🗑️ Usuń Rezerwację'}
-        </button>
+          {isDeleting ? "⏳ Usuwanie..." : "🗑️ Usuń Rezerwację"}
+        </Button>
         <p className={styles.deleteHint}>
           Usunięcie rezerwacji zwolni termin w kalendarzu.
         </p>
       </div>
     </>
-  )
+  );
 }
