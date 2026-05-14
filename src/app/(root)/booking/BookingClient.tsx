@@ -152,6 +152,11 @@ export default function BookingClient({
       return;
     }
 
+    if (searchResults.forceCombined) {
+      setBookingMode("double");
+      return;
+    }
+
     setBookingMode(null);
   }, [searchResults, initialStart, initialEnd, initialAdults, initialChildren]);
 
@@ -326,9 +331,12 @@ export default function BookingClient({
 
   const isSearchDisabled =
     totalGuests === 0 || !bookingDates.start || !bookingDates.end;
-  const showModeSelector = searchResults?.areAllAvailable === true;
+  const showModeSelector =
+    searchResults !== null && searchResults.propertiesAvailable.length > 0;
+  const singleDisabled = searchResults?.forceCombined === true;
+  const doubleDisabled = searchResults?.areAllAvailable === false;
   const showSingleResults =
-    searchResults?.areAllAvailable === false || bookingMode === "single";
+    !singleDisabled && (searchResults?.areAllAvailable === false || bookingMode === "single");
   const overlappingSeasons = searchResults
     ? searchResults.overlappingSeasons
     : [];
@@ -647,12 +655,13 @@ export default function BookingClient({
                         aria-label="Tryb rezerwacji"
                       >
                         <label
-                          className={`${styles.modeOption} ${bookingMode === "single" ? styles.modeOptionActive : ""}`}
+                          className={`${styles.modeOption} ${bookingMode === "single" ? styles.modeOptionActive : ""} ${singleDisabled ? styles.modeOptionDisabled : ""}`}
                         >
                           <input
                             type="radio"
                             name="bookingMode"
                             checked={bookingMode === "single"}
+                            disabled={singleDisabled}
                             onChange={() => setBookingMode("single")}
                           />
                           <span className={styles.modeLabel}>Jeden domek</span>
@@ -665,12 +674,13 @@ export default function BookingClient({
                         </label>
 
                         <label
-                          className={`${styles.modeOption} ${bookingMode === "double" ? styles.modeOptionActive : ""}`}
+                          className={`${styles.modeOption} ${bookingMode === "double" ? styles.modeOptionActive : ""} ${doubleDisabled ? styles.modeOptionDisabled : ""}`}
                         >
                           <input
                             type="radio"
                             name="bookingMode"
                             checked={bookingMode === "double"}
+                            disabled={doubleDisabled}
                             onChange={() => {
                               setBookingMode("double");
                               setGuestsMap((prev) => {
@@ -714,7 +724,7 @@ export default function BookingClient({
 
                     {showModeSelector &&
                       bookingMode === "double" &&
-                      (searchResults.areAllAvailable ? (
+                      searchResults.areAllAvailable && (
                         <div className={styles.allAvailableNote}>
                           <AllPropertiesCard
                             searchResults={searchResults}
@@ -731,7 +741,7 @@ export default function BookingClient({
                             onSelectAll={handleAllSelect}
                           />
                         </div>
-                      ) : null)}
+                      )}
                   </div>
                 );
               })()}

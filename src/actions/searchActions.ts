@@ -37,6 +37,7 @@ export interface SearchOption {
 export interface SearchResults {
   propertiesAvailable: SearchOption[];
   areAllAvailable: boolean;
+  forceCombined: boolean;
   overlappingSeasons: OverlappingSeasonInfo[];
 }
 
@@ -361,7 +362,7 @@ export async function searchAction(params: SearchParams): Promise<SearchResults>
       });
 
     if (autoBlockOtherCabins && occupiedIds.length > 0) {
-      return { propertiesAvailable: [], areAllAvailable: false, overlappingSeasons };
+      return { propertiesAvailable: [], areAllAvailable: false, forceCombined: false, overlappingSeasons };
     }
 
     const availableProperties = await Property.find({
@@ -370,19 +371,34 @@ export async function searchAction(params: SearchParams): Promise<SearchResults>
     }).select('-createdAt -updatedAt').sort({ name: 1 });
 
     if (availableProperties.length === 0) {
-      return { propertiesAvailable: [], areAllAvailable: false, overlappingSeasons };
+      return { propertiesAvailable: [], areAllAvailable: false, forceCombined: false, overlappingSeasons };
     }
 
     const options: SearchOption[] = [];
 
+    const combinedMaxAdults = availableProperties.reduce((sum, p) => sum + p.maxAdults, 0);
+    const combinedMaxChildren = availableProperties.reduce((sum, p) => sum + p.maxChildren, 0);
+    const canCombinedAccommodate =
+      adults <= combinedMaxAdults && children <= combinedMaxChildren;
+    const anyFitsIndividually = availableProperties.some(
+      (p) => adults <= p.maxAdults && children <= p.maxChildren
+    );
+    const forceCombined = canCombinedAccommodate && !anyFitsIndividually;
+
     for (const property of availableProperties) {
-      if (adults > property.maxAdults) continue;
-      if (children > property.maxChildren) continue;
+      const fitsIndividually =
+        adults <= property.maxAdults && children <= property.maxChildren;
+
+      if (!fitsIndividually && !canCombinedAccommodate) continue;
+
+      const allocAdults = fitsIndividually
+        ? adults
+        : Math.min(property.maxAdults, adults);
 
       const price = await calculateTotalPrice({
         startDate,
         endDate,
-        baseGuests: adults,
+        baseGuests: Math.max(1, allocAdults),
         extraBeds,
         propertySelection: property._id.toString(),
       });
@@ -393,7 +409,7 @@ export async function searchAction(params: SearchParams): Promise<SearchResults>
             (await calculateTotalPrice({
               startDate,
               endDate,
-              baseGuests: adults,
+              baseGuests: Math.max(1, allocAdults),
               extraBeds: extraBeds + 1,
               propertySelection: property._id.toString(),
             })) - price
@@ -460,6 +476,7 @@ export async function searchAction(params: SearchParams): Promise<SearchResults>
     return {
       propertiesAvailable: result,
       areAllAvailable,
+      forceCombined,
       overlappingSeasons,
     };
   } catch (error) {
