@@ -198,17 +198,6 @@ export default function AdminLayout({
               </Link>
             </div>
 
-            <div>
-              <div className={styles.navGroupTitle}>Narzędzia</div>
-              <Link
-                href="/admin/dev"
-                className={`${styles.navLink} ${isDevActive ? styles.active : ''}`}
-                onClick={handleMenuLinkClick}
-              >
-                <span className={styles.navIcon}>💻</span>
-                Dev
-              </Link>
-            </div>
           </nav>
 
           <div className={styles.sidebarFooter}>

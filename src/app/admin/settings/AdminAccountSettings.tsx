@@ -63,7 +63,7 @@ export default function AdminAccountSettings() {
 
   const hasChanges = (username !== dbDisplayUsername && username.length > 0) || (email !== dbEmail && email.length > 0) || password.length > 0
   const passwordsMatch = password === confirmPassword
-  const canSave = hasChanges && currentPassword.length > 0 && (password.length > 0 ? passwordsMatch : true)
+  const canSave = hasChanges && (password.length > 0 ? passwordsMatch && currentPassword.length > 0 : true)
 
   const handleSave = async () => {
     if (!hasChanges) return
