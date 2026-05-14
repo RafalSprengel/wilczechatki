@@ -212,6 +212,16 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
   }, [selectedSeasonId, seasons]);
 
   useEffect(() => {
+    if (isLoadingSeasons) return;
+    const hash = window.location.hash;
+    if (!hash) return;
+    const el = document.querySelector(hash);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [isLoadingSeasons]);
+
+  useEffect(() => {
     setAllowCheckin(initialConfig.allowCheckinOnDepartureDay);
   }, [initialConfig.allowCheckinOnDepartureDay]);
 
@@ -637,7 +647,7 @@ export default function BookingSettingsForm({ initialConfig }: Props) {
           </div>
         </div>
 
-        <div className={`${styles.cardHeader} ${styles.cardHeaderSpaced}`}>
+        <div id="seasons" className={`${styles.cardHeader} ${styles.cardHeaderSpaced}`}>
           <h2 className={styles.cardTitle}>Ustawienia sezonów</h2>
         </div>
         <div className={styles.settingRow}>

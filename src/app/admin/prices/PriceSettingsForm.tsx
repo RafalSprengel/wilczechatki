@@ -998,7 +998,7 @@ export default function PriceSettingsForm({
                   </option>
                 ))}
               </select>
-              <Link href="/admin/settings/booking" className={styles.copyLink}>
+              <Link href="/admin/settings/booking#seasons" className={styles.copyLink}>
                 Przejdź do ustawień nazw i dat sezonów
               </Link>
             </div>
