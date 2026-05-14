@@ -1,5 +1,4 @@
 import { revalidatePath } from "next/cache";
-import Link from "next/link";
 import {
   getAllProperties,
   togglePropertyActive,
@@ -26,16 +25,16 @@ export default async function PropertiesPage() {
       <header className={styles.header}>
         <h1>Zarządzanie obiektami</h1>
         <p>Dodaj, edytuj lub dezaktywuj obiekty w systemie.</p>
-        <Link href="/admin/properties/add" className={styles.btnAdd}>
+        <Button href="/admin/properties/add" variant='secondary' className={styles.btnAdd}>
           ➕ Dodaj nowy obiekt
-        </Link>
+        </Button>
       </header>
       {properties.length === 0 ? (
         <div className={styles.emptyState}>
           <p>Brak obiektów w systemie.</p>
-          <Link href="/admin/properties/add" className={styles.btnAdd}>
+          <Button href="/admin/properties/add"  variant='secondary' className={styles.btnAdd}>
             Dodaj pierwszy obiekt
-          </Link>
+          </Button>
         </div>
       ) : (
         <div className={styles.propertiesGrid}>
@@ -80,20 +79,19 @@ export default async function PropertiesPage() {
                     name="isActive"
                     value={String(prop.isActive)}
                   />
-                  <Button type="submit" variant="secondary">
+                  <Button type="submit" variant="secondary" fullWidth>
                     {prop.isActive ? "🔘 Dezaktywuj" : "✅ Aktywuj"}
                   </Button>
                 </form>
-                <Link
-                  href={`/admin/properties/${prop._id}`}
-                  className={styles.btnEdit}
-                >
-                  ✏️ Edytuj
-                </Link>
-                <DeletePropertyButton
-                  propertyId={prop._id}
-                  propertyName={prop.name}
-                />
+                <div className={styles.cardActionsRow}>
+                  <Button variant='secondary' href={`/admin/properties/${prop._id}`}>
+                    ✏️ Edytuj
+                  </Button>
+                  <DeletePropertyButton
+                    propertyId={prop._id}
+                    propertyName={prop.name}
+                  />
+                </div>
               </div>
             </article>
           ))}

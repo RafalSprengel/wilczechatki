@@ -1,4 +1,5 @@
 import { getAdminBookingsList } from '@/actions/adminBookingActions';
+import Button from '@/app/_components/UI/Button/Button';
 import Link from 'next/link';
 import styles from './page.module.css';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
@@ -208,7 +209,7 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
                     <div className={styles.cardFooter}>
                       <span className={`${styles.badge} ${styles[`badge${statusKey}`]}`}>{statusLabel}</span>
                       <span className={styles.addedDate}>dodano: {new Date(booking.createdAt).toLocaleDateString('pl-PL')}</span>
-                      <Link href={`/admin/bookings/list/${booking._id}`} className={styles.editBtn}>Edytuj</Link>
+                      <Button variant='secondary' href={`/admin/bookings/list/${booking._id}`} className={styles.editBtn}>Edytuj</Button>
                     </div>
                     {booking.source === 'admin' && (
                       <div className={styles.adminBubble}>Rezerwacja dokonana przez panel admina</div>

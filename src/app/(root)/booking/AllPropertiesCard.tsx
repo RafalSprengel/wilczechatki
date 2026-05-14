@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import Button from '@/app/_components/UI/Button/Button'
 import QuantityPicker from '../../_components/QuantityPicker/QuantityPicker'
 import styles from './page.module.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -241,14 +242,14 @@ export default function AllPropertiesCard({
           <div className={styles.allocationErrorText}>Najpierw rozdziel wszystkich dorosłych</div>
         )}
 
-        <button
+        <Button
           type="button"
           className={`${styles.btnSelect} ${!canSelectAll ? styles.btnSelectDisabledLook : ''}`}
           onClick={handleSelectAllClick}
           aria-disabled={!canSelectAll}
         >
           Wybieram tę opcję
-        </button>
+        </Button>
       </div>
     </div>
   )

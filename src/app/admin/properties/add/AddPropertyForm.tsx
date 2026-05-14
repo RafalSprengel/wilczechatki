@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createProperty } from '@/actions/adminPropertyActions';
+import Button from '@/app/_components/UI/Button/Button';
 import styles from './page.module.css';
 import FloatingBackButton from '@/app/_components/FloatingBackButton/FloatingBackButton';
 
@@ -110,8 +111,8 @@ export default function AddPropertyForm() {
         </div>
 
         <div className={styles.actions}>
-          <button type="button" className={styles.btnCancel} onClick={() => router.back()}>Anuluj</button>
-          <button type="submit" className={styles.btnSubmit} disabled={isSubmitting}>{isSubmitting ? 'Zapisuję...' : '💾 Zapisz obiekt'}</button>
+          <Button type="button" variant="secondary" onClick={() => router.back()}>Anuluj</Button>
+          <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Zapisuję...' : '💾 Zapisz obiekt'}</Button>
         </div>
       </form>
     </div>

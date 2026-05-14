@@ -313,6 +313,7 @@ export default function BlockBookingsPage() {
         <div className={styles.actionsRow}>
           <Button
             type="button"
+            variant='secondary'
             onClick={() => void handleCreateBlock()}
             disabled={isSubmitting}
           >

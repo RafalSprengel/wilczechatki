@@ -160,6 +160,20 @@
   gap: 8px;
 }
 
+.cardActions form {
+  width: 100%;
+}
+
+.cardActionsRow {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.cardActionsRow > * {
+  flex: 1;
+}
+
 .cardActions form,
 .cardActions a {
   width: 100%;

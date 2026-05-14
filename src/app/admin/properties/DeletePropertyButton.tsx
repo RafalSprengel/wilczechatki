@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteProperty } from '@/actions/adminPropertyActions'
+import Button from '@/app/_components/UI/Button/Button'
 import Modal from '@/app/_components/Modal/Modal'
 import styles from './page.module.css'
 
@@ -39,16 +40,16 @@ export default function DeletePropertyButton({
 
   return (
     <>
-      <button
+      <Button
         type="button"
+        variant="danger"
         onClick={() => {
           setError(null)
           setShowConfirm(true)
         }}
-        className={styles.btnDelete}
       >
         🗑️ Usuń
-      </button>
+      </Button>
       
       <Modal
         isOpen={showConfirm}

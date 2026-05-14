@@ -7,10 +7,17 @@
     --bg-white: #ffffff;
     --action-color: #c3a846;
     --error-color: #c0392b;
-    --color-danger: #e74c3c;
+    --color-danger: #e4545b;
     --section-bg-light: #f9f9f9;
     --section-bg-dark: #eeeeee;
     --site-header-offset: 91px;
+    --status-confirmed: #15803d;
+    --status-failed: #dc2626;
+    --status-pending: #eab308;
+    --status-pending-text: #1f2937;
+    --status-all: #0f172a;
+    --filter-btn-color: #334155;
+    --filter-btn-border: #cbd5e1;
     --transition: 0.3s ease-in-out;
 }
 

@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { SearchOption } from '@/actions/searchActions'
+import Button from '@/app/_components/UI/Button/Button'
 import QuantityPicker from '../../_components/QuantityPicker/QuantityPicker'
 import styles from './page.module.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -64,12 +65,12 @@ export default function ResultCard({
         <span className={styles.priceValue}>{totalPriceWithExtraBeds} zł</span>
       </div>
 
-      <button
+      <Button
         className={styles.btnSelect}
         onClick={() => onSelect(option)}
       >
         Wybieram tę opcję
-      </button>
+      </Button>
     </div>
   )
 }

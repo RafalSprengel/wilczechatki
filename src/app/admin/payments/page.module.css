@@ -76,10 +76,10 @@
 }
 
 .payments-panel__filter-btn {
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--filter-btn-border);
   border-radius: 8px;
   background: #ffffff;
-  color: #334155;
+  color: var(--filter-btn-color);
   font-size: 0.85rem;
   font-weight: 600;
   padding: 8px 10px;
@@ -88,26 +88,26 @@
 }
 
 .payments-panel__filter-btn--active-confirmed {
-  background: #15803d;
-  border-color: #15803d;
+  background: var(--status-confirmed);
+  border-color: var(--status-confirmed);
   color: #ffffff;
 }
 
 .payments-panel__filter-btn--active-failed {
-  background: #dc2626;
-  border-color: #dc2626;
+  background: var(--status-failed);
+  border-color: var(--status-failed);
   color: #ffffff;
 }
 
 .payments-panel__filter-btn--active-pending {
-  background: #eab308;
-  border-color: #eab308;
-  color: #1f2937;
+  background: var(--status-pending);
+  border-color: var(--status-pending);
+  color: var(--status-pending-text);
 }
 
 .payments-panel__filter-btn--active-all {
-  background: #0f172a;
-  border-color: #0f172a;
+  background: var(--status-all);
+  border-color: var(--status-all);
   color: #ffffff;
 }
 
@@ -143,6 +143,7 @@
 .payments-panel__table-wrap {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
 }
