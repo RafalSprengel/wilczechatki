@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { toast } from "react-hot-toast";
 import type {
   AdminPaymentStatus,
@@ -71,6 +71,35 @@ export default function PaymentsPanel({
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  // Drag-to-scroll
+  const tableWrapRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartX = useRef(0);
+  const scrollStartX = useRef(0);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (tableWrapRef.current && e.button === 0) {
+      setIsDragging(true);
+      dragStartX.current = e.pageX;
+      scrollStartX.current = tableWrapRef.current.scrollLeft;
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isDragging && tableWrapRef.current) {
+      const dx = e.pageX - dragStartX.current;
+      tableWrapRef.current.scrollLeft = scrollStartX.current - dx;
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -203,7 +232,15 @@ export default function PaymentsPanel({
         </div>
       ) : null}
 
-      <div className={styles["payments-panel__table-wrap"]}>
+      <div
+        className={styles["payments-panel__table-wrap"]}
+        ref={tableWrapRef}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        style={{ cursor: isDragging ? "grabbing" : "grab" }}
+      >
         <table className={styles["payments-panel__table"]}>
           <thead>
             <tr>
