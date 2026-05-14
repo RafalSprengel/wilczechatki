@@ -119,17 +119,6 @@ export default function BookingDetailsPage() {
       }
       if (!formData.invoiceData?.postalCode.trim()) {
         newErrors.postalCode = "Kod pocztowy jest wymagany dla faktury VAT";
-      } else {
-        const polishPostal = /^\d{2}-\d{3}$/;
-        // UK: https://stackoverflow.com/a/164994/65387
-        const ukPostal = /^([A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2})$/i;
-        if (
-          !polishPostal.test(formData.invoiceData.postalCode) &&
-          !ukPostal.test(formData.invoiceData.postalCode)
-        ) {
-          newErrors.postalCode =
-            "Nieprawidłowy format kodu pocztowego (PL: XX-XXX lub UK: SW1A 1AA)";
-        }
       }
     }
 
@@ -482,7 +471,6 @@ export default function BookingDetailsPage() {
                     onChange={handleChange}
                     className={errors.postalCode ? styles.inputError : ""}
                     placeholder="00-000"
-                    maxLength={6}
                   />
                   {errors.postalCode && (
                     <span className={styles.errorText}>
