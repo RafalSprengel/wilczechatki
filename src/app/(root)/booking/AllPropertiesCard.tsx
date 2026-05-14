@@ -28,7 +28,8 @@ export default function AllPropertiesCard({
   totalChildrenLimit,
   startDate,
   endDate,
-  onSelectAll
+  onSelectAll,
+  childrenFreeAgeLimit
 }: { 
   searchResults: any, 
   extraBedsMap: Record<string, number>, 
@@ -41,7 +42,8 @@ export default function AllPropertiesCard({
   totalChildrenLimit: number,
   startDate: string | null,
   endDate: string | null,
-  onSelectAll: (orders: CombinedOrderSelection[]) => void
+  onSelectAll: (orders: CombinedOrderSelection[]) => void,
+  childrenFreeAgeLimit: number
 }) {
   const [priceMap, setPriceMap] = useState<Record<string, number>>({})
   const [showGuestsValidation, setShowGuestsValidation] = useState(false)
@@ -114,6 +116,7 @@ export default function AllPropertiesCard({
   )
 
   const canSelectAll = totalAssignedGuests === totalGuestsLimit && totalGuestsLimit > 0
+    && totalAssignedChildren === totalChildrenLimit
 
   useEffect(() => {
     if (canSelectAll) {
@@ -173,6 +176,7 @@ export default function AllPropertiesCard({
 
               {option.description && <p className={styles.cardDesc}>{option.description}</p>}
 
+
               {/* <div className={styles.cardDetails}>
                 <span>Max. dorosłych: {option.maxAdults}</span>
                 <span className={styles.separator}> • </span>
@@ -184,7 +188,7 @@ export default function AllPropertiesCard({
               <div className={styles.extraBedsSection}>
                 <div className={styles.extraBedsHeader}>
                   <FontAwesomeIcon icon={faUser} className={styles.bedIcon} />
-                  <span className={styles.extraBedsLabel}>Ilość dorosłych:</span>
+                  <span className={styles.extraBedsLabel}>Dorośli i dzieci od {childrenFreeAgeLimit} lat:</span>
                 </div>
                 <QuantityPicker
                   value={guests}
@@ -199,7 +203,7 @@ export default function AllPropertiesCard({
               <div className={styles.extraBedsSection}>
                 <div className={styles.extraBedsHeader}>
                   <FontAwesomeIcon icon={faUser} className={styles.bedIcon} />
-                  <span className={styles.extraBedsLabel}>Ilość dzieci do 13 lat:</span>
+                  <span className={styles.extraBedsLabel}>Dzieci do {childrenFreeAgeLimit} lat:</span>
                 </div>
                 <QuantityPicker
                   value={childrenForOption}
@@ -234,13 +238,22 @@ export default function AllPropertiesCard({
           <span className={styles.priceValue}>{combinedTotalPrice} zł</span>
         </div>
 
-        <div className={`${styles.extraBedsNote} ${showGuestsValidation && totalAssignedGuests !== totalGuestsLimit ? styles.extraBedsNoteError : ''}`}>
-          Przydzielono dorosłych: <strong>{totalAssignedGuests}</strong> / {totalGuestsLimit}
-        </div>
+        <div className={styles.allocationSummary}>
+          <div className={`${styles.extraBedsNote} ${showGuestsValidation && totalAssignedGuests !== totalGuestsLimit ? styles.extraBedsNoteError : ''}`}>
+            Przydzielono dorosłych: <strong>{totalAssignedGuests}</strong> / {totalGuestsLimit}
+          </div>
 
-        {showGuestsValidation && totalAssignedGuests !== totalGuestsLimit && (
-          <div className={styles.allocationErrorText}>Najpierw rozdziel wszystkich dorosłych</div>
-        )}
+          <div className={styles.extraBedsNote}>
+            Przydzielono dzieci: <strong>{totalAssignedChildren}</strong> / {totalChildrenLimit}
+          </div>
+
+          {showGuestsValidation && totalAssignedGuests !== totalGuestsLimit && (
+            <div className={styles.allocationErrorText}>Najpierw rozdziel wszystkich dorosłych</div>
+          )}
+          {showGuestsValidation && totalAssignedGuests === totalGuestsLimit && totalAssignedChildren !== totalChildrenLimit && (
+            <div className={styles.allocationErrorText}>Najpierw rozdziel wszystkie dzieci</div>
+          )}
+        </div>
 
         <Button
           type="button"

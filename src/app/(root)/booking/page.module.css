@@ -624,8 +624,14 @@
   text-align: right;
 }
 
+.allocationSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .extraBedsNote {
-  margin: 10px 0;
+  margin: 0;
   padding: 8px;
   background: #f1f5f9;
   border-radius: 6px;
@@ -824,7 +830,7 @@
 }
 
 .extraBedsNote {
-  margin: 10px 0;
+  margin: 0;
   padding: 8px;
   background: #f1f5f9;
   border-radius: 6px;

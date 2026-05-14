@@ -385,7 +385,7 @@ export default function BookingClient({
             className={`${styles.setGests} ${activeBox === "guests" ? styles.expandedGests : ""}`}
           >
             <div className={styles.pickerWrap}>
-              <span className={styles.label}>Dorośli i dzieci od 13 lat:</span>
+              <span className={styles.label}>Dorośli i dzieci od {childrenFreeAgeLimit} lat:</span>
               <QuantityPicker
                 onIncrement={() => setAdults(adults + 1)}
                 onDecrement={() => setAdults(adults > 1 ? adults - 1 : 1)}
@@ -396,7 +396,7 @@ export default function BookingClient({
               />
             </div>
             <div className={styles.pickerWrap}>
-              <span className={styles.label}>Dzieci do 13 lat:</span>
+              <span className={styles.label}>Dzieci do {childrenFreeAgeLimit} lat:</span>
               <QuantityPicker
                 onIncrement={() => setChildren(children + 1)}
                 onDecrement={() => setChildren(children > 0 ? children - 1 : 0)}
@@ -719,6 +719,7 @@ export default function BookingClient({
                           extraBeds={extraBedsMap[option.displayName] || 0}
                           onExtraBedsChange={handleExtraBedsChange}
                           onSelect={handleSingleSelect}
+                          childrenFreeAgeLimit={childrenFreeAgeLimit}
                         />
                       ))}
 
@@ -739,6 +740,7 @@ export default function BookingClient({
                             startDate={bookingDates.start}
                             endDate={bookingDates.end}
                             onSelectAll={handleAllSelect}
+                            childrenFreeAgeLimit={childrenFreeAgeLimit}
                           />
                         </div>
                       )}

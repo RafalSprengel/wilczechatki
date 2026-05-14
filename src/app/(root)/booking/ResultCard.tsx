@@ -13,13 +13,15 @@ interface ResultCardProps {
   extraBeds: number
   onExtraBedsChange: (displayName: string, value: number) => void
   onSelect: (option: SearchOption) => void
+  childrenFreeAgeLimit: number
 }
 
 export default function ResultCard({
   option,
   extraBeds,
   onExtraBedsChange,
-  onSelect
+  onSelect,
+  childrenFreeAgeLimit
 }: ResultCardProps) {
   const totalPriceWithExtraBeds = option.totalPrice + (extraBeds * option.extraBedPrice)
 
@@ -34,6 +36,7 @@ export default function ResultCard({
       <h4 className={styles.cardTitle}>{option.displayName}</h4>
 
       <p className={styles.cardDesc}>{option.description}</p>
+
 
       {/* <div className={styles.cardDetails}>
         <span>Max. dorosłych: {option.maxAdults}</span>

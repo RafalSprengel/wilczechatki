@@ -334,7 +334,7 @@ export async function searchAction(params: SearchParams): Promise<SearchResults>
     const totalActiveProperties = await Property.countDocuments({ isActive: true });
 
     const systemConfig = await SystemConfig.findById('main');
-    const autoBlockOtherCabins = systemConfig?.autoBlockOtherCabins ?? false;
+    const autoBlockOtherCabins = systemConfig?.autoBlockOtherCabins ?? true;
     const bookingConfig = await BookingConfig.findById('main').lean();
     const allowCheckinOnDepartureDay = bookingConfig?.allowCheckinOnDepartureDay ?? true;
     const overlapCondition = buildBookingOverlapFilter(start.toDate(), end.toDate(), allowCheckinOnDepartureDay);
