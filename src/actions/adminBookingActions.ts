@@ -34,7 +34,6 @@ interface BlockedBookingListItem {
 }
 
 const ALL_PROPERTIES_ID = 'ALL_PROPERTIES'
-const ADMIN_ALLOW_CHECKIN_ON_DEPARTURE_DAY = true
 const AVAILABILITY_STATUS_FILTER = {
   $or: [
     { status: 'blocked' },
@@ -59,7 +58,7 @@ export async function getUnavailableDatesForProperty(propertyId: string): Promis
   await dbConnect()
   const config = await SystemConfig.findById('main')
   const autoBlockOtherCabins = config?.autoBlockOtherCabins ?? true
-  const allowCheckinOnDepartureDay = ADMIN_ALLOW_CHECKIN_ON_DEPARTURE_DAY
+  const allowCheckinOnDepartureDay = await getAllowCheckinOnDepartureDay()
   const query: any = {
     ...AVAILABILITY_STATUS_FILTER,
   }
@@ -76,20 +75,28 @@ export async function getUnavailableDatesForProperty(propertyId: string): Promis
 
   const bookings = didMutateBookings
     ? await Booking.find(query)
-        .select('startDate endDate')
+        .select('startDate endDate status')
         .lean()
     : bookingsForCleanup
   const unavailableDates = new Set<string>()
   for (const booking of bookings) {
     const start = new Date(booking.startDate)
     const end = new Date(booking.endDate)
-    for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split('T')[0]
-      unavailableDates.add(dateStr)
-    }
 
-    if (!allowCheckinOnDepartureDay) {
-      unavailableDates.add(end.toISOString().split('T')[0])
+    if (booking.status === 'blocked') {
+      for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
+        unavailableDates.add(d.toISOString().split('T')[0])
+      }
+    } else {
+      const startPlusOne = new Date(start)
+      startPlusOne.setDate(startPlusOne.getDate() + 1)
+      for (let d = new Date(startPlusOne); d < end; d.setDate(d.getDate() + 1)) {
+        unavailableDates.add(d.toISOString().split('T')[0])
+      }
+      if (!allowCheckinOnDepartureDay) {
+        unavailableDates.add(start.toISOString().split('T')[0])
+        unavailableDates.add(end.toISOString().split('T')[0])
+      }
     }
   }
   return Array.from(unavailableDates)
@@ -209,7 +216,7 @@ export async function createBookingByAdmin(prevState: any, formData: FormData) {
     const totalPrice = Number(rawData.totalPrice)
     const paidAmount = Number(rawData.paidAmount)
     const paymentStatus = calculatePaymentStatus(totalPrice, paidAmount)
-    const allowCheckinOnDepartureDay = ADMIN_ALLOW_CHECKIN_ON_DEPARTURE_DAY
+    const allowCheckinOnDepartureDay = await getAllowCheckinOnDepartureDay()
     const propertyId = rawData.propertyId as string
     const startDate = new Date(rawData.startDate as string)
     const endDate = new Date(rawData.endDate as string)
@@ -289,7 +296,7 @@ export async function updateBookingAction(prevState: any, formData: FormData) {
     const totalPrice = Number(rawData.totalPrice)
     const paidAmount = Number(rawData.paidAmount)
     const paymentStatus = calculatePaymentStatus(totalPrice, paidAmount)
-    const allowCheckinOnDepartureDay = ADMIN_ALLOW_CHECKIN_ON_DEPARTURE_DAY
+    const allowCheckinOnDepartureDay = await getAllowCheckinOnDepartureDay()
     const propertyId = rawData.propertyId as string
     const startDate = new Date(rawData.startDate as string)
     const endDate = new Date(rawData.endDate as string)
@@ -393,7 +400,7 @@ export async function calculatePriceAction(
 
 export async function getUnavailableDatesForBlocking(propertyId: string): Promise<UnavailableDate[]> {
   await dbConnect()
-  const allowCheckinOnDepartureDay = ADMIN_ALLOW_CHECKIN_ON_DEPARTURE_DAY
+  const allowCheckinOnDepartureDay = await getAllowCheckinOnDepartureDay()
 
   if (!propertyId) return []
 
@@ -464,7 +471,7 @@ export async function getBlockedBookings(propertyId?: string): Promise<BlockedBo
 export async function createBlockedBookingByAdmin(data: BlockCreateInput) {
   try {
     await dbConnect()
-    const allowCheckinOnDepartureDay = ADMIN_ALLOW_CHECKIN_ON_DEPARTURE_DAY
+    const allowCheckinOnDepartureDay = await getAllowCheckinOnDepartureDay()
 
     if (!data.propertyId || !data.startDate || !data.endDate) {
       return { success: false, message: 'Wybierz obiekt oraz zakres dat.' }
