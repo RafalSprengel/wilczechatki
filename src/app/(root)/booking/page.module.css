@@ -332,8 +332,9 @@
   font-family: var(--font-body);
 }
 
+
 .seasonLinkButton:hover {
-  color: #6f5300;
+  color: #1e8449;
 }
 
 .seasonPricePanel {

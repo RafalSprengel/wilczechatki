@@ -41,7 +41,7 @@ export default function BookingSearch({ defaultValue }: BookingSearchProps) {
     <div className={styles.bookingSearch}>
       <input
         type="text"
-        placeholder="Szukaj po nazwisku, e-mailu lub numerze"
+        placeholder="Szukaj po nazwisku, e-mailu lub numerze zamówienia"
         className={styles.bookingSearchInput}
         value={query}
         onChange={(e) => setQuery(e.target.value)}

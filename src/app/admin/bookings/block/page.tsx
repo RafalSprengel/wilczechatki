@@ -51,7 +51,7 @@ export default function BlockBookingsPage() {
     count: 0,
   });
   const [calendarDates, setCalendarDates] = useState<DatesData>({});
-  const [blockedBookings, setBlockedBookings] = useState<BlockedItem[]>([]);
+  const [allBlockedBookings, setAllBlockedBookings] = useState<BlockedItem[]>([]);
   const [adminNotes, setAdminNotes] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingUnavailable, setIsLoadingUnavailable] = useState(false);
@@ -60,14 +60,16 @@ export default function BlockBookingsPage() {
   const [deleteTarget, setDeleteTarget] = useState<BlockedItem | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const loadBlockedBookings = useCallback(async (propertyId?: string) => {
+  const loadBlockedBookings = useCallback(async () => {
     try {
-      const rows = await getBlockedBookings(propertyId);
-      setBlockedBookings(rows);
+      const rows = await getBlockedBookings(); // Zawsze pobieraj wszystkie
+      setAllBlockedBookings(rows);
     } catch (error: any) {
       setErrorMessage(error?.message ?? "Nie udało się pobrać listy blokad.");
     }
   }, []);
+
+
 
   const loadUnavailable = useCallback(async (propertyId: string) => {
     setIsLoadingUnavailable(true);
@@ -103,24 +105,16 @@ export default function BlockBookingsPage() {
 
     load();
   }, [loadBlockedBookings]);
-
   useEffect(() => {
     setBookingDates({ start: null, end: null, count: 0 });
     setErrorMessage(null);
 
     if (!selectedPropertyId) {
       setCalendarDates({});
-      loadBlockedBookings();
-      return;
-    }
-
-    loadUnavailable(selectedPropertyId);
-    if (selectedPropertyId === ALL_PROPERTIES_ID) {
-      loadBlockedBookings();
     } else {
-      loadBlockedBookings(selectedPropertyId);
+      loadUnavailable(selectedPropertyId);
     }
-  }, [selectedPropertyId, loadBlockedBookings, loadUnavailable]);
+  }, [selectedPropertyId, loadUnavailable]);
 
   const handleCreateBlock = async () => {
     if (!selectedPropertyId || !bookingDates.start) {
@@ -132,7 +126,7 @@ export default function BlockBookingsPage() {
 
     const normalizedEndDate =
       bookingDates.end &&
-      dayjs(bookingDates.end).isAfter(dayjs(bookingDates.start), "day")
+        dayjs(bookingDates.end).isAfter(dayjs(bookingDates.start), "day")
         ? bookingDates.end
         : dayjs(bookingDates.start).add(1, "day").format("YYYY-MM-DD");
 
@@ -152,11 +146,7 @@ export default function BlockBookingsPage() {
         setBookingDates({ start: null, end: null, count: 0 });
         setAdminNotes("");
         await loadUnavailable(selectedPropertyId);
-        if (selectedPropertyId === ALL_PROPERTIES_ID) {
-          await loadBlockedBookings();
-        } else {
-          await loadBlockedBookings(selectedPropertyId);
-        }
+        await loadBlockedBookings();
       } else {
         toast.error(result.message);
         setErrorMessage(result.message);
@@ -183,11 +173,7 @@ export default function BlockBookingsPage() {
         if (selectedPropertyId) {
           await loadUnavailable(selectedPropertyId);
         }
-        if (selectedPropertyId && selectedPropertyId !== ALL_PROPERTIES_ID) {
-          await loadBlockedBookings(selectedPropertyId);
-        } else {
-          await loadBlockedBookings();
-        }
+        await loadBlockedBookings();
       } else {
         toast.error(result.message);
         setErrorMessage(result.message);
@@ -327,16 +313,16 @@ export default function BlockBookingsPage() {
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h2 className={styles.cardTitle}>Istniejące blokady</h2>
-          <span className={styles.cardBadge}>{blockedBookings.length}</span>
+          <span className={styles.cardBadge}>{allBlockedBookings.length}</span>
         </div>
 
-        {blockedBookings.length === 0 ? (
+        {allBlockedBookings.length === 0 ? (
           <div className={styles.emptyState}>
             Brak blokad dla wybranego filtra.
           </div>
         ) : (
           <div className={styles.blockList}>
-            {blockedBookings.map((item) => (
+            {allBlockedBookings.map((item) => (
               <article key={item._id} className={styles.blockItem}>
                 <div className={styles.blockMeta}>
                   <strong>{item.propertyName}</strong>

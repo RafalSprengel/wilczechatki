@@ -504,7 +504,7 @@ export default function PriceSettingsForm({
       }));
       toast.error(
         weekdayValidation.message ??
-          "Nieprawidlowe przedzialy dla dni powszednich.",
+        "Nieprawidlowe przedzialy dla dni powszednich.",
       );
       return false;
     }
@@ -593,12 +593,12 @@ export default function PriceSettingsForm({
             priceEntry.prices?.length
               ? priceEntry.prices
               : [
-                  {
-                    minGuests: 1,
-                    maxGuests: 2,
-                    price: priceEntry.previewPrice || 350,
-                  },
-                ],
+                {
+                  minGuests: 1,
+                  maxGuests: 2,
+                  price: priceEntry.previewPrice || 350,
+                },
+              ],
           );
           setCustomExtraBedPrice(
             priceEntry.extraBedPrice ?? DEFAULT_CUSTOM_EXTRA_BED_PRICE,
@@ -720,7 +720,7 @@ export default function PriceSettingsForm({
       setCustomTierErrors(customValidation.errors ?? []);
       toast.error(
         customValidation.message ??
-          "Nieprawidlowe przedzialy custom dla wybranych dni.",
+        "Nieprawidlowe przedzialy custom dla wybranych dni.",
       );
       return false;
     }
@@ -1517,7 +1517,7 @@ export default function PriceSettingsForm({
                   ).map((entry, idx) => (
                     <div key={idx} className={styles.customItem}>
                       <span className={styles.customDate}>
-                        {dayjs(entry.date).format("DD-MM-YYYY")}
+                        {dayjs(entry.date).format("DD.MM.YYYY")}
                       </span>
                       <span className={styles.customPrice}>
                         od {entry.previewPrice} zł

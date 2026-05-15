@@ -11,12 +11,17 @@
 .siteSettings__toggleEdit {
   background: none;
   border: none;
-  color: #3b82f6;
+  color: #3182ce;
   cursor: pointer;
-  font-size: 0.9rem;
-  text-decoration: underline;
+  font-size: 0.85rem;
   padding: 0;
   font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.siteSettings__toggleEdit:hover {
+  color: #2b6cb0;
+  text-decoration: underline;
 }
 
 .siteSettings__form {

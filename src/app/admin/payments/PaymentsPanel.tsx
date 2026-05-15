@@ -114,8 +114,8 @@ export default function PaymentsPanel({
     const rowsByMode =
       mode === "online"
         ? rows.filter((row) =>
-            statusFilter === "all" ? true : row.status === statusFilter,
-          )
+          statusFilter === "all" ? true : row.status === statusFilter,
+        )
         : rows;
 
     if (mode !== "online") {
@@ -225,7 +225,7 @@ export default function PaymentsPanel({
               type="text"
               value={orderSearch}
               onChange={(event) => setOrderSearch(event.target.value)}
-              placeholder="Numer zamówienia lub dane gościa"
+              placeholder="Numer zamówienia lub dane klienta"
               className={styles["payments-panel__search-input"]}
             />
           </div>
@@ -284,7 +284,7 @@ export default function PaymentsPanel({
                     {mode === "online" ? (
                       <td>
                         {typeof row.stripeSessionId === "string" &&
-                        row.stripeSessionId.trim().length > 0 ? (
+                          row.stripeSessionId.trim().length > 0 ? (
                           <a
                             href={`https://dashboard.stripe.com/checkout/sessions/${row.stripeSessionId}`}
                             target="_blank"
