@@ -105,6 +105,7 @@ export default function BlockBookingsPage() {
 
     load();
   }, [loadBlockedBookings]);
+
   useEffect(() => {
     setBookingDates({ start: null, end: null, count: 0 });
     setErrorMessage(null);
@@ -127,7 +128,7 @@ export default function BlockBookingsPage() {
     const normalizedEndDate =
       bookingDates.end &&
         dayjs(bookingDates.end).isAfter(dayjs(bookingDates.start), "day")
-        ? bookingDates.end
+        ? dayjs(bookingDates.end).add(1, "day").format("YYYY-MM-DD")
         : dayjs(bookingDates.start).add(1, "day").format("YYYY-MM-DD");
 
     setIsSubmitting(true);
@@ -327,8 +328,9 @@ export default function BlockBookingsPage() {
                 <div className={styles.blockMeta}>
                   <strong>{item.propertyName}</strong>
                   <span>
-                    {new Date(item.startDate).toLocaleDateString("pl-PL")} -{" "}
-                    {new Date(item.endDate).toLocaleDateString("pl-PL")}
+                    {dayjs(item.endDate).diff(dayjs(item.startDate), "day") === 1
+                      ? formatDisplayDate(item.startDate)
+                      : `${formatDisplayDate(item.startDate)} – ${formatDisplayDate(dayjs(item.endDate).subtract(1, "day").toISOString())}`}
                   </span>
                   {item.adminNotes && <small>{item.adminNotes}</small>}
                 </div>

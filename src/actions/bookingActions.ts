@@ -246,7 +246,7 @@ export async function getBlockedDates(): Promise<{ date: string }[]> {
           { status: 'pending' },
         ],
       })
-        .select('startDate endDate')
+        .select('startDate endDate status')
         .lean()
       : bookingsForCleanup;
 
@@ -256,17 +256,25 @@ export async function getBlockedDates(): Promise<{ date: string }[]> {
       const start = dayjs(booking.startDate).utc();
       const end = dayjs(booking.endDate).utc();
 
-      // Dni w pełni zajęte: od start+1 do end-1 (włącznie)
-      let current = start.add(1, 'day');
-      while (current.isBefore(end, 'day')) {
-        blockedSet.add(current.format('YYYY-MM-DD'));
-        current = current.add(1, 'day');
-      }
+      if (booking.status === 'blocked') {
+        // Admin block: cały okres jest niedostępny — żadnych wymeldowań ani zameldowań
+        let current = start;
+        while (current.isBefore(end, 'day')) {
+          blockedSet.add(current.format('YYYY-MM-DD'));
+          current = current.add(1, 'day');
+        }
+      } else {
+        // Zwykła rezerwacja: środkowe dni zajęte, start i koniec to "pół dnia" (zameldowanie/wymeldowanie)
+        let current = start.add(1, 'day');
+        while (current.isBefore(end, 'day')) {
+          blockedSet.add(current.format('YYYY-MM-DD'));
+          current = current.add(1, 'day');
+        }
 
-      // Jeśli nie pozwalamy na zameldowanie w dniu zameldowania i wymeldowania
-      if (!allowCheckinOnDepartureDay) {
-        blockedSet.add(end.format('YYYY-MM-DD'));
-        blockedSet.add(start.format('YYYY-MM-DD'));
+        if (!allowCheckinOnDepartureDay) {
+          blockedSet.add(end.format('YYYY-MM-DD'));
+          blockedSet.add(start.format('YYYY-MM-DD'));
+        }
       }
     }
 

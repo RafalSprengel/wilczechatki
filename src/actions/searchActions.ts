@@ -339,16 +339,22 @@ export async function searchAction(params: SearchParams): Promise<SearchResults>
     const allowCheckinOnDepartureDay = bookingConfig?.allowCheckinOnDepartureDay ?? true;
     const overlapCondition = buildBookingOverlapFilter(start.toDate(), end.toDate(), allowCheckinOnDepartureDay);
 
-    const overlappingBookings = await Booking.find({  //return list of bookings reservations (not overy single day)  that overlap with searched date range
-      $or: [
-        { status: 'blocked' },
-        { status: 'confirmed' },
-        { status: 'pending' },
-      ],
-      ...overlapCondition,
-    })
-      .select('_id propertyId status createdAt stripeSessionId source adminNotes')
-      .lean();
+    // Blokady admina: używamy ścisłego filtru ($lte) — wymeldowanie w dniu blokady jest niedozwolone
+    const blockedOverlapCondition = {
+      startDate: { $lte: end.toDate() },
+      endDate: { $gt: start.toDate() },
+    };
+
+    const [blockedConflicts, regularConflicts] = await Promise.all([
+      Booking.find({ status: 'blocked', ...blockedOverlapCondition })
+        .select('_id propertyId status createdAt stripeSessionId source adminNotes')
+        .lean(),
+      Booking.find({ $or: [{ status: 'confirmed' }, { status: 'pending' }], ...overlapCondition })
+        .select('_id propertyId status createdAt stripeSessionId source adminNotes')
+        .lean(),
+    ]);
+
+    const overlappingBookings = [...blockedConflicts, ...regularConflicts];
     //console.log(overlappingBookings);
     const { occupiedPropertyIds } = await resolveOccupiedPropertyIdsFromBookings(overlappingBookings);
 

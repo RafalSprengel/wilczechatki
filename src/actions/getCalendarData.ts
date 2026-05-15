@@ -146,23 +146,32 @@ export async function getCalendarData(daysInMonth: number, startDateStr: string)
         dayjs.utc(b.endDate).isAfter(currentDate, 'day')
       );
 
+      // Dla blokad admina: dzień startDate traktujemy jako pełną blokadę (nie "półdniowe" IN),
+      // a dzień endDate ignorujemy (to tylko techniczny koniec zakresu, nie realne wymeldowanie).
+      const arrivingIsBlock = arriving?.status === 'blocked';
+      const departingIsBlock = departing?.status === 'blocked';
+
+      const effectiveStaying = staying ?? (arrivingIsBlock ? arriving : undefined);
+      const effectiveArriving = arrivingIsBlock ? undefined : arriving;
+      const effectiveDeparting = departingIsBlock ? undefined : departing;
+
       let cell: CalendarCell = { status: 'free' };
 
-      if (departing && arriving) {
+      if (effectiveDeparting && effectiveArriving) {
         cell = { 
           status: 'check-out-in', 
-          checkoutDetails: mapBookingDetails(departing), 
-          checkinDetails: mapBookingDetails(arriving) 
+          checkoutDetails: mapBookingDetails(effectiveDeparting), 
+          checkinDetails: mapBookingDetails(effectiveArriving) 
         };
-      } else if (staying) {
+      } else if (effectiveStaying) {
         cell = { 
-          status: staying.status === 'blocked' ? 'blocked_sys' : 'booked', 
-          details: mapBookingDetails(staying) 
+          status: effectiveStaying.status === 'blocked' ? 'blocked_sys' : 'booked', 
+          details: mapBookingDetails(effectiveStaying) 
         };
-      } else if (arriving) {
-        cell = { status: 'check-in', checkinDetails: mapBookingDetails(arriving) };
-      } else if (departing) {
-        cell = { status: 'check-out', checkoutDetails: mapBookingDetails(departing) };
+      } else if (effectiveArriving) {
+        cell = { status: 'check-in', checkinDetails: mapBookingDetails(effectiveArriving) };
+      } else if (effectiveDeparting) {
+        cell = { status: 'check-out', checkoutDetails: mapBookingDetails(effectiveDeparting) };
       }
 
       dayData.cabins[propertyId] = cell;
