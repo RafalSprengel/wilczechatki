@@ -557,10 +557,7 @@
   }
 
   .toggleWrapper {
-    align-items: flex-start;
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 12px;
+    align-items: center;
   }
 
   .toggleStatusLabel {
@@ -618,7 +615,6 @@
   }
 
   .settingControl {
-    width: auto;
     min-width: 300px;
     padding-left: 20px;
     border-left: 1px solid var(--color-border);
@@ -635,5 +631,9 @@
 @media (min-width: 982px) {
   .settingRow {
     flex-direction: row;
+  }
+
+  .settingControl {
+    width: auto;
   }
 }
