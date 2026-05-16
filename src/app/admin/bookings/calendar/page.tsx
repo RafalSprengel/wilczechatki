@@ -93,7 +93,7 @@ const BookingTooltip = ({ details }: { details: BookingDetails }) => {
           <span className={styles.valueText}>{details.guestEmail}</span>
         </div>
         <div className={styles.tooltipRow}>
-          <span className={styles.label}>📞 Tel.:</span>
+          <span className={styles.label}>📞 Telefon:</span>
           <span className={styles.valueText}>{details.guestPhone}</span>
         </div>
       </div>

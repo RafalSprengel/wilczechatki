@@ -109,42 +109,43 @@ export default async function Services() {
             <div className={styles.container}>
                 <header className={styles.header}>
                     <h2 className={styles.title}>Nasza oferta</h2>
-                    <div className={styles.introText}>
-                        <p>
-                            Oferujemy dwa przytulne domki o powierzchni 35 m² każdy. Każdy domek komfortowo mieści 6 osób
-                            (z możliwością 2 dodatkowych dostawek). Częścią wspólną dla obu obiektów jest zamknięta altana,
-                            wyposażona w 4-5 osobową saunę infrared oraz jacuzzi ogrzewane drewnem (drewno wliczone w cenę), wraz z dwoma dużymi biesiadnymi stołami.
-                        </p>
-                        <p>
-                            Na tarasie każdego domku znajduje się grill oraz stół. Do dyspozycji gości oddajemy również
-                            plac zabaw dla dzieci wyposażony w huśtawkę, trampolinę, zjeżdżalnię oraz hamaki.
-                            Wnętrze każdego domku obejmuje aneks kuchenny, łazienkę oraz dwa pokoje na poddaszu:
-                            jeden z łóżkiem małżeńskim, drugi z dwoma łóżkami pojedynczymi.
-                        </p>
-                    </div>
-
-                    <div className={styles.equipment}>
-                        <h3>Wyposażenie każdego domku:</h3>
-                        <ul className={styles.equipmentList}>
-                            <li>Kuchenka indukcyjna z piekarnikiem</li>
-                            <li>Lodówka</li>
-                            <li>Zmywarka</li>
-                            <li>Zastawa kuchenna, garnki, patelnie, toster</li>
-                            <li>Pralka</li>
-                            <li>TV i WiFi</li>
-                            <li>Stół dla 6 osób i rozkładana 2-osobowa kanapa w salonie</li>
-                            <li>Klimatyzacja</li>
-                            <li>Suszarka do włosów i ubrań</li>
-                            <li>Ręczniki</li>
-                            <li>Kosmetyki i środki higieniczne</li>
-                            <li>Odkurzacz</li>
-                            <li>Kawa i herbata</li>
-                        </ul>
-                    </div>
                 </header>
+                <div className={styles.description}>
+                    <p>
+                        Oferujemy dwa przytulne domki o powierzchni 35 m² każdy. Każdy domek komfortowo mieści 6 osób
+                        (z możliwością 2 dodatkowych dostawek). Częścią wspólną dla obu obiektów jest zamknięta altana,
+                        wyposażona w 4-5 osobową saunę infrared oraz jacuzzi ogrzewane drewnem (drewno wliczone w cenę), wraz z dwoma dużymi biesiadnymi stołami.
+                    </p>
+                    <p>
+                        Na tarasie każdego domku znajduje się grill oraz stół. Do dyspozycji gości oddajemy również
+                        plac zabaw dla dzieci wyposażony w huśtawkę, trampolinę, zjeżdżalnię oraz hamaki.
+                        Wnętrze każdego domku obejmuje aneks kuchenny, łazienkę oraz dwa pokoje na poddaszu:
+                        jeden z łóżkiem małżeńskim, drugi z dwoma łóżkami pojedynczymi.
+                    </p>
+                </div>
+
+                <div className={styles.equipment}>
+                    <h3>Wyposażenie każdego domku:</h3>
+                    <ul className={styles.equipmentList}>
+                        <li>Kuchenka indukcyjna z piekarnikiem</li>
+                        <li>Lodówka</li>
+                        <li>Zmywarka</li>
+                        <li>Zastawa kuchenna, garnki, patelnie, toster</li>
+                        <li>Pralka</li>
+                        <li>TV i WiFi</li>
+                        <li>Stół dla 6 osób i rozkładana 2-osobowa kanapa w salonie</li>
+                        <li>Klimatyzacja</li>
+                        <li>Suszarka do włosów i ubrań</li>
+                        <li>Ręczniki</li>
+                        <li>Kosmetyki i środki higieniczne</li>
+                        <li>Odkurzacz</li>
+                        <li>Kawa i herbata</li>
+                    </ul>
+                </div>
+
 
                 <div id="pricing" className={styles.grid}>
-                   <div className={`${styles.card} ${styles.pricingCard}`}>
+                    <div className={`${styles.card} ${styles.pricingCard}`}>
                         <h3>Cennik za dobę:</h3>
                         <div className={styles.priceGroup}>
                             <h4>W tygodniu</h4>
