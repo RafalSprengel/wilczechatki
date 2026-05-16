@@ -43,7 +43,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  width: 110px;
+  min-width: 100%;
 }
 
 .bedIcon,
@@ -873,5 +873,16 @@
     justify-content: center;
     font-size: 0.9rem;
     padding: 10px 16px;
+  }
+
+}
+
+@media (min-width: 600px) {
+  .extraBedsHeader {
+    /* display: flex;
+  align-items: center;
+  gap: 5px; */
+    min-width: auto;
+    flex: 1;
   }
 }

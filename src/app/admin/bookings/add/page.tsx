@@ -295,8 +295,6 @@ export default function AddBookingPage() {
     if (!invoiceData.street.trim()) errors.street = "Wymagane";
     if (!invoiceData.postalCode.trim()) {
       errors.postalCode = "Wymagane";
-    } else if (!/^\d{2}-\d{3}$/.test(invoiceData.postalCode)) {
-      errors.postalCode = "Format XX-XXX";
     }
     if (!invoiceData.city.trim()) errors.city = "Wymagane";
     setInvoiceErrors(errors);
