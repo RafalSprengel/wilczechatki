@@ -123,29 +123,27 @@ export default async function Services() {
                         jeden z łóżkiem małżeńskim, drugi z dwoma łóżkami pojedynczymi.
                     </p>
                 </div>
+                <div className={styles.grid}>
 
-                <div className={styles.equipment}>
-                    <h3>Wyposażenie każdego domku:</h3>
-                    <ul className={styles.equipmentList}>
-                        <li>Kuchenka indukcyjna z piekarnikiem</li>
-                        <li>Lodówka</li>
-                        <li>Zmywarka</li>
-                        <li>Zastawa kuchenna, garnki, patelnie, toster</li>
-                        <li>Pralka</li>
-                        <li>TV i WiFi</li>
-                        <li>Stół dla 6 osób i rozkładana 2-osobowa kanapa w salonie</li>
-                        <li>Klimatyzacja</li>
-                        <li>Suszarka do włosów i ubrań</li>
-                        <li>Ręczniki</li>
-                        <li>Kosmetyki i środki higieniczne</li>
-                        <li>Odkurzacz</li>
-                        <li>Kawa i herbata</li>
-                    </ul>
-                </div>
-
-
-                <div id="pricing" className={styles.grid}>
-                    <div className={`${styles.card} ${styles.pricingCard}`}>
+                    <div className={styles.equipment+' '+styles.gridFirstRow}>
+                        <h3>Wyposażenie każdego domku:</h3>
+                        <ul className={styles.equipmentList}>
+                            <li>Kuchenka indukcyjna z piekarnikiem</li>
+                            <li>Lodówka</li>
+                            <li>Zmywarka</li>
+                            <li>Zastawa kuchenna, garnki, patelnie, toster</li>
+                            <li>Pralka</li>
+                            <li>TV i WiFi</li>
+                            <li>Stół dla 6 osób i rozkładana 2-osobowa kanapa w salonie</li>
+                            <li>Klimatyzacja</li>
+                            <li>Suszarka do włosów i ubrań</li>
+                            <li>Ręczniki</li>
+                            <li>Kosmetyki i środki higieniczne</li>
+                            <li>Odkurzacz</li>
+                            <li>Kawa i herbata</li>
+                        </ul>
+                    </div>
+                    <div id="pricing" className={`${styles.card} ${styles.pricingCard}`}>
                         <h3>Cennik za dobę:</h3>
                         <div className={styles.priceGroup}>
                             <h4>W tygodniu</h4>

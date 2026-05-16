@@ -35,7 +35,7 @@
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    margin-bottom: 40px;
+    margin-bottom: 10px;
 }
 
 .equipment h3 {
@@ -68,9 +68,9 @@
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: 1fr;
     gap: 30px;
-    scroll-margin-top: 70px;
+    max-width: 1200px;
 }
 
 .card {
@@ -161,5 +161,13 @@
 
     .featuresCard {
         order: 2;
+    }
+
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .gridFirstRow {
+        grid-column: 1 / -1;
     }
 }
