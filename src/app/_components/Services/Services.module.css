@@ -133,6 +133,14 @@
     color: #555;
 }
 
+.pricingCard {
+    order: 2;
+}
+
+.featuresCard {
+    order: 1;
+}
+
 @media (min-width: 768px) {
     .title {
         margin-bottom: 50px;
@@ -145,5 +153,13 @@
 
     .equipmentList {
         grid-template-columns: 1fr 1fr;
+    }
+
+    .pricingCard {
+        order: 1;
+    }
+
+    .featuresCard {
+        order: 2;
     }
 }

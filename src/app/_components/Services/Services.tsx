@@ -144,7 +144,7 @@ export default async function Services() {
                 </header>
 
                 <div id="pricing" className={styles.grid}>
-                    <div className={styles.card}>
+                   <div className={`${styles.card} ${styles.pricingCard}`}>
                         <h3>Cennik za dobę:</h3>
                         <div className={styles.priceGroup}>
                             <h4>W tygodniu</h4>
@@ -175,7 +175,7 @@ export default async function Services() {
                         </div>
                     </div>
 
-                    <div className={styles.card}>
+                    <div className={`${styles.card} ${styles.featuresCard}`}>
                         <h3>Główne atrakcje:</h3>
                         <ul className={styles.features}>
                             <li>Chata biesiadna z sauną i jacuzzi oraz dwoma dużymi stołami</li>
