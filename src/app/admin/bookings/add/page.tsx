@@ -66,7 +66,9 @@ export default function AddBookingPage() {
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [extraBeds, setExtraBeds] = useState(0);
-  const [paidAmount, setPaidAmount] = useState(0);
+  const [paidAmount, setPaidAmount] = useState<number | null>(null);
+  const [propertyError, setPropertyError] = useState("");
+  const [paidAmountError, setPaidAmountError] = useState("");
   const [totalPrice, setTotalPrice] = useState(0);
   const [bookingDates, setBookingDates] = useState<BookingDates>({
     start: null,
@@ -93,6 +95,8 @@ export default function AddBookingPage() {
   const [invoiceErrors, setInvoiceErrors] = useState<Record<string, string>>(
     {},
   );
+  const [guestData, setGuestData] = useState({ name: "", email: "", phone: "" });
+  const [guestErrors, setGuestErrors] = useState<Record<string, string>>({});
   const [minBookingDays, setMinBookingDays] = useState(1);
   const [maxBookingDays, setMaxBookingDays] = useState(30);
   const [feedbackModal, setFeedbackModal] = useState<{
@@ -227,7 +231,7 @@ export default function AddBookingPage() {
       });
       formRef.current?.reset();
       setExtraBeds(0);
-      setPaidAmount(0);
+      setPaidAmount(null);
       setTotalPrice(0);
       setBookingDates({ start: null, end: null, count: 0 });
       setAdults(2);
@@ -243,6 +247,10 @@ export default function AddBookingPage() {
         city: "",
       });
       setInvoiceErrors({});
+      setGuestData({ name: "", email: "", phone: "" });
+      setGuestErrors({});
+      setPropertyError("");
+      setPaidAmountError("");
     } else if (state.message && !state.success) {
       setFeedbackModal({
         isOpen: true,
@@ -272,8 +280,13 @@ export default function AddBookingPage() {
   }, [bookingDates, adults, extraBeds, propertySelection]);
 
   const handlePaidAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value) || 0;
-    setPaidAmount(Math.max(0, value));
+    if (paidAmountError) setPaidAmountError("");
+    if (e.target.value === "") {
+      setPaidAmount(null);
+      return;
+    }
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value)) setPaidAmount(Math.max(0, value));
   };
 
   const handleInvoiceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -287,11 +300,7 @@ export default function AddBookingPage() {
   const validateInvoiceData = (): boolean => {
     const errors: Record<string, string> = {};
     if (!invoiceData.companyName.trim()) errors.companyName = "Wymagane";
-    if (!invoiceData.nip.trim()) {
-      errors.nip = "Wymagane";
-    } else if (!/^[\d-]{10,13}$/.test(invoiceData.nip.replace(/-/g, ""))) {
-      errors.nip = "Błędny NIP";
-    }
+    if (!invoiceData.nip.trim()) errors.nip = "Wymagane";
     if (!invoiceData.street.trim()) errors.street = "Wymagane";
     if (!invoiceData.postalCode.trim()) {
       errors.postalCode = "Wymagane";
@@ -307,7 +316,7 @@ export default function AddBookingPage() {
     setSelectedProperty(null);
     setBookingDates({ start: null, end: null, count: 0 });
     setTotalPrice(0);
-    setPaidAmount(0);
+    setPaidAmount(null);
     setAdults(2);
     setChildren(0);
     setExtraBeds(0);
@@ -320,16 +329,45 @@ export default function AddBookingPage() {
       city: "",
     });
     setInvoiceErrors({});
+    setGuestData({ name: "", email: "", phone: "" });
+    setGuestErrors({});
+    setPropertyError("");
+    setPaidAmountError("");
+  };
+
+  const validateGuestData = (): boolean => {
+    const errors: Record<string, string> = {};
+    if (!guestData.name.trim()) errors.name = "Wymagane";
+    if (!guestData.email.trim()) {
+      errors.email = "Wymagane";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestData.email)) {
+      errors.email = "Nieprawidłowy e-mail";
+    }
+    if (!guestData.phone.trim()) errors.phone = "Wymagane";
+    setGuestErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    let hasErrors = false;
+    if (!propertySelection) {
+      setPropertyError("Wybierz obiekt");
+      hasErrors = true;
+    }
     if (!bookingDates.start || !bookingDates.end) {
-      e.preventDefault();
       setFeedbackModal({
         isOpen: true,
         title: "Brak terminu",
         message: "Proszę wybrać termin rezerwacji.",
       });
+      hasErrors = true;
+    }
+    if (paidAmount === null) {
+      setPaidAmountError("Wymagane");
+      hasErrors = true;
+    }
+    if (hasErrors) {
+      e.preventDefault();
       return;
     }
     if (wantsInvoice && !validateInvoiceData()) {
@@ -341,13 +379,17 @@ export default function AddBookingPage() {
       });
       return;
     }
+    if (!validateGuestData()) {
+      e.preventDefault();
+      return;
+    }
   };
 
-  const remainingAmount = totalPrice - paidAmount;
+  const remainingAmount = totalPrice - (paidAmount ?? 0);
   const getPaymentBadge = () => {
-    if (paidAmount >= totalPrice && totalPrice > 0)
+    if ((paidAmount ?? 0) >= totalPrice && totalPrice > 0)
       return { text: "Opłacone", class: styles.paymentPaid };
-    if (paidAmount > 0)
+    if (paidAmount !== null && paidAmount > 0)
       return { text: "Zaliczka", class: styles.paymentDeposit };
     return { text: "Nieopłacone", class: styles.paymentUnpaid };
   };
@@ -402,7 +444,7 @@ export default function AddBookingPage() {
         <input type="hidden" name="children" value={children} />
         <input type="hidden" name="extraBedsCount" value={extraBeds} />
         <input type="hidden" name="totalPrice" value={totalPrice} />
-        <input type="hidden" name="paidAmount" value={paidAmount} />
+        <input type="hidden" name="paidAmount" value={paidAmount ?? 0} />
         <input
           type="hidden"
           name="invoice"
@@ -429,10 +471,10 @@ export default function AddBookingPage() {
             <select
               id="propertyId"
               name="propertyId"
-              required
               disabled={isLoadingProperties}
-              onChange={(e) => setPropertySelection(e.target.value)}
+              onChange={(e) => { setPropertySelection(e.target.value); if (propertyError) setPropertyError(""); }}
               value={propertySelection}
+              className={propertyError ? styles.inputError : ""}
             >
               <option value="">
                 {isLoadingProperties ? "Wczytywanie..." : "Wybierz domek"}
@@ -443,6 +485,7 @@ export default function AddBookingPage() {
                 </option>
               ))}
             </select>
+            {propertyError && <span className={styles.errorText}>{propertyError}</span>}
           </div>
 
           <div className={styles.dateBox}>
@@ -574,9 +617,11 @@ export default function AddBookingPage() {
               step="0.01"
               min="0"
               max={totalPrice}
-              value={paidAmount || ""}
+              value={paidAmount ?? ""}
               onChange={handlePaidAmountChange}
+              className={paidAmountError ? styles.inputError : ""}
             />
+            {paidAmountError && <span className={styles.errorText}>{paidAmountError}</span>}
           </div>
 
           <div className={styles.inputGroup}>
@@ -623,6 +668,7 @@ export default function AddBookingPage() {
                 className={invoiceErrors.companyName ? styles.inputError : ""}
                 disabled={!wantsInvoice}
               />
+              {invoiceErrors.companyName && <span className={styles.errorText}>{invoiceErrors.companyName}</span>}
             </div>
             <div className={styles.inputGroup}>
               <label>NIP *</label>
@@ -634,6 +680,7 @@ export default function AddBookingPage() {
                 className={invoiceErrors.nip ? styles.inputError : ""}
                 disabled={!wantsInvoice}
               />
+              {invoiceErrors.nip && <span className={styles.errorText}>{invoiceErrors.nip}</span>}
             </div>
             <div className={styles.inputGroup}>
               <label>Ulica i numer *</label>
@@ -645,6 +692,7 @@ export default function AddBookingPage() {
                 className={invoiceErrors.street ? styles.inputError : ""}
                 disabled={!wantsInvoice}
               />
+              {invoiceErrors.street && <span className={styles.errorText}>{invoiceErrors.street}</span>}
             </div>
             <div className={styles.grid}>
               <div className={styles.inputGroup}>
@@ -658,6 +706,7 @@ export default function AddBookingPage() {
                   maxLength={6}
                   disabled={!wantsInvoice}
                 />
+                {invoiceErrors.postalCode && <span className={styles.errorText}>{invoiceErrors.postalCode}</span>}
               </div>
               <div className={styles.inputGroup}>
                 <label>Miejscowość *</label>
@@ -669,6 +718,7 @@ export default function AddBookingPage() {
                   className={invoiceErrors.city ? styles.inputError : ""}
                   disabled={!wantsInvoice}
                 />
+                {invoiceErrors.city && <span className={styles.errorText}>{invoiceErrors.city}</span>}
               </div>
             </div>
           </div>
@@ -678,15 +728,39 @@ export default function AddBookingPage() {
         <div className={styles.grid}>
           <div className={styles.inputGroup}>
             <label htmlFor="guestName">Imię i Nazwisko</label>
-            <input id="guestName" name="guestName" type="text" required />
+            <input
+              id="guestName"
+              name="guestName"
+              type="text"
+              value={guestData.name}
+              onChange={(e) => { setGuestData((p) => ({ ...p, name: e.target.value })); if (guestErrors.name) setGuestErrors((p) => ({ ...p, name: "" })); }}
+              className={guestErrors.name ? styles.inputError : ""}
+            />
+            {guestErrors.name && <span className={styles.errorText}>{guestErrors.name}</span>}
           </div>
           <div className={styles.inputGroup}>
             <label htmlFor="guestEmail">E-mail</label>
-            <input id="guestEmail" name="guestEmail" type="email" required />
+            <input
+              id="guestEmail"
+              name="guestEmail"
+              type="email"
+              value={guestData.email}
+              onChange={(e) => { setGuestData((p) => ({ ...p, email: e.target.value })); if (guestErrors.email) setGuestErrors((p) => ({ ...p, email: "" })); }}
+              className={guestErrors.email ? styles.inputError : ""}
+            />
+            {guestErrors.email && <span className={styles.errorText}>{guestErrors.email}</span>}
           </div>
           <div className={styles.inputGroup}>
             <label htmlFor="guestPhone">Telefon</label>
-            <input id="guestPhone" name="guestPhone" type="tel" required />
+            <input
+              id="guestPhone"
+              name="guestPhone"
+              type="tel"
+              value={guestData.phone}
+              onChange={(e) => { setGuestData((p) => ({ ...p, phone: e.target.value })); if (guestErrors.phone) setGuestErrors((p) => ({ ...p, phone: "" })); }}
+              className={guestErrors.phone ? styles.inputError : ""}
+            />
+            {guestErrors.phone && <span className={styles.errorText}>{guestErrors.phone}</span>}
           </div>
         </div>
 
