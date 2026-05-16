@@ -86,7 +86,7 @@ export default function SiteSettingsForm() {
         <h2 className={settingsStyles.cardTitle}>Dane Firmy / Obiektu</h2>
         <span className={settingsStyles.cardBadge}>Globalne</span>
       </div>
-
+      <div><p>Dane te te są wyświetlane na stronie jakoinformacja dla odwiedzających</p></div>
       <div className={styles.siteSettings__editHeader}>
         <button
           type="button"
