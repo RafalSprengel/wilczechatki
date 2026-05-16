@@ -17,6 +17,7 @@ export default function AdminAccountSettings() {
   const [isSaving, setIsSaving] = useState(false)
   const [currentPasswordError, setCurrentPasswordError] = useState<string>('')
   const [newPasswordError, setNewPasswordError] = useState<string>('')
+  const [emailVerificationSentTo, setEmailVerificationSentTo] = useState<string | null>(null)
 
   useEffect(() => {
     if (session?.user) {
@@ -101,11 +102,22 @@ export default function AdminAccountSettings() {
 
         const { error: emailError } = await authClient.changeEmail({
           newEmail: email,
+          callbackURL: '/admin/settings',
         })
         if (emailError) {
-          toast.error(emailError.message)
+          toast.error(emailError.message ?? 'Nie udało się zmienić adresu e-mail.')
           return
         }
+
+        setEmailVerificationSentTo(email)
+        setIsEditing(false)
+        setPassword('')
+        setConfirmPassword('')
+        setCurrentPassword('')
+        setCurrentPasswordError('')
+        setNewPasswordError('')
+        setIsSaving(false)
+        return
       }
 
       if (password.length > 0) {
@@ -148,6 +160,7 @@ export default function AdminAccountSettings() {
   }
 
   const handleToggleEdit = () => {
+    setEmailVerificationSentTo(null)
     if (isEditing) {
       const user = session.user as any
       const u = user.displayUsername !== undefined && user.displayUsername !== null
@@ -176,6 +189,22 @@ export default function AdminAccountSettings() {
         <span className={settingsStyles.cardBadge}>Profil</span>
         <div><p>Dane te nie śa wyświetlane nigdzie na stronie, służą wyłącznie do odzyskiwania loginu i hasła</p></div>
       </div>
+
+      {emailVerificationSentTo && (
+        <div style={{
+          margin: '16px 0',
+          padding: '14px 18px',
+          background: '#f0fdf4',
+          border: '1px solid #86efac',
+          borderRadius: '8px',
+          color: '#166534',
+          fontSize: '0.92rem',
+          lineHeight: '1.5',
+        }}>
+          <strong>Wysłano e-mail weryfikacyjny</strong> na adres <strong>{emailVerificationSentTo}</strong>.<br />
+          Potwierdź zmianę klikając link w e-mailu. Do tego czasu adres pozostaje bez zmian.
+        </div>
+      )}
 
       <div className={styles.accountSettings__editHeader}>
         <button

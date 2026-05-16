@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import dbConnect from "@/db/connection";
 import { sendEmail } from "@/lib/sendEmail";
 import { PasswordReset } from "@/emails/PasswordReset";
+import { EmailVerification } from "@/emails/EmailVerification";
 import { getSiteSettings } from "@/actions/siteSettingsActions";
 import { Db } from "mongodb";
 
@@ -26,6 +27,9 @@ function createAuth(db: Db) {
         },
 
         user: {
+            changeEmail: {
+                enabled: true,
+            },
             additionalFields: {
                 role: {
                     type: "string",
@@ -44,6 +48,22 @@ function createAuth(db: Db) {
         plugins: [
             username()
         ],
+
+        emailVerification: {
+            sendVerificationEmail: async ({ user, url }) => {
+                console.log('[auth] sendVerificationEmail called, to:', user.email, 'url:', url);
+                try {
+                    await sendEmail({
+                        to: user.email,
+                        subject: "Potwierdź nowy adres e-mail - Wilcze Chatki",
+                        react: EmailVerification({ url })
+                    });
+                    console.log('[auth] sendVerificationEmail: email sent OK');
+                } catch (err) {
+                    console.error('[auth] sendVerificationEmail: błąd wysyłki:', err);
+                }
+            }
+        },
 
         secret: process.env.BETTER_AUTH_SECRET,
         trustedOrigins: [
