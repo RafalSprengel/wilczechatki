@@ -47,7 +47,7 @@ export default function AddPropertyForm() {
             <div className={styles.inputGroup}>
               <label htmlFor="slug">Slug (URL)</label>
               <input id="slug" name="slug" type="text" placeholder="chatka-a" pattern="[a-z0-9\-]+" title="Tylko małe litery, cyfry i myślniki" />
-              <small className={styles.hint}>Opcjonalne. Np. chatka-a</small>
+              <small className={styles.hint}>Opcjonalne np. chatka-a.</small>
             </div>
           </div>
           <div className={styles.inputGroup}>
@@ -70,7 +70,7 @@ export default function AddPropertyForm() {
                 defaultValue={4}
                 required
               />
-              <small className={styles.hint}>Maksymalna liczba dorosłych gości</small>
+              <small className={styles.hint}>Maksymalna liczba dorosłych gości.</small>
             </div>
             <div className={styles.inputGroup}>
               <label htmlFor="maxChildren">Max. dzieci *</label>
@@ -83,7 +83,7 @@ export default function AddPropertyForm() {
                 defaultValue={6}
                 required
               />
-              <small className={styles.hint}>Maksymalna liczba dzieci</small>
+              <small className={styles.hint}>Maksymalna liczba dzieci.</small>
             </div>
             <div className={styles.inputGroup}>
               <label htmlFor="maxExtraBeds">Maksymalna liczba dostawek *</label>
@@ -96,7 +96,7 @@ export default function AddPropertyForm() {
                 defaultValue={2}
                 required
               />
-              <small className={styles.hint}>Ile dodatkowych łóżek można dostawić</small>
+              <small className={styles.hint}>Ile dodatkowych łóżek można dostawić.</small>
             </div>
           </div>
         </div>
@@ -106,7 +106,7 @@ export default function AddPropertyForm() {
           <div className={styles.inputGroup}>
             <label htmlFor="images">URL-e zdjęć (oddzielone przecinkiem)</label>
             <textarea id="images" name="images" rows={3} placeholder="/images/chatka-1.jpg, /images/chatka-2.jpg" />
-            <small className={styles.hint}>Wklej ścieżki do zdjęć, oddzielając je przecinkami</small>
+            <small className={styles.hint}>Wklej ścieżki do zdjęć, oddzielając je przecinkami.</small>
           </div>
         </div>
 
