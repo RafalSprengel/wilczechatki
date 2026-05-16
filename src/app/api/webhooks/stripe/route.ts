@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import dbConnect from "@/db/connection";
 import Booking from "@/db/models/Booking";
-import BookingConfirmation from "@/emails/BookingConfirmation";
+import BookingConfirmationToClient from "@/emails/BookingConfirmationToClient";
+import BookingConfirmationToAdmin from "@/emails/BookingConfirmationToAdmin";
 import BookingFailure from "@/emails/BookingFailure";
 import { sendBookingEmail } from "@/lib/sendEmail";
 import { stripe } from "@/lib/stripe";
@@ -118,12 +119,12 @@ export async function POST(request: Request) {
 
       if (booking) {
         try {
-          console.log("[WEBHOOK] Wysyłam maila potwierdzającego rezerwację do:", booking.guestEmail, booking.orderId);
           const siteSettings = await getSiteSettings();
+          console.log("[WEBHOOK] Wysyłam maila potwierdzającego rezerwację do:", booking.guestEmail, booking.orderId);
           await sendBookingEmail({
             to: booking.guestEmail,
             subject: "Potwierdzenie rezerwacji w Wilcze Chatki",
-            react: BookingConfirmation({
+            react: BookingConfirmationToClient({
               customerName: booking.guestName,
               orderNumber: booking.orderId ?? '',
               checkIn: booking.startDate.toISOString().split('T')[0],
@@ -132,7 +133,26 @@ export async function POST(request: Request) {
               siteSettings,
             }),
           });
-          console.log("[WEBHOOK] Mail potwierdzający wysłany");
+          console.log("[WEBHOOK] Mail do klienta wysłany");
+
+          console.log("[WEBHOOK] Wysyłam maila o nowej rezerwacji do admina:", siteSettings.email);
+          if (siteSettings.email) {
+            await sendBookingEmail({
+              to: siteSettings.email,
+              subject: `Nowa rezerwacja: ${booking.guestName} (${booking.orderId})`,
+              react: BookingConfirmationToAdmin({
+                customerName: booking.guestName,
+                orderNumber: booking.orderId ?? '',
+                checkIn: booking.startDate.toISOString().split('T')[0],
+                checkOut: booking.endDate.toISOString().split('T')[0],
+                totalPrice: booking.totalPrice,
+                siteSettings,
+              }),
+            });
+            console.log("[WEBHOOK] Mail do admina wysłany");
+          } else {
+            console.warn("[WEBHOOK] Brak adresu email admina – mail do admina nie został wysłany.");
+          }
         } catch (mailError) {
           console.error("Błąd wysyłki maila potwierdzającego rezerwację:", mailError);
         }
@@ -164,21 +184,21 @@ export async function POST(request: Request) {
       );
     }
 
-    const booking = await Booking.findOne({ _id: objectIds[0] });
-    console.log("[WEBHOOK] Booking do maila (failed):", booking);
+    const failedBooking = await Booking.findOne({ _id: objectIds[0] });
+    console.log("[WEBHOOK] Booking do maila (failed):", failedBooking);
 
-    if (booking) {
+    if (failedBooking) {
       try {
-        console.log("[WEBHOOK] Wysyłam maila o nieudanej płatności do:", booking.guestEmail, booking.orderId);
+        console.log("[WEBHOOK] Wysyłam maila o nieudanej płatności do:", failedBooking.guestEmail, failedBooking.orderId);
         const siteSettings = await getSiteSettings();
         await sendBookingEmail({
-          to: booking.guestEmail,
+          to: failedBooking.guestEmail,
           subject: "Nieudana płatność za rezerwację w Wilcze Chatki",
           react: BookingFailure({
-            customerName: booking.guestName,
-            orderNumber: booking.orderId ?? '',
-            checkIn: booking.startDate.toISOString().split('T')[0],
-            checkOut: booking.endDate.toISOString().split('T')[0],
+            customerName: failedBooking.guestName,
+            orderNumber: failedBooking.orderId ?? '',
+            checkIn: failedBooking.startDate.toISOString().split('T')[0],
+            checkOut: failedBooking.endDate.toISOString().split('T')[0],
             siteSettings,
           }),
         });

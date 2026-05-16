@@ -132,7 +132,7 @@ export default function SiteSettingsForm() {
             </div>
 
             <div className={styles.siteSettings__inputGroup}>
-              <label htmlFor="site-phone-href">Telefon (format: +XXXXXXXXXXX, bez spacji i myślników, np. +48123456789):</label>
+              <label htmlFor="site-phone-href">Telefon w formacie: +XXXXXXXXXXX, bez spacji i myślników, np. +48123456789:</label>
               <input
                 id="site-phone-href"
                 type="text"
