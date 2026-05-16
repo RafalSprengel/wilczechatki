@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { authClient } from '@/lib/auth-client'
 import { toast } from 'react-hot-toast'
+import { changeAdminEmail } from '@/actions/adminEmailActions'
 import styles from './AdminAccountSettings.module.css'
 import settingsStyles from './settings.module.css'
 
@@ -100,12 +101,9 @@ export default function AdminAccountSettings() {
           return
         }
 
-        const { error: emailError } = await authClient.changeEmail({
-          newEmail: email,
-          callbackURL: '/admin/settings',
-        })
-        if (emailError) {
-          toast.error(emailError.message ?? 'Nie udało się zmienić adresu e-mail.')
+        const result = await changeAdminEmail(email)
+        if (!result.success) {
+          toast.error(result.error ?? 'Nie udało się zmienić adresu e-mail.')
           return
         }
 
@@ -201,8 +199,7 @@ export default function AdminAccountSettings() {
           fontSize: '0.92rem',
           lineHeight: '1.5',
         }}>
-          <strong>Wysłano e-mail weryfikacyjny</strong> na adres <strong>{emailVerificationSentTo}</strong>.<br />
-          Potwierdź zmianę klikając link w e-mailu. Do tego czasu adres pozostaje bez zmian.
+          <strong>Adres e-mail został zmieniony</strong> na <strong>{emailVerificationSentTo}</strong>.
         </div>
       )}
 
