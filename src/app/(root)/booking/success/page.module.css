@@ -1,5 +1,5 @@
 .container {
-  min-height: 100vh;
+  min-height: 80dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,7 +12,7 @@
   width: 100%;
   background: white;
   border-radius: 24px;
-  padding: 48px 32px;
+  padding: 30px 25px;
   box-shadow:
     0 10px 25px -5px rgba(0, 0, 0, 0.05),
     0 8px 10px -6px rgba(0, 0, 0, 0.02);
@@ -21,14 +21,14 @@
 }
 
 .iconWrapper {
-  width: 72px;
-  height: 72px;
+  width: 52px;
+  height: 52px;
   background: #41ca5a;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 24px;
+  margin: 0 auto 18px;
   border: 1px solid #dcfce7;
 }
 
@@ -75,7 +75,7 @@
 }
 
 .title {
-  font-size: 1.8rem;
+  font-size: 1.3rem;
   color: #1e293b;
   margin-bottom: 16px;
   font-family: var(--font-heading);
@@ -83,16 +83,16 @@
 }
 
 .message {
-  font-size: 1rem;
+  font-size: 0.85srem;
   color: #475569;
   margin-bottom: 12px;
   line-height: 1.6;
 }
 
 .details {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   color: #64748b;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
   line-height: 1.6;
 }
 
@@ -107,9 +107,10 @@
 
 .infoText {
   color: #475569;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   margin-bottom: 12px;
   line-height: 1.5;
+  text-align: center;
 }
 
 .infoText:last-child {
@@ -150,5 +151,22 @@
 
   .message {
     font-size: 1.05rem;
+  }
+
+  .details {
+    margin-bottom: 32px;
+    font-size: 0.95rem;
+  }
+
+  .iconWrapper {
+    margin: 0 auto 24px;
+  }
+
+  .message {
+    font-size: 1rem;
+  }
+
+  .actions.infoText {
+    font-size: 0.95rem;
   }
 }

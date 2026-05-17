@@ -289,7 +289,6 @@
   transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   background: #f8fafc;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
 }
 
 .invoiceWrapper.expanded {

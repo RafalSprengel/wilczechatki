@@ -97,7 +97,7 @@ export default function SiteSettingsForm() {
       <div className={settingsStyles.cardHeader}>
         <h2 className={settingsStyles.cardTitle}>Dane Firmy / Obiektu</h2>
         <span className={settingsStyles.cardBadge}>Globalne</span>
-        <div><p>Dane te te są wyświetlane na stronie jakoinformacja dla odwiedzających</p></div>
+        <div><p>Dane te są wyświetlane na stronie jako informacja dla odwiedzających</p></div>
       </div>
 
       <div className={styles.siteSettings__editHeader}>
@@ -119,7 +119,7 @@ export default function SiteSettingsForm() {
         ) : (
           <>
             <div className={styles.siteSettings__inputGroup}>
-              <label htmlFor="site-phone-display">Telefon (wyświetlany na stronie www):</label>
+              <label htmlFor="site-phone-display">Telefon:</label>
               <input
                 id="site-phone-display"
                 type="text"

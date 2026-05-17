@@ -1,3 +1,7 @@
+/* ========================================
+   BASE STYLES
+   ======================================== */
+
 .container {
   max-width: 1100px;
   margin: 0 auto;
@@ -68,22 +72,6 @@
   color: #ff5f02;
 }
 
-@media(max-width:450px) {
-  .priorityInfoIcon {
-    width: 20px;
-    height: 20px;
-  }
-}
-
-@media (max-width: 435px) {
-  .priorityInfoChain {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-  }
-
-}
-
 .priorityInfoArrow {
   color: #a0aec0;
 }
@@ -105,14 +93,6 @@
   background-color: #fbfcfd;
   border-bottom: 1px solid #f1f4f8;
   gap: 1rem;
-}
-
-@media (max-width: 600px) {
-  .cardHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 1rem;
-  }
 }
 
 .cardTitle {
@@ -146,14 +126,6 @@
 
 .row:last-child {
   border-bottom: none;
-}
-
-@media (max-width: 1100px) {
-  .row {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1.5rem;
-  }
 }
 
 .rowContext {
@@ -194,14 +166,6 @@
   box-sizing: border-box;
 }
 
-@media (min-width: 1101px) {
-  .control {
-    width: auto;
-    min-width: 450px;
-    align-items: flex-end;
-  }
-}
-
 .select {
   width: 100%;
   padding: 0.6rem 0.75rem;
@@ -239,13 +203,6 @@
   text-decoration: underline;
 }
 
-@media (max-width: 600px) {
-  .copyLink {
-    text-align: left;
-    margin-top: 0.25rem;
-  }
-}
-
 .copyLink:hover:not(:disabled) {
   color: #2b6cb0;
   text-decoration: underline;
@@ -279,31 +236,6 @@
   border: 1px solid #edf2f7;
   transition: all 0.2s;
   position: relative;
-}
-
-@media (max-width: 600px) {
-  .tierRow {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap: 0.75rem;
-    padding: 1rem;
-    align-items: end;
-  }
-
-  .tierField:nth-child(3) {
-    grid-column: span 2;
-  }
-
-  .currency {
-    grid-column: 3;
-    grid-row: 2;
-    padding-bottom: 0.5rem;
-  }
-
-  .removeBtn {
-    background: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
 }
 
 .tierRowError {
@@ -489,7 +421,6 @@
   font-family: var(--font-body);
 }
 
-
 .btnOk {
   background-color: #16a34a;
   color: #fff;
@@ -596,4 +527,85 @@
 /* Override for Mantine Calendar if needed */
 .calendarWrapper :global(.mantine-DatePickerInput-input) {
   border-radius: 8px;
+}
+
+
+/* ========================================
+   MEDIA QUERIES (grupowane według breakpointów)
+   ======================================== */
+
+/* ── ≤ 435px ───────────────────────────── */
+@media (max-width: 435px) {
+  .priorityInfoChain {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+}
+
+/* ── ≤ 450px ───────────────────────────── */
+@media (max-width: 450px) {
+  .priorityInfoIcon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .floatingBar {
+    padding: 5px;
+  }
+}
+
+/* ── ≤ 600px ───────────────────────────── */
+@media (max-width: 600px) {
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .copyLink {
+    text-align: left;
+    margin-top: 0.25rem;
+  }
+
+  .tierRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.75rem;
+    padding: 1rem;
+    align-items: end;
+  }
+
+  .tierField:nth-child(3) {
+    grid-column: span 2;
+  }
+
+  .currency {
+    grid-column: 3;
+    grid-row: 2;
+    padding-bottom: 0.5rem;
+  }
+
+  .removeBtn {
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* ── ≤ 1100px ──────────────────────────── */
+@media (max-width: 1100px) {
+  .row {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+}
+
+/* ── ≥ 1101px ──────────────────────────── */
+@media (min-width: 1101px) {
+  .control {
+    width: auto;
+    min-width: 450px;
+    align-items: flex-end;
+  }
 }

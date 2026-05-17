@@ -185,7 +185,7 @@ export default function AdminAccountSettings() {
       <div className={settingsStyles.cardHeader}>
         <h2 className={settingsStyles.cardTitle}>Dane Administratora</h2>
         <span className={settingsStyles.cardBadge}>Profil</span>
-        <div><p>Dane te nie śa wyświetlane nigdzie na stronie, służą wyłącznie do odzyskiwania loginu i hasła</p></div>
+        <div><p>Dane te nie są wyświetlane nigdzie na stronie, służą wyłącznie do logowania do panelu admina.</p></div>
       </div>
 
       {emailVerificationSentTo && (

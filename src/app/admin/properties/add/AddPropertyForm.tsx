@@ -47,7 +47,7 @@ export default function AddPropertyForm() {
             <div className={styles.inputGroup}>
               <label htmlFor="slug">Slug (URL)</label>
               <input id="slug" name="slug" type="text" placeholder="chatka-a" pattern="[a-z0-9\-]+" title="Tylko małe litery, cyfry i myślniki" />
-              <small className={styles.hint}>Opcjonalne np. chatka-a.</small>
+              <small className={styles.hint}>Opcjonalne, np. chatka-a.</small>
             </div>
           </div>
           <div className={styles.inputGroup}>
@@ -73,7 +73,7 @@ export default function AddPropertyForm() {
               <small className={styles.hint}>Maksymalna liczba dorosłych gości.</small>
             </div>
             <div className={styles.inputGroup}>
-              <label htmlFor="maxChildren">Max. dzieci *</label>
+              <label htmlFor="maxChildren">Max. dzieci (bezpłatnych) *</label>
               <input
                 id="maxChildren"
                 name="maxChildren"
