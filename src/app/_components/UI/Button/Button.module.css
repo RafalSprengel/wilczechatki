@@ -14,14 +14,14 @@
   justify-content: center;
   gap: 8px;
   min-height: 44px;
-  padding: 12px 20px;
+  padding: 6px 20px;
   border: 1px solid var(--button-border);
   border-radius: 8px;
   background: var(--button-bg);
   color: var(--button-color);
   cursor: pointer;
   font-family: var(--font-body);
-  font-size: 1rem;
+  font-size: 0.8rem;
   font-weight: 700;
   line-height: 1.2;
   text-decoration: none;
@@ -111,4 +111,11 @@
   min-height: 54px;
   padding: 16px 30px;
   font-size: 1.05rem;
+}
+
+@media(min-width: 1024px) {
+  .button {
+    font-size: 1.1rem;
+    padding: 12px 20px;
+  }
 }
