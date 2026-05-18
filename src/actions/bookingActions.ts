@@ -83,7 +83,8 @@ export async function createBookingFromDraft(draftData: BookingDraftData) {
     const baseBookingData = {
       startDate: new Date(startDate),
       endDate: new Date(endDate),
-      guestName: `${guestData.firstName} ${guestData.lastName}`,
+      firstName: guestData.firstName,
+      lastName: guestData.lastName,
       guestEmail: guestData.email,
       guestPhone: guestData.phone,
       guestAddress: guestData.address,

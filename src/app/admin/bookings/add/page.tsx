@@ -95,7 +95,7 @@ export default function AddBookingPage() {
   const [invoiceErrors, setInvoiceErrors] = useState<Record<string, string>>(
     {},
   );
-  const [guestData, setGuestData] = useState({ name: "", email: "", phone: "" });
+  const [guestData, setGuestData] = useState({ firstName: "", lastName: "", email: "", phone: "" });
   const [guestErrors, setGuestErrors] = useState<Record<string, string>>({});
   const [minBookingDays, setMinBookingDays] = useState(1);
   const [maxBookingDays, setMaxBookingDays] = useState(30);
@@ -247,7 +247,7 @@ export default function AddBookingPage() {
         city: "",
       });
       setInvoiceErrors({});
-      setGuestData({ name: "", email: "", phone: "" });
+      setGuestData({ firstName: "", lastName: "", email: "", phone: "" });
       setGuestErrors({});
       setPropertyError("");
       setPaidAmountError("");
@@ -329,7 +329,7 @@ export default function AddBookingPage() {
       city: "",
     });
     setInvoiceErrors({});
-    setGuestData({ name: "", email: "", phone: "" });
+    setGuestData({ firstName: "", lastName: "", email: "", phone: "" });
     setGuestErrors({});
     setPropertyError("");
     setPaidAmountError("");
@@ -337,7 +337,8 @@ export default function AddBookingPage() {
 
   const validateGuestData = (): boolean => {
     const errors: Record<string, string> = {};
-    if (!guestData.name.trim()) errors.name = "Wymagane";
+    if (!guestData.firstName.trim()) errors.firstName = "Wymagane";
+    if (!guestData.lastName.trim()) errors.lastName = "Wymagane";
     if (!guestData.email.trim()) {
       errors.email = "Wymagane";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestData.email)) {
@@ -563,10 +564,10 @@ export default function AddBookingPage() {
             <label>Dzieci (bezpłatnie)</label>
             <QuantityPicker
               value={children}
-              onIncrement={() => setChildren((prev) => Math.min(10, prev + 1))}
+              onIncrement={() => setChildren((prev) => Math.min(selectedProperty?.maxChildren ?? 10, prev + 1))}
               onDecrement={() => setChildren((prev) => Math.max(0, prev - 1))}
               min={0}
-              max={10}
+              max={selectedProperty?.maxChildren ?? 10}
             />
           </div>
 
@@ -727,16 +728,28 @@ export default function AddBookingPage() {
         <div className={styles.sectionTitle}>Dane Gościa</div>
         <div className={styles.grid}>
           <div className={styles.inputGroup}>
-            <label htmlFor="guestName">Imię i Nazwisko</label>
+            <label htmlFor="firstName">Imię</label>
             <input
-              id="guestName"
-              name="guestName"
+              id="firstName"
+              name="firstName"
               type="text"
-              value={guestData.name}
-              onChange={(e) => { setGuestData((p) => ({ ...p, name: e.target.value })); if (guestErrors.name) setGuestErrors((p) => ({ ...p, name: "" })); }}
-              className={guestErrors.name ? styles.inputError : ""}
+              value={guestData.firstName}
+              onChange={(e) => { setGuestData((p) => ({ ...p, firstName: e.target.value })); if (guestErrors.firstName) setGuestErrors((p) => ({ ...p, firstName: "" })); }}
+              className={guestErrors.firstName ? styles.inputError : ""}
             />
-            {guestErrors.name && <span className={styles.errorText}>{guestErrors.name}</span>}
+            {guestErrors.firstName && <span className={styles.errorText}>{guestErrors.firstName}</span>}
+          </div>
+          <div className={styles.inputGroup}>
+            <label htmlFor="lastName">Nazwisko</label>
+            <input
+              id="lastName"
+              name="lastName"
+              type="text"
+              value={guestData.lastName}
+              onChange={(e) => { setGuestData((p) => ({ ...p, lastName: e.target.value })); if (guestErrors.lastName) setGuestErrors((p) => ({ ...p, lastName: "" })); }}
+              className={guestErrors.lastName ? styles.inputError : ""}
+            />
+            {guestErrors.lastName && <span className={styles.errorText}>{guestErrors.lastName}</span>}
           </div>
           <div className={styles.inputGroup}>
             <label htmlFor="guestEmail">E-mail</label>

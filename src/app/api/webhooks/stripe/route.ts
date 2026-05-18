@@ -120,12 +120,13 @@ export async function POST(request: Request) {
       if (booking) {
         try {
           const siteSettings = await getSiteSettings();
+          const customerName = `${booking.firstName || ''} ${booking.lastName || ''}`.trim();
           console.log("[WEBHOOK] Wysyłam maila potwierdzającego rezerwację do:", booking.guestEmail, booking.orderId);
           await sendBookingEmail({
             to: booking.guestEmail,
             subject: "Potwierdzenie rezerwacji w Wilcze Chatki",
             react: BookingConfirmationToClient({
-              customerName: booking.guestName,
+              customerName,
               orderNumber: booking.orderId ?? '',
               checkIn: booking.startDate.toISOString().split('T')[0],
               checkOut: booking.endDate.toISOString().split('T')[0],
@@ -139,9 +140,9 @@ export async function POST(request: Request) {
           if (siteSettings.email) {
             await sendBookingEmail({
               to: siteSettings.email,
-              subject: `Nowa rezerwacja: ${booking.guestName} (${booking.orderId})`,
+              subject: `Nowa rezerwacja: ${customerName} (${booking.orderId})`,
               react: BookingConfirmationToAdmin({
-                customerName: booking.guestName,
+                customerName,
                 orderNumber: booking.orderId ?? '',
                 checkIn: booking.startDate.toISOString().split('T')[0],
                 checkOut: booking.endDate.toISOString().split('T')[0],
@@ -195,12 +196,12 @@ export async function POST(request: Request) {
           to: failedBooking.guestEmail,
           subject: "Nieudana płatność za rezerwację w Wilcze Chatki",
           react: BookingFailure({
-            customerName: failedBooking.guestName,
-            orderNumber: failedBooking.orderId ?? '',
-            checkIn: failedBooking.startDate.toISOString().split('T')[0],
-            checkOut: failedBooking.endDate.toISOString().split('T')[0],
-            siteSettings,
-          }),
+              customerName: `${failedBooking.firstName || ''} ${failedBooking.lastName || ''}`.trim(),
+              orderNumber: failedBooking.orderId ?? '',
+              checkIn: failedBooking.startDate.toISOString().split('T')[0],
+              checkOut: failedBooking.endDate.toISOString().split('T')[0],
+              siteSettings,
+            }),
         });
         console.log("[WEBHOOK] Mail o nieudanej płatności wysłany");
       } catch (mailError) {

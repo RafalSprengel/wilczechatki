@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import Button from "@/app/_components/UI/Button/Button";
+import Modal from "@/app/_components/Modal/Modal";
 import styles from "./page.module.css";
 export default function BookingDetailsContent({
   booking,
@@ -13,9 +14,9 @@ export default function BookingDetailsContent({
 }) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   
   const handleDelete = async () => {
-    if (!confirm("Czy na pewno usunąć tę rezerwację?")) return;
     setIsDeleting(true);
     try {
       await onDelete();
@@ -26,6 +27,13 @@ export default function BookingDetailsContent({
       toast.error("Wystąpił błąd podczas usuwania.");
       setIsDeleting(false);
     }
+  };
+
+  const openConfirm = () => setShowConfirm(true);
+  const closeConfirm = () => setShowConfirm(false);
+  const confirmDelete = async () => {
+    await handleDelete();
+    closeConfirm();
   };
   return (
     <>
@@ -43,14 +51,28 @@ export default function BookingDetailsContent({
       </div>
       <div className={styles.actionsBlock}>
         <h3 className={styles.cardTitle}>Strefa niebezpieczna</h3>
-        <Button
-          type="button"
-          variant="danger"
-          onClick={handleDelete}
-          disabled={isDeleting}
-        >
-          {isDeleting ? "⏳ Usuwanie..." : "🗑️ Usuń Rezerwację"}
-        </Button>
+        <>
+          <Button
+            type="button"
+            variant="danger"
+            onClick={openConfirm}
+            disabled={isDeleting}
+          >
+            {isDeleting ? "⏳ Usuwanie..." : "🗑️ Usuń Rezerwację"}
+          </Button>
+          <Modal
+            isOpen={showConfirm}
+            onClose={closeConfirm}
+            onConfirm={confirmDelete}
+            title={"Usuń rezerwację"}
+            confirmText={"Usuń"}
+            cancelText={"Anuluj"}
+            confirmVariant="danger"
+            isLoading={isDeleting}
+          >
+            <p>Czy na pewno usunąć tę rezerwację? Tej operacji nie można cofnąć.</p>
+          </Modal>
+        </>
         <p className={styles.deleteHint}>
           Usunięcie rezerwacji zwolni termin w kalendarzu.
         </p>

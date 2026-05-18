@@ -15,7 +15,8 @@ export interface AdminPaymentRow {
   id: string
   orderId?: string
   createdAt: string
-  guestName: string
+  firstName?: string
+  lastName?: string
   totalPrice: number
   paymentMethod: PaymentMethod
   status: string
@@ -36,9 +37,12 @@ function normalizePaymentRow(row: Record<string, unknown>): AdminPaymentRow {
     throw new Error('Brak daty utworzenia rezerwacji podczas mapowania płatności.')
   }
 
-  if (typeof row.guestName !== 'string' || row.guestName.trim().length === 0) {
-    throw new Error('Brak poprawnej nazwy klienta podczas mapowania płatności.')
+  const createdAtValue = row.createdAt
+  if (typeof createdAtValue !== 'string' && typeof createdAtValue !== 'number' && !(createdAtValue instanceof Date)) {
+    throw new Error('Nieprawidłowy typ daty utworzenia rezerwacji podczas mapowania płatności.')
   }
+
+  // Accept either structured names or legacy guestName string
 
   if (typeof row.totalPrice !== 'number') {
     throw new Error('Brak poprawnej kwoty rezerwacji podczas mapowania płatności.')
@@ -54,8 +58,9 @@ function normalizePaymentRow(row: Record<string, unknown>): AdminPaymentRow {
 
   const mapped: AdminPaymentRow = {
     id: String(row._id),
-    createdAt: new Date(row.createdAt).toISOString(),
-    guestName: row.guestName,
+    createdAt: new Date(createdAtValue as string | number | Date).toISOString(),
+    firstName: (row.firstName as string) || (typeof row.guestName === 'string' ? (row.guestName as string).split(' ')[0] : undefined),
+    lastName: (row.lastName as string) || (typeof row.guestName === 'string' ? (row.guestName as string).split(' ').slice(1).join(' ') : undefined),
     totalPrice: row.totalPrice,
     paymentMethod: row.paymentMethod,
     status: row.status,
@@ -80,14 +85,14 @@ export async function getAdminPaymentsData(): Promise<AdminPaymentsData> {
       source: 'online',
       status: { $in: ['pending', 'confirmed', 'failed'] },
     })
-      .select('orderId createdAt guestName totalPrice paymentMethod status stripeSessionId')
+      .select('orderId createdAt firstName lastName totalPrice paymentMethod status stripeSessionId')
       .sort({ createdAt: -1 })
       .lean(),
     Booking.find({
       paymentMethod: { $in: ['cash', 'transfer'] },
       status: { $in: ['pending', 'confirmed', 'failed'] },
     })
-      .select('createdAt guestName totalPrice paymentMethod status')
+      .select('createdAt firstName lastName totalPrice paymentMethod status')
       .sort({ createdAt: -1 })
       .lean(),
   ])

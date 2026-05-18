@@ -120,7 +120,7 @@ function validateBookingData(data: any) {
   if (isNaN(totalPrice) || totalPrice < 0) errors.push('Cena całkowita nie może być ujemna')
   const paidAmount = Number(data.paidAmount)
   if (isNaN(paidAmount) || paidAmount < 0) errors.push('Wpłacona kwota nie może być ujemna')
-  if (!data.guestName) errors.push('Należy podać imię i nazwisko gościa')
+  if (!(data.firstName && data.lastName)) errors.push('Należy podać imię i nazwisko gościa')
   if (!data.guestEmail || !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(data.guestEmail)) errors.push('Niepoprawny format adresu email')
   if (!data.guestPhone) errors.push('Należy podać numer telefonu gościa')
   if (data.invoice === 'true') {
@@ -157,12 +157,18 @@ export async function getAdminBookingsList() {
     const totalPrice = Number(booking.totalPrice)
     const paymentStatus = booking.paymentStatus || calculatePaymentStatus(totalPrice, paidAmount)
 
+    // Normalize guest name: build from firstName/lastName
+    const firstName = booking.firstName || ''
+    const lastName = booking.lastName || ''
+
     return {
       ...booking,
       propertyId,
       propertyName: property?.name || 'Domek',
       paidAmount,
       paymentStatus,
+      firstName,
+      lastName,
     }
   })
 
@@ -183,6 +189,8 @@ export async function getBookingById(bookingId: string) {
   const paidAmount = Number((booking as any).paidAmount)
   const totalPrice = Number((booking as any).totalPrice)
   const paymentStatus = (booking as any).paymentStatus || calculatePaymentStatus(totalPrice, paidAmount)
+  const firstName = (booking as any).firstName || ''
+  const lastName = (booking as any).lastName || ''
 
   const normalizedBooking = {
     ...booking,
@@ -190,6 +198,8 @@ export async function getBookingById(bookingId: string) {
     propertyName: property?.name || '',
     paidAmount,
     paymentStatus,
+    firstName,
+    lastName,
   }
 
   return JSON.parse(JSON.stringify(normalizedBooking))
@@ -225,6 +235,27 @@ export async function createBookingByAdmin(prevState: any, formData: FormData) {
       return { message: 'Nieprawidłowy identyfikator obiektu.', success: false }
     }
 
+    // Validate property capacity (prevent admin from creating bookings exceeding limits)
+    const property = await Property.findOne({ _id: propertyId, isActive: true })
+      .select('maxAdults maxChildren maxExtraBeds name')
+      .lean()
+
+    if (!property) {
+      return { message: 'Wybrany obiekt nie istnieje lub jest nieaktywny.', success: false }
+    }
+
+    if (adults > property.maxAdults) {
+      return { message: `Liczba dorosłych (${adults}) przekracza pojemność obiektu "${property.name}" (max ${property.maxAdults}).`, success: false }
+    }
+
+    if (children > property.maxChildren) {
+      return { message: `Liczba dzieci (${children}) przekracza pojemność obiektu "${property.name}" (max ${property.maxChildren}).`, success: false }
+    }
+
+    if (extraBedsCount > property.maxExtraBeds) {
+      return { message: `Liczba dostawek (${extraBedsCount}) przekracza pojemność obiektu "${property.name}" (max ${property.maxExtraBeds}).`, success: false }
+    }
+
     const overlapFilter = buildBookingOverlapFilter(startDate, endDate, allowCheckinOnDepartureDay)
 
     const overlappingBookings = await Booking.find({
@@ -248,7 +279,8 @@ export async function createBookingByAdmin(prevState: any, formData: FormData) {
       propertyId,
       startDate,
       endDate,
-      guestName: rawData.guestName,
+      firstName: rawData.firstName || '',
+      lastName: rawData.lastName || '',
       guestEmail: rawData.guestEmail,
       guestPhone: rawData.guestPhone,
       adults,
@@ -340,7 +372,8 @@ export async function updateBookingAction(prevState: any, formData: FormData) {
       propertyId,
       startDate,
       endDate,
-      guestName: rawData.guestName,
+      firstName: rawData.firstName || '',
+      lastName: rawData.lastName || '',
       guestEmail: rawData.guestEmail,
       guestPhone: rawData.guestPhone,
       adults,
@@ -557,7 +590,8 @@ export async function createBlockedBookingByAdmin(data: BlockCreateInput) {
       propertyId: property._id,
       startDate,
       endDate,
-      guestName: 'Zabl. przez admina',
+      firstName: 'Blokada',
+      lastName: 'admin',
       guestEmail: 'blokada@admin.local',
       guestPhone: '-',
       adults: 1,

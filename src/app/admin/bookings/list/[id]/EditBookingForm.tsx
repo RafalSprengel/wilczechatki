@@ -7,7 +7,8 @@ import Button from "@/app/_components/UI/Button/Button";
 import styles from "./page.module.css";
 
 interface FormData {
-  guestName: string;
+  firstName: string;
+  lastName: string;
   guestEmail: string;
   guestPhone: string;
   adults: number | "";
@@ -32,7 +33,8 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
   };
 
   const initialValues: FormData = {
-    guestName: initialData.guestName ?? initialData.guestInfo?.name ?? "",
+    firstName: initialData.firstName ?? '',
+    lastName: initialData.lastName ?? '',
     guestEmail: initialData.guestEmail ?? initialData.guestInfo?.email ?? "",
     guestPhone: initialData.guestPhone ?? initialData.guestInfo?.phone ?? "",
     adults: initialData.adults ?? 1,
@@ -114,7 +116,8 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
     formData.append("propertyId", initialData.propertyId);
     formData.append("extraBedsCount", String(form.extraBedsCount));
     formData.append("children", String(form.children));
-    formData.append("guestName", form.guestName);
+    formData.append("firstName", form.firstName);
+    formData.append("lastName", form.lastName);
     formData.append("guestEmail", form.guestEmail);
     formData.append("guestPhone", form.guestPhone);
     formData.append("adults", String(form.adults));
@@ -168,10 +171,21 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
 
       <div className={styles.formGrid}>
         <div className={styles.inputGroup}>
-          <label>Imię i Nazwisko</label>
+          <label>Imię</label>
           <input
-            name="guestName"
-            value={form.guestName}
+            name="firstName"
+            value={form.firstName}
+            onChange={handleChange}
+            required
+            readOnly={!isEditing}
+            className={!isEditing ? styles.readOnly : ""}
+          />
+        </div>
+        <div className={styles.inputGroup}>
+          <label>Nazwisko</label>
+          <input
+            name="lastName"
+            value={form.lastName}
             onChange={handleChange}
             required
             readOnly={!isEditing}

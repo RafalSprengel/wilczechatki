@@ -30,12 +30,8 @@ function formatStatus(status: string): string {
 }
 
 function formatMethod(method: "online" | "cash" | "transfer"): string {
-  if (method === "cash") {
-    return "Gotówka";
-  }
-
-  if (method === "transfer") {
-    return "Przelew";
+  if (method === "cash" || method === "transfer") {
+    return "Gotówka / Przelew";
   }
 
   return "Online";
@@ -114,13 +110,9 @@ export default function PaymentsPanel({
     const rowsByMode =
       mode === "online"
         ? rows.filter((row) =>
-          statusFilter === "all" ? true : row.status === statusFilter,
-        )
+            statusFilter === "all" ? true : row.status === statusFilter,
+          )
         : rows;
-
-    if (mode !== "online") {
-      return rowsByMode;
-    }
 
     const normalizedQuery = debouncedSearch.trim().toLowerCase();
 
@@ -132,9 +124,8 @@ export default function PaymentsPanel({
       const orderIdMatch =
         typeof row.orderId === "string" &&
         row.orderId.toLowerCase().includes(normalizedQuery);
-      const guestNameMatch =
-        typeof row.guestName === "string" &&
-        row.guestName.toLowerCase().includes(normalizedQuery);
+      const fullName = `${(row.firstName || '')} ${(row.lastName || '')}`.trim();
+      const guestNameMatch = fullName.length > 0 && fullName.toLowerCase().includes(normalizedQuery);
 
       return orderIdMatch || guestNameMatch;
     });
@@ -213,24 +204,22 @@ export default function PaymentsPanel({
               Wszystkie
             </button>
           </div>
-          <div className={styles["payments-panel__search-wrap"]}>
-            <label
-              htmlFor="orderSearch"
-              className={styles["payments-panel__search-label"]}
-            >
-              Szukaj zamówienia
-            </label>
-            <input
-              id="orderSearch"
-              type="text"
-              value={orderSearch}
-              onChange={(event) => setOrderSearch(event.target.value)}
-              placeholder="Numer zamówienia lub dane klienta"
-              className={styles["payments-panel__search-input"]}
-            />
-          </div>
         </div>
       ) : null}
+
+      <div className={styles["payments-panel__search-wrap"]}>
+        <label htmlFor="orderSearch" className={styles["payments-panel__search-label"]}>
+          Szukaj zamówienia
+        </label>
+        <input
+          id="orderSearch"
+          type="text"
+          value={orderSearch}
+          onChange={(event) => setOrderSearch(event.target.value)}
+          placeholder="Numer zamówienia lub dane klienta"
+          className={styles["payments-panel__search-input"]}
+        />
+      </div>
 
       <div
         className={styles["payments-panel__table-wrap"]}
@@ -274,7 +263,7 @@ export default function PaymentsPanel({
                       <td>{row.orderId ? row.orderId : "Brak numeru"}</td>
                     ) : null}
                     <td>{createdAt.toLocaleString("pl-PL")}</td>
-                    <td>{row.guestName}</td>
+                    <td>{`${row.firstName || ''} ${row.lastName || ''}`.trim()}</td>
                     <td>{row.totalPrice.toFixed(2)} zł</td>
                     {mode === "online" ? (
                       <td>{formatStatus(row.status)}</td>

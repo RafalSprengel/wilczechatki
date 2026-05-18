@@ -18,7 +18,8 @@ dayjs.extend(isSameOrAfter);
 export interface BookingDetails {
   id: string;
   orderId?: string;
-  guestName: string;
+  firstName?: string;
+  lastName?: string;
   guestEmail: string;
   guestPhone: string;
   adminNotes?: string;
@@ -95,10 +96,14 @@ export async function getCalendarData(daysInMonth: number, startDateStr: string)
     const totalPrice = Number(b.totalPrice);
     const paymentStatus = b.paymentStatus || (paidAmount <= 0 ? 'unpaid' : paidAmount < totalPrice ? 'partial_paid' : 'paid');
 
+    const firstName = b.firstName || ''
+    const lastName = b.lastName || ''
+
     return {
       id,
       orderId: typeof b.orderId === 'string' && b.orderId.trim().length > 0 ? b.orderId : undefined,
-      guestName: b.guestName || 'Gość',
+      firstName: firstName || undefined,
+      lastName: lastName || undefined,
       guestEmail: b.guestEmail || '',
       guestPhone: b.guestPhone || '',
       adminNotes: b.adminNotes || '',

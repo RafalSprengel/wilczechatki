@@ -55,9 +55,10 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
     let matchSearch = true;
     if (normalizedOrderQuery.length > 0) {
       const q = normalizedOrderQuery;
+      const fullName = `${(booking.firstName || '').toString()} ${(booking.lastName || '').toString()}`.trim();
       matchSearch =
         (typeof booking.orderId === 'string' && booking.orderId.toLowerCase().includes(q)) ||
-        (typeof booking.guestName === 'string' && booking.guestName.toLowerCase().includes(q)) ||
+        (fullName.length > 0 && fullName.toLowerCase().includes(q)) ||
         (typeof booking.guestEmail === 'string' && booking.guestEmail.toLowerCase().includes(q));
     }
 
@@ -148,7 +149,7 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
                         {start.toLocaleDateString('pl-PL')} - {end.toLocaleDateString('pl-PL')}
                       </span>
                     </div>
-                    <h3 className={styles.guestName}>{formatGuestName(booking.guestName)}</h3>
+                    <h3 className={styles.guestName}>{formatGuestName(`${booking.firstName || ''} ${booking.lastName || ''}`)}</h3>
                     <div className={styles.guestEmail}>{booking.guestEmail || '-'}</div>
                     <div className={styles.propertyName}>{booking.propertyName || 'Domek'}</div>
                     <div className={styles.detailRow}>
@@ -254,7 +255,7 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
                         {start.toLocaleDateString('pl-PL')} - {end.toLocaleDateString('pl-PL')}
                       </span>
                     </div>
-                    <h3 className={styles.guestName}>{booking.guestName || 'Gość'}</h3>
+                    <h3 className={styles.guestName}>{formatGuestName(`${booking.firstName || ''} ${booking.lastName || ''}`) || 'Gość'}</h3>
                     <div className={styles.guestEmail}>{booking.guestEmail || '-'}</div>
                     <div className={styles.propertyName}>{booking.propertyName || 'Domek'}</div>
                     <div className={styles.detailRow}>

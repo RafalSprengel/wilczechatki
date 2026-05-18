@@ -225,6 +225,11 @@
     font-size: 0.6rem;
 }
 
+.badgePending {
+    background: #fff8dc; /* light yellow */
+    color: #814b00; /* dark amber */
+}
+
 .tooltipRow {
     display: flex;
     justify-content: space-between;

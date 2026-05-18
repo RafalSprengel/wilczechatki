@@ -15,7 +15,8 @@ export interface IBooking extends Document {
   startDate: Date;
   endDate: Date;
   orderId?: string;
-  guestName: string;
+  firstName: string;
+  lastName: string;
   guestEmail: string;
   guestPhone: string;
   guestAddress?: string;
@@ -64,10 +65,15 @@ const BookingSchema = new Schema({
     trim: true,
     index: true
   },
-  guestName: {
+  firstName: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+  },
+  lastName: {
+    type: String,
+    required: true,
+    trim: true,
   },
   guestEmail: {
     type: String,

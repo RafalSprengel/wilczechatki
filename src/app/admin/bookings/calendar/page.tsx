@@ -18,7 +18,7 @@ const MONTH_NAMES = [
 
 const BookingTooltip = ({ details }: { details: BookingDetails }) => {
   if (!details) return null
-  const isAdminBlocked = details.status === 'blocked' && details.source === 'admin' && details.guestName === 'Zabl. przez admina'
+  const isAdminBlocked = details.status === 'blocked' && details.source === 'admin'
 
   if (isAdminBlocked) {
     return (
@@ -47,13 +47,14 @@ const BookingTooltip = ({ details }: { details: BookingDetails }) => {
   const isDeposit = details.paidAmount > 0 && !isPaid
   const paymentClass = isPaid ? styles.paymentPaid : isDeposit ? styles.paymentDeposit : styles.paymentUnpaid
   const paymentLabel = isPaid ? 'Opłacone' : isDeposit ? 'Zaliczka' : 'Nieopłacone'
+  const statusBadgeText = details.status === 'confirmed' ? 'POTWIERDZONA' : details.status === 'pending' ? 'Klient jest w trakcie rezerwacji...' : 'ZABLOKOWANA'
   const extraBedsText = details.extraBeds && details.extraBeds > 0 ? `${details.extraBeds} dostawka` : 'brak dostawek'
 
   return (
     <div className={styles.tooltip}>
-      <div className={styles.tooltipHeader}>
-        <h4 className={styles.guestNameText}>{details.guestName}</h4>
-        <span className={styles.badge}>{details.status === 'confirmed' ? 'POTWIERDZONA' : 'ZABLOKOWANA'}</span>
+        <div className={styles.tooltipHeader}>
+        <h4 className={styles.guestNameText}>{`${details.firstName || ''} ${details.lastName || ''}`.trim()}</h4>
+          <span className={`${styles.badge} ${details.status === 'pending' ? styles.badgePending : ''}`}>{statusBadgeText}</span>
       </div>
       <div className={styles.tooltipRow}>
         <span className={styles.label}>🧾 Zamówienie nr:</span>

@@ -48,7 +48,7 @@ export default async function AdminDashboard() {
                 >
                   <span className={styles.dateBadge}>{dateRange}</span>
                   <span className={styles.guestInfo}>
-                    <strong className={styles.guestName}>{booking.guestName}</strong>
+                    <strong className={styles.guestName}>{`${booking.firstName || ''} ${booking.lastName || ''}`}</strong>
                     <span className={styles.detailSep}>•</span>
                     <span className={styles.cabinName}>{booking.propertyName}</span>
                   </span>
