@@ -44,11 +44,11 @@ export default function AddPropertyForm() {
               <label htmlFor="name">Nazwa domku *</label>
               <input id="name" name="name" type="text" required placeholder="np. Chatka A (Wilcza)" />
             </div>
-            <div className={styles.inputGroup}>
+            {/* <div className={styles.inputGroup}> DO NOT REMOVE, IT"S GOING TO BE USE LATER
               <label htmlFor="slug">Slug (URL)</label>
               <input id="slug" name="slug" type="text" placeholder="chatka-a" pattern="[a-z0-9\-]+" title="Tylko małe litery, cyfry i myślniki" />
               <small className={styles.hint}>Opcjonalne, np. chatka-a.</small>
-            </div>
+            </div> */}
           </div>
           <div className={styles.inputGroup}>
             <label htmlFor="description">Opis</label>
@@ -96,19 +96,19 @@ export default function AddPropertyForm() {
                 defaultValue={2}
                 required
               />
-              <small className={styles.hint}>Ile dodatkowych łóżek można dostawić.</small>
+              <small className={styles.hint}>Liczba dodatkowych łóżek, które można dostawić.</small>
             </div>
           </div>
         </div>
 
-        <div className={styles.section}>
+        {/* <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Zdjęcia</h2>
           <div className={styles.inputGroup}>
             <label htmlFor="images">URL-e zdjęć (oddzielone przecinkiem)</label>
             <textarea id="images" name="images" rows={3} placeholder="/images/chatka-1.jpg, /images/chatka-2.jpg" />
             <small className={styles.hint}>Wklej ścieżki do zdjęć, oddzielając je przecinkami.</small>
           </div>
-        </div>
+        </div> */}
 
         <div className={styles.actions}>
           <Button type="button" variant="secondary" onClick={() => router.back()}>Anuluj</Button>

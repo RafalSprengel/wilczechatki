@@ -163,11 +163,11 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
                         <span className={styles.value}>{nights}</span>
                       </div>
                       <div className={styles.detailRow}>
-                        <span className={styles.label}>Dorośli (bezpłatnie):</span>
+                        <span className={styles.label}>Dorośli:</span>
                         <span className={styles.value}>{booking.adults}</span>
                       </div>
                       <div className={styles.detailRow}>
-                        <span className={styles.label}>Dzieci:</span>
+                        <span className={styles.label}>Dzieci (bezpłatnie):</span>
                         <span className={styles.value}>{booking.children}</span>
                       </div>
                       <div className={styles.detailRow}>
@@ -180,7 +180,7 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
                       </div>
                       <div className={styles.detailRow}>
                         <span className={styles.label}>Rodzaj płatności:</span>
-                        <span className={styles.value}>{booking.paymentMethod === 'online' ? 'Online' : booking.paymentMethod === 'cash' ? 'Gotówka' : booking.paymentMethod === 'transfer' ? 'Przelew' : booking.paymentMethod}</span>
+                        <span className={styles.value}>{booking.paymentMethod === 'online' ? 'Online' : 'gotówka / przelew'}</span>
                       </div>
                       {isFullyPaid ? (
                         <div className={styles.detailRow}>
@@ -212,7 +212,7 @@ export default async function BookingsListPage({ searchParams }: BookingsListPag
                       <Button variant='secondary' href={`/admin/bookings/list/${booking._id}`} className={styles.editBtn}>Edytuj</Button>
                     </div>
                     {booking.source === 'admin' && (
-                      <div className={styles.adminBubble}>Rezerwacja dokonana przez panel admina</div>
+                      <div className={styles.adminBubble}>Rezerwacja dokonana przez panel admina.</div>
                     )}
                   </article>
                 );

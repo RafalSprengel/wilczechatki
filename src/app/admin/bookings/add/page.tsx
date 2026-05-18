@@ -560,7 +560,7 @@ export default function AddBookingPage() {
           <div
             className={`${styles.inputGroup} ${!propertySelection || missingLimits ? styles.disabledGroup : ""}`}
           >
-            <label>Dzieci</label>
+            <label>Dzieci (bezpłatnie)</label>
             <QuantityPicker
               value={children}
               onIncrement={() => setChildren((prev) => Math.min(10, prev + 1))}

@@ -78,7 +78,7 @@ export default function EditPropertyForm({
                 placeholder="np. Chatka A (Wilcza)"
               />
             </div>
-            <div className={styles.inputGroup}>
+            {/* <div className={styles.inputGroup}> DO NOT REMOVE, IT"S GOING TO BE USE LATER
               <label htmlFor="slug">Slug (URL)</label>
               <input
                 id="slug"
@@ -90,7 +90,7 @@ export default function EditPropertyForm({
                 title="Tylko małe litery, cyfry i myślniki"
               />
               <small className={styles.hint}>Opcjonalne, np. chatka-a.</small>
-            </div>
+            </div> */}
           </div>
           <div className={styles.inputGroup}>
             <label htmlFor="description">Opis</label>

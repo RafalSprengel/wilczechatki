@@ -1,6 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 import Button from "@/app/_components/UI/Button/Button";
 import styles from "./page.module.css";
 export default function BookingDetailsContent({
@@ -12,26 +13,23 @@ export default function BookingDetailsContent({
 }) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
+  
   const handleDelete = async () => {
     if (!confirm("Czy na pewno usunąć tę rezerwację?")) return;
     setIsDeleting(true);
     try {
       await onDelete();
+      toast.success("Rezerwacja została usunięta.");
       router.push("/admin/bookings/list");
       router.refresh();
     } catch {
-      setDeleteError("Wystąpił błąd podczas usuwania.");
+      toast.error("Wystąpił błąd podczas usuwania.");
       setIsDeleting(false);
     }
   };
   return (
     <>
-      {deleteError && (
-        <div className={`${styles.alert} ${styles.alertError}`}>
-          {deleteError}
-        </div>
-      )}
+      {/* errors shown via toast */}
       <div className={styles.infoBlock}>
         <h3 className={styles.cardTitle}>Podsumowanie</h3>
         <div className={styles.infoRow}>

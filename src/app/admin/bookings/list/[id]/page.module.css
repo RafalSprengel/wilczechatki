@@ -29,6 +29,12 @@
   color: #2563eb;
 }
 
+
+.deleteConfirmButtonWrap {
+  display: block;
+  justify-self: center;
+}
+
 .grid {
   display: flex;
   flex-direction: column;
@@ -273,6 +279,7 @@
     max-width: 1200px;
   }
 }
+
 .formHeader {
   display: flex;
   justify-content: space-between;

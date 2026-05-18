@@ -306,6 +306,15 @@ export async function updateBookingAction(prevState: any, formData: FormData) {
       return { message: 'Nieprawidłowy identyfikator obiektu.', success: false }
     }
 
+   // Prevent manual setting of statuses that are managed automatically
+    const forbiddenStatuses = ['blocked', 'pending', 'failed']
+    if (forbiddenStatuses.includes(status)) {
+      return {
+        message: 'Ręczne ustawianie statusów "blocked", "pending" i "failed" jest niedozwolone. Użyj funkcji blokad lub poczekaj na automatyczną aktualizację.',
+        success: false,
+      }
+    }
+
     if (status === 'confirmed' || status === 'blocked') {
       const overlapFilter = buildBookingOverlapFilter(startDate, endDate, allowCheckinOnDepartureDay)
 

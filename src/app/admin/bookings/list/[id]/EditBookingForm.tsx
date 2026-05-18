@@ -1,6 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 import { updateBookingAction } from "@/actions/adminBookingActions";
 import Button from "@/app/_components/UI/Button/Button";
 import styles from "./page.module.css";
@@ -24,10 +25,6 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  const [message, setMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
 
   const formatDate = (date: any) => {
     if (!date) return "";
@@ -88,7 +85,6 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
     if (isEditing) {
       setForm(originalData);
       setIsSaved(false);
-      setMessage(null);
     }
     setIsEditing(!isEditing);
   };
@@ -96,7 +92,6 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    setMessage(null);
 
     const requiredNumeric = [
       "adults",
@@ -108,10 +103,7 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
     for (const field of requiredNumeric) {
       const val = form[field as keyof FormData];
       if (val === "" || val === null || Number.isNaN(val)) {
-        setMessage({
-          type: "error",
-          text: "Wszystkie pola numeryczne muszą być wypełnione.",
-        });
+        toast.error("Wszystkie pola numeryczne muszą być wypełnione.");
         setIsSaving(false);
         return;
       }
@@ -136,12 +128,12 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
     const result = await updateBookingAction(null, formData);
 
     if (result.success) {
-      setMessage({ type: "success", text: "Zapisano zmiany pomyślnie!" });
+      toast.success("Zapisano zmiany pomyślnie!");
       setOriginalData({ ...form });
       setIsSaved(true);
       router.refresh();
     } else {
-      setMessage({ type: "error", text: result.message || "Wystąpił błąd." });
+      toast.error(result.message || "Wystąpił błąd.");
     }
 
     setIsSaving(false);
@@ -155,13 +147,7 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      {message && (
-        <div
-          className={`${styles.alert} ${message.type === "success" ? styles.alertSuccess : styles.alertError}`}
-        >
-          {message.text}
-        </div>
-      )}
+      {/* message handled via react-hot-toast */}
 
       <div className={styles.formHeader}>
         <div className={styles.formTitleWrap}>
@@ -229,7 +215,7 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
           />
         </div>
         <div className={styles.inputGroup}>
-          <label>Dzieci</label>
+          <label>Dzieci (bezpłatnie)</label>
           <input
             name="children"
             type="number"
@@ -311,11 +297,10 @@ export default function EditBookingForm({ initialData }: { initialData: any }) {
             disabled={!isEditing}
             className={!isEditing ? styles.readOnly : ""}
           >
-            <option value="pending">Oczekująca</option>
+            <option value="pending" disabled>Oczekująca</option>
             <option value="confirmed">Potwierdzona</option>
-            <option value="blocked">Zablokowana</option>
             <option value="cancelled">Anulowana</option>
-            <option value="failed">Odrzucona (failed)</option>
+            <option value="failed" disabled>Odrzucona (failed)</option>
           </select>
         </div>
       </div>
